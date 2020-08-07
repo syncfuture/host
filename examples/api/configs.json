@@ -1,0 +1,19 @@
+{
+    "Log": {
+        "Level": "debug",
+        "DetailLevel": "warn"
+    },
+    "Redis": {
+        "Addrs": ["localhost:6379"],
+        "Password": "Famous901"
+    },
+    "APIServer": {
+        "Name": "hubapi",
+        "PublicKeyPath": "../cert/test.key",
+        "OAuth": {
+            "Issuer": "https://dp.dreamvat.com",
+            "Scopes": ["hubapi.post", "hubapi.user", "hubapi.order"]
+        },
+        "ListenAddr": ":5000"
+    }
+}
