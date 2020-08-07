@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Lukiya/oauth2go/model"
 	jwtgo "github.com/dgrijalva/jwt-go"
 	jwtiris "github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/v12"
@@ -17,26 +18,12 @@ import (
 	"github.com/syncfuture/go/u"
 )
 
-type OAuth2Options struct {
-	Issuer string
-	Scopes []string
-}
-
-func (x *OAuth2Options) HasAudience(audience string) bool {
-	for _, aud := range x.Scopes {
-		if audience == aud {
-			return true
-		}
-	}
-	return false
-}
-
 type APIServerOptions struct {
 	Name             string
 	PublicKeyPath    string
 	ListenAddr       string
-	OAuth            *OAuth2Options
-	SigningAlgorithm jwtgo.SigningMethod
+	SigningAlgorithm string
+	OAuth            *model.Resource
 }
 
 func NewAPIServer(configProvider config.IConfigProvider, options *APIServerOptions) (r *APIServer) {
@@ -46,11 +33,14 @@ func NewAPIServer(configProvider config.IConfigProvider, options *APIServerOptio
 	if options.OAuth == nil {
 		log.Fatal("oauth options cannot be nil")
 	}
-	if options.OAuth.Issuer == "" {
-		log.Fatal("issuer cannot be empty")
+	if options.OAuth.Issuers == nil || len(options.OAuth.Issuers) == 0 {
+		log.Fatal("issuers cannot be empty")
 	}
-	if options.SigningAlgorithm == nil {
-		options.SigningAlgorithm = jwtgo.SigningMethodPS256.SigningMethodRSA
+	if options.OAuth.Scopes == nil || len(options.OAuth.Scopes) == 0 {
+		log.Fatal("scopes cannot be empty")
+	}
+	if options.SigningAlgorithm == "" {
+		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
 	}
 
 	// read public certificate
@@ -63,8 +53,8 @@ func NewAPIServer(configProvider config.IConfigProvider, options *APIServerOptio
 	r = new(APIServer)
 	r.Name = options.Name
 	r.PublicKey = &publicKey
-	r.SigningAlgorithm = options.SigningAlgorithm
-	r.OAuthOptions = options.OAuth
+	r.SigningAlgorithm = jwtgo.GetSigningMethod(options.SigningAlgorithm)
+	r.Resource = options.OAuth
 	r.ListenAddr = options.ListenAddr
 
 	// common setup
@@ -88,7 +78,7 @@ type APIServer struct {
 	PreMiddlewares   []context.Handler
 	ActionMap        *map[string]*Action
 	SigningAlgorithm jwtgo.SigningMethod
-	OAuthOptions     *OAuth2Options
+	Resource         *model.Resource
 }
 
 func (x *APIServer) Init(actionGroups ...*[]*Action) {
@@ -123,21 +113,16 @@ func (x *APIServer) validateToken(token *jwtgo.Token) (interface{}, error) {
 	claims := token.Claims.(jwtiris.MapClaims)
 
 	// Get iss from JWT and validate against desired iss
-	if claims["iss"].(string) != x.OAuthOptions.Issuer {
+	if !x.Resource.HasIssuer(claims["iss"].(string)) {
 		return nil, fmt.Errorf("cannot validate iss claim")
 	}
 
 	// Get audience from JWT and validate against desired audience
 	var isAudienceValid bool
-	if aud, _ := claims["aud"].(string); x.OAuthOptions.HasAudience(aud) {
-		isAudienceValid = true
+	if aud, ok := claims["aud"].(string); ok {
+		isAudienceValid = x.Resource.HasScope(aud)
 	} else if auds, ok := claims["aud"].([]string); ok {
-		for _, aud := range auds {
-			if x.OAuthOptions.HasAudience(aud) {
-				isAudienceValid = true
-				break
-			}
-		}
+		isAudienceValid = x.Resource.HasAnyScopes(auds)
 	}
 
 	if !isAudienceValid {

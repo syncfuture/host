@@ -11,7 +11,7 @@
         "Name": "hubapi",
         "PublicKeyPath": "../cert/test.key",
         "OAuth": {
-            "Issuer": "https://dp.dreamvat.com",
+            "Issuers": ["https://dp.dreamvat.com"],
             "Scopes": ["hubapi.post", "hubapi.user", "hubapi.order"]
         },
         "ListenAddr": ":5000"
