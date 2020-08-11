@@ -5,28 +5,44 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
-	"strings"
 
 	"github.com/Lukiya/oauth2go/model"
 	jwtgo "github.com/dgrijalva/jwt-go"
 	jwtiris "github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/context"
 	"github.com/syncfuture/go/config"
 	"github.com/syncfuture/go/rsautil"
 	"github.com/syncfuture/go/u"
 )
 
-type APIServerOptions struct {
-	Name             string
-	PublicKeyPath    string
-	ListenAddr       string
-	SigningAlgorithm string
-	OAuth            *model.Resource
+type (
+	APIServerOptions struct {
+		IrisBaseServerOptions
+		PublicKeyPath    string
+		SigningAlgorithm string
+		OAuth            *model.Resource
+	}
+
+	APIServer struct {
+		IrisBaseServer
+		PublicKey        *rsa.PublicKey
+		SigningAlgorithm jwtgo.SigningMethod
+		Resource         *model.Resource
+	}
+)
+
+func NewAPIServerOptions(args ...string) *APIServerOptions {
+	cp := config.NewJsonConfigProvider(args...)
+	var options *APIServerOptions
+	cp.GetStruct("APIServer", &options)
+	if options == nil {
+		log.Fatal("missing 'APIServer' section in configuration")
+	}
+	options.ConfigProvider = cp
+	return options
 }
 
-func NewAPIServer(configProvider config.IConfigProvider, options *APIServerOptions) (r *APIServer) {
+func NewAPIServer(options *APIServerOptions) (r *APIServer) {
 	if options.PublicKeyPath == "" {
 		log.Fatal("public key path cannot be empty")
 	}
@@ -43,45 +59,22 @@ func NewAPIServer(configProvider config.IConfigProvider, options *APIServerOptio
 		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
 	}
 
-	// read public certificate
-	// cert, err := rsautil.ReadCertFromFile(options.PublicKeyPath)
-	cert, err := rsautil.ReadPrivateKeyFromFile(options.PublicKeyPath)
-	u.LogFaltal(err)
-	publicKey := cert.PublicKey
-
-	// create pointer
 	r = new(APIServer)
 	r.Name = options.Name
-	r.PublicKey = &publicKey
+	r.configIrisBaseServer(&options.IrisBaseServerOptions)
+
 	r.SigningAlgorithm = jwtgo.GetSigningMethod(options.SigningAlgorithm)
 	r.Resource = options.OAuth
-	r.ListenAddr = options.ListenAddr
 
-	// common setup
-	r.setup(configProvider)
-	if r.URLProvider == nil {
-		log.Fatal("URIProvider cannot be nil")
-	}
-	if r.RoutePermissionProvider == nil {
-		log.Fatal("RoutePermissionProvider cannot be nil")
-	}
-	if r.PermissionAuditor == nil {
-		log.Fatal("PermissionAuditor cannot be nil")
-	}
+	// read public certificate
+	cert, err := rsautil.ReadPrivateKeyFromFile(options.PublicKeyPath)
+	u.LogFaltal(err)
+	r.PublicKey = &cert.PublicKey
 
 	return
 }
 
-type APIServer struct {
-	ServerBase
-	PublicKey        *rsa.PublicKey
-	PreMiddlewares   []context.Handler
-	ActionMap        *map[string]*Action
-	SigningAlgorithm jwtgo.SigningMethod
-	Resource         *model.Resource
-}
-
-func (x *APIServer) Init(actionGroups ...*[]*Action) {
+func (x *APIServer) init(actionGroups ...*[]*Action) {
 	actionMap := make(map[string]*Action)
 
 	for _, actionGroup := range actionGroups {
@@ -132,44 +125,13 @@ func (x *APIServer) validateToken(token *jwtgo.Token) (interface{}, error) {
 	return x.PublicKey, nil
 }
 
-func (x *APIServer) Run() {
+func (x *APIServer) Run(actionGroups ...*[]*Action) {
+	x.init(actionGroups...)
+
 	x.registerActions()
 
 	if x.ListenAddr == "" {
 		log.Fatal("Cannot find 'ListenAddr' config")
 	}
 	x.WebServer.Run(iris.Addr(x.ListenAddr))
-}
-
-func (x *APIServer) registerActions() {
-	for name, action := range *x.ActionMap {
-		handlers := append(x.PreMiddlewares, action.Handler)
-		x.registerAction(name, handlers...)
-	}
-}
-
-func (x *APIServer) registerAction(name string, handlers ...context.Handler) {
-	index := strings.Index(name, "/")
-	method := name[:index]
-	path := name[index:]
-
-	switch method {
-	case http.MethodPost:
-		x.WebServer.Post(path, handlers...)
-		break
-	case http.MethodGet:
-		x.WebServer.Get(path, handlers...)
-		break
-	case http.MethodPut:
-		x.WebServer.Put(path, handlers...)
-		break
-	case http.MethodPatch:
-		x.WebServer.Patch(path, handlers...)
-		break
-	case http.MethodDelete:
-		x.WebServer.Delete(path, handlers...)
-		break
-	default:
-		panic("does not support method " + method)
-	}
 }

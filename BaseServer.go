@@ -1,0 +1,153 @@
+package host
+
+import (
+	"net/http"
+	"strings"
+
+	"github.com/syncfuture/go/config"
+	"github.com/syncfuture/go/security"
+	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/sredis"
+	"github.com/syncfuture/go/surl"
+
+	"github.com/kataras/iris/v12"
+	iriscontext "github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/v12/middleware/logger"
+	"github.com/kataras/iris/v12/middleware/recover"
+	"github.com/kataras/iris/v12/view"
+)
+
+type (
+	Action struct {
+		Route      string
+		Area       string
+		Controller string
+		Action     string
+		Handler    iriscontext.Handler
+	}
+
+	BaseServerOptions struct {
+		Debug                   bool
+		Name                    string
+		ListenAddr              string
+		RedisConfig             *sredis.RedisConfig
+		ConfigProvider          config.IConfigProvider
+		URLProvider             surl.IURLProvider
+		RoutePermissionProvider security.IRoutePermissionProvider
+		PermissionAuditor       security.IPermissionAuditor
+	}
+
+	IrisBaseServerOptions struct {
+		BaseServerOptions
+		ViewEngine view.Engine
+	}
+
+	BaseServer struct {
+		Debug                   bool
+		Name                    string
+		ListenAddr              string
+		ConfigProvider          config.IConfigProvider
+		RedisConfig             *sredis.RedisConfig
+		URLProvider             surl.IURLProvider
+		RoutePermissionProvider security.IRoutePermissionProvider
+		PermissionAuditor       security.IPermissionAuditor
+	}
+
+	IrisBaseServer struct {
+		BaseServer
+		WebServer      *iris.Application
+		ViewEngine     view.Engine
+		PreMiddlewares []iriscontext.Handler
+		ActionMap      *map[string]*Action
+	}
+)
+
+func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
+	if options.Name == "" {
+		log.Fatal("Name cannot be empty")
+	}
+	if options.ListenAddr == "" {
+		log.Fatal("ListenAddr cannot be empty")
+	}
+
+	if options.ConfigProvider == nil {
+		log.Fatal("ConfigProvider cannot be nil")
+	}
+
+	if options.RedisConfig == nil {
+		options.ConfigProvider.GetStruct("Redis", &options.RedisConfig)
+		if options.RedisConfig == nil {
+			log.Fatal("RedisConfig cannot be nil")
+		}
+	}
+
+	if options.URLProvider == nil {
+		options.URLProvider = surl.NewRedisURLProvider(options.RedisConfig)
+	}
+
+	if options.RoutePermissionProvider == nil {
+		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.Name, options.RedisConfig)
+	}
+
+	if options.PermissionAuditor == nil {
+		options.PermissionAuditor = security.NewPermissionAuditor(options.RoutePermissionProvider)
+	}
+
+	r.Debug = options.Debug
+	r.Name = options.Name
+	r.ListenAddr = options.ListenAddr
+	r.ConfigProvider = options.ConfigProvider
+	r.RedisConfig = options.RedisConfig
+	r.URLProvider = options.URLProvider
+	r.RoutePermissionProvider = options.RoutePermissionProvider
+	r.PermissionAuditor = options.PermissionAuditor
+
+	log.Init(r.ConfigProvider)
+	ConfigHttpClient(r.ConfigProvider)
+
+	return
+}
+
+func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
+	r.configBaseServer(&options.BaseServerOptions)
+
+	r.WebServer = iris.New()
+	r.WebServer.Logger().SetLevel(log.Level)
+	r.WebServer.Use(recover.New())
+	r.WebServer.Use(logger.New())
+
+	return
+}
+
+func (x *IrisBaseServer) registerActions() {
+	for name, action := range *x.ActionMap {
+		handlers := append(x.PreMiddlewares, action.Handler)
+		x.registerAction(name, handlers...)
+	}
+}
+
+func (x *IrisBaseServer) registerAction(name string, handlers ...iriscontext.Handler) {
+	index := strings.Index(name, "/")
+	method := name[:index]
+	path := name[index:]
+
+	switch method {
+	case http.MethodPost:
+		x.WebServer.Post(path, handlers...)
+		break
+	case http.MethodGet:
+		x.WebServer.Get(path, handlers...)
+		break
+	case http.MethodPut:
+		x.WebServer.Put(path, handlers...)
+		break
+	case http.MethodPatch:
+		x.WebServer.Patch(path, handlers...)
+		break
+	case http.MethodDelete:
+		x.WebServer.Delete(path, handlers...)
+		break
+	default:
+		panic("does not support method " + method)
+	}
+}
