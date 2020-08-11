@@ -445,6 +445,42 @@ func (x *ClientServer) getToken(ctx iriscontext.Context) (*oauth2.Token, error) 
 	return t, err
 }
 
+func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) {
+	goctx := context.Background()
+	if len(args) == 0 {
+		// ClientCredential令牌方式
+		return x.OAuth.Client(goctx, nil), nil
+	}
+
+	irisctx, ok := args[0].(iriscontext.Context)
+	if !ok {
+		panic("first parameter must be iris context")
+	}
+
+	session := x.SessionManager.Start(irisctx)
+	userStr := session.GetString(x.UserSessionName)
+	if userStr == "" {
+		return http.DefaultClient, fmt.Errorf("user doesn't login")
+	}
+
+	t, err := x.getToken(irisctx)
+	if u.LogError(err) {
+		return http.DefaultClient, err
+	}
+
+	tokenSource := x.OAuth.TokenSource(goctx, t)
+	newToken, err := tokenSource.Token()
+	if u.LogError(err) {
+		return http.DefaultClient, err
+	}
+
+	if newToken.AccessToken != t.AccessToken {
+		x.saveToken(irisctx, newToken)
+	}
+
+	return oauth2.NewClient(goctx, tokenSource), nil
+}
+
 func makeUserString(claims *jwt.MapClaims) string {
 	sub := getClaimString(claims, "sub")
 	name := getClaimString(claims, "name")
