@@ -67,9 +67,9 @@ func NewAPIServer(options *APIServerOptions) (r *APIServer) {
 	r.Resource = options.OAuth
 
 	// read public certificate
-	cert, err := rsautil.ReadPrivateKeyFromFile(options.PublicKeyPath)
+	cert, err := rsautil.ReadCertFromFile(options.PublicKeyPath)
 	u.LogFaltal(err)
-	r.PublicKey = &cert.PublicKey
+	r.PublicKey = cert.PublicKey.(*rsa.PublicKey)
 
 	return
 }

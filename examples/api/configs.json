@@ -9,7 +9,7 @@
     },
     "APIServer": {
         "Name": "hubapi",
-        "PublicKeyPath": "../cert/test.key",
+        "PublicKeyPath": "../cert/test.cer",
         "OAuth": {
             "Issuers": ["https://dp.dreamvat.com"],
             "Scopes": ["hubapi.post", "hubapi.user", "hubapi.order", "hubapi.customer", "hubapi.product"]
