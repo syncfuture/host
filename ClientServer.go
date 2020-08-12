@@ -167,19 +167,19 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	r.SignInHandler = options.SignInHandler
 
 	// 添加内置终结点
-	r.WebServer.Get(r.SignInPath, r.SignInHandler)
-	r.WebServer.Get(r.SignInCallbackPath, r.SignInCallbackHandler)
-	r.WebServer.Get(r.SignOutPath, r.SignOutHandler)
-	r.WebServer.Get(r.SignOutCallbackPath, r.SignOutCallbackHandler)
+	r.IrisApp.Get(r.SignInPath, r.SignInHandler)
+	r.IrisApp.Get(r.SignInCallbackPath, r.SignInCallbackHandler)
+	r.IrisApp.Get(r.SignOutPath, r.SignOutHandler)
+	r.IrisApp.Get(r.SignOutCallbackPath, r.SignOutCallbackHandler)
 
 	// 注册视图引擎
 	if r.ViewEngine == nil {
 		r.ViewEngine = iris.HTML("./views", ".html").Layout("shared/_layout.html").Reload(r.Debug)
 	}
-	r.WebServer.RegisterView(r.ViewEngine)
+	r.IrisApp.RegisterView(r.ViewEngine)
 
 	// 注册静态文件
-	r.WebServer.HandleDir("/", r.StaticFilesDir)
+	r.IrisApp.HandleDir("/", r.StaticFilesDir)
 
 	return
 }
@@ -199,7 +199,7 @@ func (x *ClientServer) Run(actionGroups ...*[]*Action) {
 	if x.ListenAddr == "" {
 		log.Fatal("Cannot find 'ListenAddr' config")
 	}
-	x.WebServer.Run(iris.Addr(x.ListenAddr))
+	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }
 
 func (x *ClientServer) Authorize(ctx iriscontext.Context) {

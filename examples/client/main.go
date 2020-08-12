@@ -13,7 +13,7 @@ func main() {
 		host.NewAction("GET/", "root", "Home", getIndex),
 	}
 
-	s.WebServer.Use(s.Authorize)
+	s.IrisApp.Use(s.Authorize)
 	s.Run(testActions)
 }
 

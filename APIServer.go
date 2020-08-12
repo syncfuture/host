@@ -133,5 +133,5 @@ func (x *APIServer) Run(actionGroups ...*[]*Action) {
 	if x.ListenAddr == "" {
 		log.Fatal("Cannot find 'ListenAddr' config")
 	}
-	x.WebServer.Run(iris.Addr(x.ListenAddr))
+	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }

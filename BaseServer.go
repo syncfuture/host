@@ -55,7 +55,7 @@ type (
 
 	IrisBaseServer struct {
 		BaseServer
-		WebServer      *iris.Application
+		IrisApp        *iris.Application
 		ViewEngine     view.Engine
 		PreMiddlewares []iriscontext.Handler
 		ActionMap      *map[string]*Action
@@ -111,10 +111,10 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 	r.configBaseServer(&options.BaseServerOptions)
 
-	r.WebServer = iris.New()
-	r.WebServer.Logger().SetLevel(log.Level)
-	r.WebServer.Use(recover.New())
-	r.WebServer.Use(logger.New())
+	r.IrisApp = iris.New()
+	r.IrisApp.Logger().SetLevel(log.Level)
+	r.IrisApp.Use(recover.New())
+	r.IrisApp.Use(logger.New())
 
 	return
 }
@@ -133,19 +133,19 @@ func (x *IrisBaseServer) registerAction(name string, handlers ...iriscontext.Han
 
 	switch method {
 	case http.MethodPost:
-		x.WebServer.Post(path, handlers...)
+		x.IrisApp.Post(path, handlers...)
 		break
 	case http.MethodGet:
-		x.WebServer.Get(path, handlers...)
+		x.IrisApp.Get(path, handlers...)
 		break
 	case http.MethodPut:
-		x.WebServer.Put(path, handlers...)
+		x.IrisApp.Put(path, handlers...)
 		break
 	case http.MethodPatch:
-		x.WebServer.Patch(path, handlers...)
+		x.IrisApp.Patch(path, handlers...)
 		break
 	case http.MethodDelete:
-		x.WebServer.Delete(path, handlers...)
+		x.IrisApp.Delete(path, handlers...)
 		break
 	default:
 		panic("does not support method " + method)
