@@ -13,11 +13,11 @@ import (
 
 	oauth2go "github.com/Lukiya/oauth2go/core"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
 	iriscontext "github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/syncfuture/go/config"
-	"github.com/syncfuture/go/security"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/soidc"
 	"github.com/syncfuture/go/srand"
@@ -60,7 +60,7 @@ type (
 		StaticFilesDir         string
 		UserSessionName        string
 		TokenSessionName       string
-		CookieManager          security.ISecureCookie
+		CookieManager          *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
 		OAuth                  *OAuthOptions
 		SignInHandler          iriscontext.Handler
@@ -99,6 +99,11 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 		log.Fatal("OAuth.Endpoint.TokenURL cannot be empty")
 	} else {
 		options.OAuth.Endpoint.TokenURL = r.URLProvider.RenderURLCache(options.OAuth.Endpoint.TokenURL)
+	}
+	if options.OAuth.RedirectURL == "" {
+		log.Fatal("OAuth.RedirectURL cannot be empty")
+	} else {
+		options.OAuth.RedirectURL = r.URLProvider.RenderURLCache(options.OAuth.RedirectURL)
 	}
 	if options.OAuth.SignOutEndpoint == "" {
 		log.Fatal("OAuthSignOutEndpoint cannot be empty")
@@ -153,7 +158,7 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	r.UserSessionName = options.UserSessionName
 	r.TokenSessionName = options.TokenSessionName
 	r.OAuth = options.OAuth
-	r.CookieManager = security.NewDefaultSecureCookie([]byte(options.HashKey), []byte(options.BlockKey))
+	r.CookieManager = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
 		Expires:      -1 * time.Hour,
 		Cookie:       soidc.COKI_SESSION,
