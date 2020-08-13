@@ -12,6 +12,7 @@ import (
 	"time"
 
 	oauth2go "github.com/Lukiya/oauth2go/core"
+	"github.com/coreos/go-oidc"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
@@ -21,8 +22,10 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/soidc"
 	"github.com/syncfuture/go/srand"
+	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type (
@@ -30,6 +33,7 @@ type (
 		oauth2.Config
 		PkceRequired    bool
 		SignOutEndpoint string
+		Client          *clientcredentials.Config
 	}
 	ClientServerOptions struct {
 		IrisBaseServerOptions
@@ -110,6 +114,12 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	} else {
 		options.OAuth.SignOutEndpoint = r.URLProvider.RenderURLCache(options.OAuth.SignOutEndpoint)
 	}
+	options.OAuth.Client = new(clientcredentials.Config)
+	options.OAuth.Client.ClientID = options.OAuth.ClientID
+	options.OAuth.Client.ClientSecret = options.OAuth.ClientSecret
+	options.OAuth.Client.TokenURL = options.OAuth.Endpoint.TokenURL
+	options.OAuth.Client.Scopes = sslice.RemoveStringToNew(options.OAuth.Scopes, oidc.ScopeOfflineAccess, oidc.ScopeOpenID)
+
 	if options.AccessDeniedPath == "" {
 		options.AccessDeniedPath = "/accessdenied"
 	}
@@ -157,7 +167,6 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	r.StaticFilesDir = options.StaticFilesDir
 	r.UserSessionName = options.UserSessionName
 	r.TokenSessionName = options.TokenSessionName
-	r.OAuth = options.OAuth
 	r.CookieManager = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
 		Expires:      -1 * time.Hour,
@@ -454,7 +463,7 @@ func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) 
 	goctx := context.Background()
 	if len(args) == 0 {
 		// ClientCredential令牌方式
-		return x.OAuth.Client(goctx, nil), nil
+		return x.OAuth.Client.Client(goctx), nil
 	}
 
 	irisctx, ok := args[0].(iriscontext.Context)
