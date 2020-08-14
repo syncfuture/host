@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	oauth2go "github.com/Lukiya/oauth2go/core"
-	"github.com/coreos/go-oidc"
+	"github.com/Lukiya/oauth2go"
+	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
@@ -22,18 +22,16 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/soidc"
 	"github.com/syncfuture/go/srand"
-	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 )
 
 type (
 	OAuthOptions struct {
 		oauth2.Config
-		PkceRequired    bool
-		SignOutEndpoint string
-		Client          *clientcredentials.Config
+		PkceRequired     bool
+		SignOutEndpoint  string
+		ClientCredential *oauth2go.ClientCredential
 	}
 	ClientServerOptions struct {
 		IrisBaseServerOptions
@@ -114,11 +112,11 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	} else {
 		options.OAuth.SignOutEndpoint = r.URLProvider.RenderURLCache(options.OAuth.SignOutEndpoint)
 	}
-	options.OAuth.Client = new(clientcredentials.Config)
-	options.OAuth.Client.ClientID = options.OAuth.ClientID
-	options.OAuth.Client.ClientSecret = options.OAuth.ClientSecret
-	options.OAuth.Client.TokenURL = options.OAuth.Endpoint.TokenURL
-	options.OAuth.Client.Scopes = sslice.RemoveStringToNew(options.OAuth.Scopes, oidc.ScopeOfflineAccess, oidc.ScopeOpenID)
+	options.OAuth.ClientCredential = new(oauth2go.ClientCredential)
+	options.OAuth.ClientCredential.Config.ClientID = options.OAuth.ClientID
+	options.OAuth.ClientCredential.Config.ClientSecret = options.OAuth.ClientSecret
+	options.OAuth.ClientCredential.Config.TokenURL = options.OAuth.Endpoint.TokenURL
+	options.OAuth.ClientCredential.Config.Scopes = options.OAuth.Scopes
 
 	if options.AccessDeniedPath == "" {
 		options.AccessDeniedPath = "/accessdenied"
@@ -269,12 +267,12 @@ func (x *ClientServer) Authorize(ctx iriscontext.Context) {
 	state := srand.String(32)
 	session.Set(state, ctx.Request().URL.String())
 	if x.OAuth.PkceRequired {
-		codeVerifier := oauth2go.Random64String()
-		codeChanllenge := oauth2go.ToSHA256Base64URL(codeVerifier)
-		session.Set(oauth2go.Form_CodeVerifier, codeVerifier)
-		session.Set(oauth2go.Form_CodeChallengeMethod, oauth2go.Pkce_S256)
-		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeChallenge, codeChanllenge)
-		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeChallengeMethod, oauth2go.Pkce_S256)
+		codeVerifier := oauth2core.Random64String()
+		codeChanllenge := oauth2core.ToSHA256Base64URL(codeVerifier)
+		session.Set(oauth2core.Form_CodeVerifier, codeVerifier)
+		session.Set(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
+		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallenge, codeChanllenge)
+		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
 		ctx.Redirect(x.OAuth.AuthCodeURL(state, codeChanllengeParam, codeChanllengeMethodParam), http.StatusFound)
 	} else {
 		ctx.Redirect(x.OAuth.AuthCodeURL(state), http.StatusFound)
@@ -282,7 +280,7 @@ func (x *ClientServer) Authorize(ctx iriscontext.Context) {
 }
 
 func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
-	returnURL := ctx.FormValue(oauth2go.Form_ReturnUrl)
+	returnURL := ctx.FormValue(oauth2core.Form_ReturnUrl)
 	if returnURL == "" {
 		returnURL = "/"
 	}
@@ -299,12 +297,12 @@ func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
 	state := srand.String(32)
 	session.Set(state, returnURL)
 	if x.OAuth.PkceRequired {
-		codeVerifier := oauth2go.Random64String()
-		codeChanllenge := oauth2go.ToSHA256Base64URL(codeVerifier)
-		session.Set(oauth2go.Form_CodeVerifier, codeVerifier)
-		session.Set(oauth2go.Form_CodeChallengeMethod, oauth2go.Pkce_S256)
-		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeChallenge, codeChanllenge)
-		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeChallengeMethod, oauth2go.Pkce_S256)
+		codeVerifier := oauth2core.Random64String()
+		codeChanllenge := oauth2core.ToSHA256Base64URL(codeVerifier)
+		session.Set(oauth2core.Form_CodeVerifier, codeVerifier)
+		session.Set(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
+		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallenge, codeChanllenge)
+		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
 		ctx.Redirect(x.OAuth.AuthCodeURL(state, codeChanllengeParam, codeChanllengeMethodParam), http.StatusFound)
 	} else {
 		ctx.Redirect(x.OAuth.AuthCodeURL(state), http.StatusFound)
@@ -314,7 +312,7 @@ func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
 func (x *ClientServer) signInCallbackHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
-	state := ctx.FormValue(oauth2go.Form_State)
+	state := ctx.FormValue(oauth2core.Form_State)
 	redirectUrl := session.GetString(state)
 	if redirectUrl == "" {
 		ctx.WriteString("invalid state")
@@ -325,31 +323,31 @@ func (x *ClientServer) signInCallbackHandler(ctx iriscontext.Context) {
 
 	var sessionCodeVerifier, sessionSodeChallengeMethod string
 	if x.OAuth.PkceRequired {
-		sessionCodeVerifier = session.GetString(oauth2go.Form_CodeVerifier)
+		sessionCodeVerifier = session.GetString(oauth2core.Form_CodeVerifier)
 		if sessionCodeVerifier == "" {
 			ctx.WriteString("pkce code verifier does not exist in store")
 			ctx.StatusCode(http.StatusBadRequest)
 			return
 		}
-		session.Delete(oauth2go.Form_CodeVerifier)
-		sessionSodeChallengeMethod = session.GetString(oauth2go.Form_CodeChallengeMethod)
+		session.Delete(oauth2core.Form_CodeVerifier)
+		sessionSodeChallengeMethod = session.GetString(oauth2core.Form_CodeChallengeMethod)
 		if sessionCodeVerifier == "" {
 			ctx.WriteString("pkce transformation method does not exist in store")
 			ctx.StatusCode(http.StatusBadRequest)
 			return
 		}
-		session.Delete(oauth2go.Form_CodeChallengeMethod)
+		session.Delete(oauth2core.Form_CodeChallengeMethod)
 
-		codeChallenge := ctx.FormValue(oauth2go.Form_CodeChallenge)
-		codeChallengeMethod := ctx.FormValue(oauth2go.Form_CodeChallengeMethod)
+		codeChallenge := ctx.FormValue(oauth2core.Form_CodeChallenge)
+		codeChallengeMethod := ctx.FormValue(oauth2core.Form_CodeChallengeMethod)
 
 		if sessionSodeChallengeMethod != codeChallengeMethod {
 			ctx.WriteString("pkce transformation method does not match")
 			log.Debugf("session method: '%s', incoming method:'%s'", sessionSodeChallengeMethod, codeChallengeMethod)
 			ctx.StatusCode(http.StatusBadRequest)
 			return
-		} else if (sessionSodeChallengeMethod == oauth2go.Pkce_Plain && codeChallenge != oauth2go.ToSHA256Base64URL(sessionCodeVerifier)) ||
-			(sessionSodeChallengeMethod == oauth2go.Pkce_Plain && codeChallenge != sessionCodeVerifier) {
+		} else if (sessionSodeChallengeMethod == oauth2core.Pkce_Plain && codeChallenge != oauth2core.ToSHA256Base64URL(sessionCodeVerifier)) ||
+			(sessionSodeChallengeMethod == oauth2core.Pkce_Plain && codeChallenge != sessionCodeVerifier) {
 			ctx.WriteString("pkce code verifiver and chanllenge does not match")
 			log.Debugf("session verifiver: '%s', incoming chanllenge:'%s'", sessionCodeVerifier, codeChallenge)
 			ctx.StatusCode(http.StatusBadRequest)
@@ -358,14 +356,14 @@ func (x *ClientServer) signInCallbackHandler(ctx iriscontext.Context) {
 	}
 
 	// 交换令牌
-	code := ctx.FormValue(oauth2go.Form_Code)
+	code := ctx.FormValue(oauth2core.Form_Code)
 	httpCtx := context.Background()
 	var oauth2Token *oauth2.Token
 	var err error
 
 	if x.OAuth.PkceRequired {
-		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeVerifier, sessionCodeVerifier)
-		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2go.Form_CodeChallengeMethod, sessionSodeChallengeMethod)
+		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeVerifier, sessionCodeVerifier)
+		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, sessionSodeChallengeMethod)
 		oauth2Token, err = x.OAuth.Exchange(httpCtx, code, codeChanllengeParam, codeChanllengeMethodParam)
 	} else {
 		oauth2Token, err = x.OAuth.Exchange(httpCtx, code)
@@ -407,7 +405,7 @@ func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
 
 	// 去Passport注销
 	state := srand.String(32)
-	session.Set(state, ctx.FormValue(oauth2go.Form_ReturnUrl))
+	session.Set(state, ctx.FormValue(oauth2core.Form_ReturnUrl))
 	// signoutUrl := x.OAuthSignOutEndpoint + "?post_logout_redirect_uri=" + url.PathEscape(x.SignInCallbackPath) + "&id_token_hint=" + idToken + "&state=" + state
 	signoutUrl := x.OAuth.SignOutEndpoint + "?post_logout_redirect_uri=" + url.PathEscape(x.SignInCallbackPath) + "&state=" + state
 	ctx.Redirect(signoutUrl, http.StatusFound)
@@ -416,7 +414,7 @@ func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
 func (x *ClientServer) signOutCallbackHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
-	state := ctx.FormValue(oauth2go.Form_State)
+	state := ctx.FormValue(oauth2core.Form_State)
 	redirectUrl := session.GetString(state)
 	if redirectUrl == "" {
 		ctx.WriteString("invalid state")
@@ -463,7 +461,8 @@ func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) 
 	goctx := context.Background()
 	if len(args) == 0 {
 		// ClientCredential令牌方式
-		return x.OAuth.Client.Client(goctx), nil
+		tokenSource := oauth2.ReuseTokenSource(x.OAuth.ClientCredential.AccessToken, x.OAuth.ClientCredential)
+		return oauth2.NewClient(goctx, tokenSource), nil
 	}
 
 	irisctx, ok := args[0].(iriscontext.Context)

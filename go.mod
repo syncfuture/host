@@ -3,7 +3,8 @@ module github.com/syncfuture/host
 go 1.15
 
 require (
-	github.com/Lukiya/oauth2go v1.0.11
+	github.com/Lukiya/oauth2go v1.0.12
+	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
 	github.com/iris-contrib/middleware/jwt v0.0.0-20191219204441-78279b78a367
