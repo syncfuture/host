@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Lukiya/oauth2go"
@@ -27,7 +28,7 @@ import (
 )
 
 type (
-	CookieUser struct {
+	ClientUser struct {
 		ID       string `json:"sub,omitempty"`
 		Username string `json:"name,omitempty"`
 		Email    string `json:"email,omitempty"`
@@ -80,6 +81,31 @@ type (
 		SignOutCallbackHandler iriscontext.Handler
 	}
 )
+
+func (t *ClientUser) UnmarshalJSON(d []byte) error {
+	type T2 ClientUser // create new type with same structure as T but without its method set!
+	x := struct {
+		T2            // embed
+		Role   string `json:"role,omitempty"`
+		Level  string `json:"level,omitempty"`
+		Status string `json:"status,omitempty"`
+	}{T2: T2(*t)} // don't forget this, if you do and 't' already has some fields set you would lose them
+
+	err := json.Unmarshal(d, &x)
+	if u.LogError(err) {
+		return err
+	}
+
+	*t = ClientUser(x.T2)
+	var status, level int64
+	t.Role, err = strconv.ParseInt(x.Role, 10, 64)
+	status, err = strconv.ParseInt(x.Role, 10, 32)
+	level, err = strconv.ParseInt(x.Role, 10, 32)
+
+	t.Status = int32(status)
+	t.Level = int32(level)
+	return nil
+}
 
 func NewClientServerOptions(args ...string) *ClientServerOptions {
 	cp := config.NewJsonConfigProvider(args...)
@@ -192,8 +218,8 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	})
 	r.SignInHandler = options.SignInHandler
 	r.SignInCallbackHandler = options.SignInCallbackHandler
-	r.SignInHandler = options.SignInHandler
-	r.SignInHandler = options.SignInHandler
+	r.SignOutHandler = options.SignOutHandler
+	r.SignOutCallbackHandler = options.SignOutCallbackHandler
 
 	// 添加内置终结点
 	r.IrisApp.Get(r.SignInPath, r.SignInHandler)
@@ -316,7 +342,7 @@ func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) 
 	return oauth2.NewClient(goctx, tokenSource), nil
 }
 
-func (x *ClientServer) GetUser(ctx iriscontext.Context) (r *CookieUser) {
+func (x *ClientServer) GetUser(ctx iriscontext.Context) (r *ClientUser) {
 	session := x.SessionManager.Start(ctx)
 	userJson := session.GetString(x.UserSessionName)
 	if userJson != "" {
