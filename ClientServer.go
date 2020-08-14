@@ -148,7 +148,7 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 		options.OAuth.SignOutRedirectURL = r.URLProvider.RenderURLCache(options.OAuth.SignOutRedirectURL)
 	}
 	if options.OAuth.EndSessionEndpoint == "" {
-		log.Fatal("OAuthSignOutEndpoint cannot be empty")
+		log.Fatal("OAuth.EndSessionEndpoint cannot be empty")
 	} else {
 		options.OAuth.EndSessionEndpoint = r.URLProvider.RenderURLCache(options.OAuth.EndSessionEndpoint)
 	}
