@@ -460,9 +460,7 @@ func (x *ClientServer) getToken(ctx iriscontext.Context) (*oauth2.Token, error) 
 func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) {
 	goctx := context.Background()
 	if len(args) == 0 {
-		// ClientCredential令牌方式
-		tokenSource := oauth2.ReuseTokenSource(x.OAuth.ClientCredential.AccessToken, x.OAuth.ClientCredential)
-		return oauth2.NewClient(goctx, tokenSource), nil
+		return x.OAuth.ClientCredential.Client(goctx), nil
 	}
 
 	irisctx, ok := args[0].(iriscontext.Context)
