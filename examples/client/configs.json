@@ -23,8 +23,9 @@
                 "TokenURL": "https://dp.dreamvat.com/connect/token",
                 "AuthStyle": 1
             },
-            "SignOutEndpoint": "https://dp.dreamvat.com/connect/endsession",
+            "SignOutEndpoint": "https://dp.dreamvat.com/account/logout",
             "RedirectURL": "https://da.dreamvat.com/signin-oauth",
+            "SignOutRedirectURL": "https://da.dreamvat.com/signout-oauth",
             "Scopes": ["hubapi.post", "hubapi.user", "hubapi.order", "hubapi.customer", "hubapi.product"],
             "PkceRequired": true
         }

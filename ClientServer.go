@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Lukiya/oauth2go"
+	"github.com/Lukiya/oauth2go/core"
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
@@ -30,9 +31,10 @@ import (
 type (
 	OAuthOptions struct {
 		oauth2.Config
-		PkceRequired     bool
-		SignOutEndpoint  string
-		ClientCredential *oauth2go.ClientCredential
+		PkceRequired       bool
+		SignOutEndpoint    string
+		SignOutRedirectURL string
+		ClientCredential   *oauth2go.ClientCredential
 	}
 	ClientServerOptions struct {
 		IrisBaseServerOptions
@@ -410,9 +412,16 @@ func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
 	// 去Passport注销
 	state := srand.String(32)
 	session.Set(state, ctx.FormValue(oauth2core.Form_ReturnUrl))
-	// signoutUrl := x.OAuthSignOutEndpoint + "?post_logout_redirect_uri=" + url.PathEscape(x.SignInCallbackPath) + "&id_token_hint=" + idToken + "&state=" + state
-	signoutUrl := x.OAuth.SignOutEndpoint + "?post_logout_redirect_uri=" + url.PathEscape(x.SignInCallbackPath) + "&state=" + state
-	ctx.Redirect(signoutUrl, http.StatusFound)
+	targetURL := fmt.Sprintf("%s?%s=%s&%s=%s&%s=%s",
+		x.OAuth.SignOutEndpoint,
+		core.Form_ClientID,
+		x.OAuth.ClientID,
+		core.Form_RedirectUri,
+		url.PathEscape(x.OAuth.SignOutRedirectURL),
+		core.Form_State,
+		url.QueryEscape(state),
+	)
+	ctx.Redirect(targetURL, http.StatusFound)
 }
 
 func (x *ClientServer) signOutCallbackHandler(ctx iriscontext.Context) {
