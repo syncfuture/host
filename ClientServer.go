@@ -39,7 +39,7 @@ type (
 	OAuthOptions struct {
 		oauth2.Config
 		PkceRequired       bool
-		SignOutEndpoint    string
+		EndSessionEndpoint string
 		SignOutRedirectURL string
 		ClientCredential   *oauth2go.ClientCredential
 	}
@@ -147,10 +147,10 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	} else {
 		options.OAuth.SignOutRedirectURL = r.URLProvider.RenderURLCache(options.OAuth.SignOutRedirectURL)
 	}
-	if options.OAuth.SignOutEndpoint == "" {
+	if options.OAuth.EndSessionEndpoint == "" {
 		log.Fatal("OAuthSignOutEndpoint cannot be empty")
 	} else {
-		options.OAuth.SignOutEndpoint = r.URLProvider.RenderURLCache(options.OAuth.SignOutEndpoint)
+		options.OAuth.EndSessionEndpoint = r.URLProvider.RenderURLCache(options.OAuth.EndSessionEndpoint)
 	}
 	options.OAuth.ClientCredential = &oauth2go.ClientCredential{
 		Config: &clientcredentials.Config{
@@ -481,7 +481,7 @@ func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
 	state := srand.String(32)
 	session.Set(state, ctx.FormValue(oauth2core.Form_ReturnUrl))
 	targetURL := fmt.Sprintf("%s?%s=%s&%s=%s&%s=%s",
-		x.OAuth.SignOutEndpoint,
+		x.OAuth.EndSessionEndpoint,
 		core.Form_ClientID,
 		x.OAuth.ClientID,
 		core.Form_RedirectUri,
