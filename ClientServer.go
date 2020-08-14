@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Lukiya/oauth2go"
@@ -29,6 +27,14 @@ import (
 )
 
 type (
+	CookieUser struct {
+		ID       string `json:"sub,omitempty"`
+		Username string `json:"name,omitempty"`
+		Email    string `json:"email,omitempty"`
+		Role     int64  `json:"role,omitempty"`
+		Level    int32  `json:"level,omitempty"`
+		Status   int32  `json:"status,omitempty"`
+	}
 	OAuthOptions struct {
 		oauth2.Config
 		PkceRequired       bool
@@ -236,33 +242,18 @@ func (x *ClientServer) Authorize(ctx iriscontext.Context) {
 		controller = act.Controller
 		action = act.Action
 	}
-	// area, controller, action := getRoutes(route)
 
 	// 判断请求是否允许访问
-	userStr := session.GetString(x.UserSessionName)
-	if userStr != "" {
-		userArray := strings.Split(userStr, "|")
-		if len(userArray) == 6 {
-			// userId := userArray[0]
-			roles, err := strconv.ParseInt(userArray[2], 10, 64)
-			if u.LogError(err) {
-				return
-			}
-			level, err := strconv.Atoi(userArray[3])
-			if u.LogError(err) {
-				return
-			}
-			// 已登录
-			allow := x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level))
-			if allow {
-				// 有权限
-				ctx.Next()
-				return
-			} else {
-				// 没权限
-				ctx.Redirect(x.AccessDeniedPath, http.StatusFound)
-				return
-			}
+	user := x.GetUser(ctx)
+	if user != nil {
+		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, user.Role, user.Level) {
+			// 有权限
+			ctx.Next()
+			return
+		} else {
+			// 没权限
+			ctx.Redirect(x.AccessDeniedPath, http.StatusFound)
+			return
 		}
 	}
 
@@ -288,6 +279,52 @@ func (x *ClientServer) Authorize(ctx iriscontext.Context) {
 	} else {
 		ctx.Redirect(x.OAuth.AuthCodeURL(state), http.StatusFound)
 	}
+}
+
+func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) {
+	goctx := context.Background()
+	if len(args) == 0 {
+		return x.OAuth.ClientCredential.Client(goctx), nil
+	}
+
+	irisctx, ok := args[0].(iriscontext.Context)
+	if !ok {
+		panic("first parameter must be iris context")
+	}
+
+	session := x.SessionManager.Start(irisctx)
+	userStr := session.GetString(x.UserSessionName)
+	if userStr == "" {
+		return http.DefaultClient, fmt.Errorf("user doesn't login")
+	}
+
+	t, err := x.getToken(irisctx)
+	if u.LogError(err) {
+		return http.DefaultClient, err
+	}
+
+	tokenSource := x.OAuth.TokenSource(goctx, t)
+	newToken, err := tokenSource.Token()
+	if u.LogError(err) {
+		return http.DefaultClient, err
+	}
+
+	if newToken.AccessToken != t.AccessToken {
+		x.saveToken(irisctx, newToken)
+	}
+
+	return oauth2.NewClient(goctx, tokenSource), nil
+}
+
+func (x *ClientServer) GetUser(ctx iriscontext.Context) (r *CookieUser) {
+	session := x.SessionManager.Start(ctx)
+	userJson := session.GetString(x.UserSessionName)
+	if userJson != "" {
+		// 已登录
+		err := json.Unmarshal([]byte(userJson), &r)
+		u.LogError(err)
+	}
+	return
 }
 
 func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
@@ -475,56 +512,10 @@ func (x *ClientServer) getToken(ctx iriscontext.Context) (*oauth2.Token, error) 
 	return t, err
 }
 
-func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) {
-	goctx := context.Background()
-	if len(args) == 0 {
-		return x.OAuth.ClientCredential.Client(goctx), nil
-	}
-
-	irisctx, ok := args[0].(iriscontext.Context)
-	if !ok {
-		panic("first parameter must be iris context")
-	}
-
-	session := x.SessionManager.Start(irisctx)
-	userStr := session.GetString(x.UserSessionName)
-	if userStr == "" {
-		return http.DefaultClient, fmt.Errorf("user doesn't login")
-	}
-
-	t, err := x.getToken(irisctx)
-	if u.LogError(err) {
-		return http.DefaultClient, err
-	}
-
-	tokenSource := x.OAuth.TokenSource(goctx, t)
-	newToken, err := tokenSource.Token()
-	if u.LogError(err) {
-		return http.DefaultClient, err
-	}
-
-	if newToken.AccessToken != t.AccessToken {
-		x.saveToken(irisctx, newToken)
-	}
-
-	return oauth2.NewClient(goctx, tokenSource), nil
-}
-
 func makeUserString(claims *jwt.MapClaims) string {
-	sub := getClaimString(claims, "sub")
-	name := getClaimString(claims, "name")
-	role := getClaimString(claims, "role")
-	level := getClaimString(claims, "level")
-	status := getClaimString(claims, "status")
-	email := getClaimString(claims, "email")
-
-	return fmt.Sprintf("%s|%s|%s|%s|%s|%s", sub, name, role, level, status, email)
-}
-
-func getClaimString(claims *jwt.MapClaims, name string) string {
-	v := (*claims)[name]
-	if v == nil {
+	bytes, err := json.Marshal(claims)
+	if u.LogError(err) {
 		return ""
 	}
-	return v.(string)
+	return string(bytes)
 }
