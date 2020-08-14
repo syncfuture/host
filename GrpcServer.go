@@ -13,34 +13,34 @@ import (
 )
 
 type (
-	ServiceServerOptions struct {
+	GrpcServerOptions struct {
 		BaseServerOptions
 		MaxRecvMsgSize int
 	}
 
-	ServiceServer struct {
+	GrpcServer struct {
 		BaseServer
 		GRPCServer *grpc.Server
 	}
 )
 
-func NewServiceServerOptions(args ...string) *ServiceServerOptions {
+func NewGrpcServerOptions(args ...string) *GrpcServerOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *ServiceServerOptions
-	cp.GetStruct("ServiceServer", &options)
+	var options *GrpcServerOptions
+	cp.GetStruct("GrpcServer", &options)
 	if options == nil {
-		log.Fatal("missing 'ServiceServer' section in configuration")
+		log.Fatal("missing 'GrpcServer' section in configuration")
 	}
 	options.ConfigProvider = cp
 	return options
 }
 
-func NewServiceServer(options *ServiceServerOptions) (r *ServiceServer) {
+func NewGrpcServer(options *GrpcServerOptions) (r *GrpcServer) {
 	if options.MaxRecvMsgSize == 0 {
 		options.MaxRecvMsgSize = 10 * 1024 * 1024
 	}
 
-	r = new(ServiceServer)
+	r = new(GrpcServer)
 	r.Name = options.Name
 	r.configBaseServer(&options.BaseServerOptions)
 
@@ -55,7 +55,7 @@ func NewServiceServer(options *ServiceServerOptions) (r *ServiceServer) {
 	return r
 }
 
-func (x *ServiceServer) Run() {
+func (x *GrpcServer) Run() {
 	lis, err := net.Listen("tcp", x.ListenAddr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

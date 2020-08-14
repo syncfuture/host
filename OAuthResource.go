@@ -16,14 +16,14 @@ import (
 )
 
 type (
-	APIServerOptions struct {
+	OAuthResourceOptions struct {
 		IrisBaseServerOptions
 		PublicKeyPath    string
 		SigningAlgorithm string
 		OAuth            *model.Resource
 	}
 
-	APIServer struct {
+	OAuthResource struct {
 		IrisBaseServer
 		PublicKey        *rsa.PublicKey
 		SigningAlgorithm jwtgo.SigningMethod
@@ -31,18 +31,18 @@ type (
 	}
 )
 
-func NewAPIServerOptions(args ...string) *APIServerOptions {
+func NewOAuthResourceOptions(args ...string) *OAuthResourceOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *APIServerOptions
-	cp.GetStruct("APIServer", &options)
+	var options *OAuthResourceOptions
+	cp.GetStruct("OAuthResource", &options)
 	if options == nil {
-		log.Fatal("missing 'APIServer' section in configuration")
+		log.Fatal("missing 'OAuthResource' section in configuration")
 	}
 	options.ConfigProvider = cp
 	return options
 }
 
-func NewAPIServer(options *APIServerOptions) (r *APIServer) {
+func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	if options.PublicKeyPath == "" {
 		log.Fatal("public key path cannot be empty")
 	}
@@ -59,7 +59,7 @@ func NewAPIServer(options *APIServerOptions) (r *APIServer) {
 		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
 	}
 
-	r = new(APIServer)
+	r = new(OAuthResource)
 	r.Name = options.Name
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
@@ -74,7 +74,7 @@ func NewAPIServer(options *APIServerOptions) (r *APIServer) {
 	return
 }
 
-func (x *APIServer) init(actionGroups ...*[]*Action) {
+func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 	actionMap := make(map[string]*Action)
 
 	for _, actionGroup := range actionGroups {
@@ -102,7 +102,7 @@ func (x *APIServer) init(actionGroups ...*[]*Action) {
 	x.PreMiddlewares = append(x.PreMiddlewares, authMiddleware.Serve)
 }
 
-func (x *APIServer) validateToken(token *jwtgo.Token) (interface{}, error) {
+func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
 	claims := token.Claims.(jwtiris.MapClaims)
 
 	// Get iss from JWT and validate against desired iss
@@ -125,7 +125,7 @@ func (x *APIServer) validateToken(token *jwtgo.Token) (interface{}, error) {
 	return x.PublicKey, nil
 }
 
-func (x *APIServer) Run(actionGroups ...*[]*Action) {
+func (x *OAuthResource) Run(actionGroups ...*[]*Action) {
 	x.init(actionGroups...)
 
 	x.registerActions()

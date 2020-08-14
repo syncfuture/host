@@ -43,7 +43,7 @@ type (
 		SignOutRedirectURL string
 		ClientCredential   *oauth2go.ClientCredential
 	}
-	ClientServerOptions struct {
+	OAuthClientOptions struct {
 		IrisBaseServerOptions
 		AccessDeniedPath       string
 		SignInPath             string
@@ -62,7 +62,7 @@ type (
 		SignOutCallbackHandler iriscontext.Handler
 	}
 
-	ClientServer struct {
+	OAuthClient struct {
 		IrisBaseServer
 		AccessDeniedPath       string
 		SignInPath             string
@@ -107,10 +107,10 @@ func (t *ClientUser) UnmarshalJSON(d []byte) error {
 	return nil
 }
 
-func NewClientServerOptions(args ...string) *ClientServerOptions {
+func NewOAuthClientOptions(args ...string) *OAuthClientOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *ClientServerOptions
-	cp.GetStruct("ClientServer", &options)
+	var options *OAuthClientOptions
+	cp.GetStruct("OAuthClient", &options)
 	if options == nil {
 		log.Fatal("missing 'ClientServer' section in configuration")
 	}
@@ -118,9 +118,9 @@ func NewClientServerOptions(args ...string) *ClientServerOptions {
 	return options
 }
 
-func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
+func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	// create pointer
-	r = new(ClientServer)
+	r = new(OAuthClient)
 	r.Name = options.Name
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
@@ -239,7 +239,7 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	return
 }
 
-func (x *ClientServer) Run(actionGroups ...*[]*Action) {
+func (x *OAuthClient) Run(actionGroups ...*[]*Action) {
 	// 构造页面路由字典
 	actionMap := make(map[string]*Action)
 	for _, actionGroup := range actionGroups {
@@ -257,7 +257,7 @@ func (x *ClientServer) Run(actionGroups ...*[]*Action) {
 	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }
 
-func (x *ClientServer) Authorize(ctx iriscontext.Context) {
+func (x *OAuthClient) Authorize(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	// handlerName := ctx.GetCurrentRoute().MainHandlerName()
@@ -307,7 +307,7 @@ func (x *ClientServer) Authorize(ctx iriscontext.Context) {
 	}
 }
 
-func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) {
+func (x *OAuthClient) NewHttpClient(args ...interface{}) (*http.Client, error) {
 	goctx := context.Background()
 	if len(args) == 0 {
 		return x.OAuth.ClientCredential.Client(goctx), nil
@@ -342,7 +342,7 @@ func (x *ClientServer) NewHttpClient(args ...interface{}) (*http.Client, error) 
 	return oauth2.NewClient(goctx, tokenSource), nil
 }
 
-func (x *ClientServer) GetUser(ctx iriscontext.Context) (r *ClientUser) {
+func (x *OAuthClient) GetUser(ctx iriscontext.Context) (r *ClientUser) {
 	session := x.SessionManager.Start(ctx)
 	userJson := session.GetString(x.UserSessionName)
 	if userJson != "" {
@@ -353,7 +353,7 @@ func (x *ClientServer) GetUser(ctx iriscontext.Context) (r *ClientUser) {
 	return
 }
 
-func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
+func (x *OAuthClient) signinHanlder(ctx iriscontext.Context) {
 	returnURL := ctx.FormValue(oauth2core.Form_ReturnUrl)
 	if returnURL == "" {
 		returnURL = "/"
@@ -383,7 +383,7 @@ func (x *ClientServer) signinHanlder(ctx iriscontext.Context) {
 	}
 }
 
-func (x *ClientServer) signInCallbackHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signInCallbackHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	state := ctx.FormValue(oauth2core.Form_State)
@@ -474,7 +474,7 @@ func (x *ClientServer) signInCallbackHandler(ctx iriscontext.Context) {
 	}
 }
 
-func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signOutHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	// 去Passport注销
@@ -492,7 +492,7 @@ func (x *ClientServer) signOutHandler(ctx iriscontext.Context) {
 	ctx.Redirect(targetURL, http.StatusFound)
 }
 
-func (x *ClientServer) signOutCallbackHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signOutCallbackHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	state := ctx.FormValue(oauth2core.Form_State)
@@ -511,7 +511,7 @@ func (x *ClientServer) signOutCallbackHandler(ctx iriscontext.Context) {
 	ctx.Redirect(redirectUrl, http.StatusFound)
 }
 
-func (x *ClientServer) saveToken(ctx iriscontext.Context, token *oauth2.Token) error {
+func (x *OAuthClient) saveToken(ctx iriscontext.Context, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if u.LogError(err) {
 		return err
@@ -524,7 +524,7 @@ func (x *ClientServer) saveToken(ctx iriscontext.Context, token *oauth2.Token) e
 	return nil
 }
 
-func (x *ClientServer) getToken(ctx iriscontext.Context) (*oauth2.Token, error) {
+func (x *OAuthClient) getToken(ctx iriscontext.Context) (*oauth2.Token, error) {
 	// 从Session获取令牌
 	session := x.SessionManager.Start(ctx)
 	tokenJson := session.GetString(x.TokenSessionName)
