@@ -24,6 +24,7 @@ import (
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type (
@@ -112,11 +113,14 @@ func NewClientServer(options *ClientServerOptions) (r *ClientServer) {
 	} else {
 		options.OAuth.SignOutEndpoint = r.URLProvider.RenderURLCache(options.OAuth.SignOutEndpoint)
 	}
-	options.OAuth.ClientCredential = new(oauth2go.ClientCredential)
-	options.OAuth.ClientCredential.Config.ClientID = options.OAuth.ClientID
-	options.OAuth.ClientCredential.Config.ClientSecret = options.OAuth.ClientSecret
-	options.OAuth.ClientCredential.Config.TokenURL = options.OAuth.Endpoint.TokenURL
-	options.OAuth.ClientCredential.Config.Scopes = options.OAuth.Scopes
+	options.OAuth.ClientCredential = &oauth2go.ClientCredential{
+		Config: &clientcredentials.Config{
+			ClientID:     options.OAuth.ClientID,
+			ClientSecret: options.OAuth.ClientSecret,
+			TokenURL:     options.OAuth.Endpoint.TokenURL,
+			Scopes:       options.OAuth.Scopes,
+		},
+	}
 
 	if options.AccessDeniedPath == "" {
 		options.AccessDeniedPath = "/accessdenied"
