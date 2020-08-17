@@ -51,17 +51,9 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	}
 	if options.OAuth.Issuers == nil || len(options.OAuth.Issuers) == 0 {
 		log.Fatal("Issuers cannot be empty")
-	} else {
-		for i := range options.OAuth.Issuers {
-			options.OAuth.Issuers[i] = options.URLProvider.RenderURL(options.OAuth.Issuers[i])
-		}
 	}
 	if options.OAuth.Audiences == nil || len(options.OAuth.Audiences) == 0 {
 		log.Fatal("Audiences cannot be empty")
-	} else {
-		for i := range options.OAuth.Audiences {
-			options.OAuth.Audiences[i] = options.URLProvider.RenderURL(options.OAuth.Audiences[i])
-		}
 	}
 	if options.SigningAlgorithm == "" {
 		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
@@ -71,6 +63,12 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	r.Name = options.Name
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
+	for i := range options.OAuth.Issuers {
+		options.OAuth.Issuers[i] = r.URLProvider.RenderURL(options.OAuth.Issuers[i])
+	}
+	for i := range options.OAuth.Audiences {
+		options.OAuth.Audiences[i] = r.URLProvider.RenderURL(options.OAuth.Audiences[i])
+	}
 	r.SigningAlgorithm = jwtgo.GetSigningMethod(options.SigningAlgorithm)
 	r.Resource = options.OAuth
 
