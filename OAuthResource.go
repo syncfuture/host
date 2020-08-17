@@ -3,7 +3,6 @@ package host
 import (
 	"crypto/rsa"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/Lukiya/oauth2go/model"
@@ -12,6 +11,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/go/config"
 	"github.com/syncfuture/go/rsautil"
+	"github.com/syncfuture/go/sarray"
 	"github.com/syncfuture/go/u"
 )
 
@@ -50,10 +50,10 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 		log.Fatal("oauth options cannot be nil")
 	}
 	if options.OAuth.Issuers == nil || len(options.OAuth.Issuers) == 0 {
-		log.Fatal("issuers cannot be empty")
+		log.Fatal("Issuers cannot be empty")
 	}
-	if options.OAuth.Scopes == nil || len(options.OAuth.Scopes) == 0 {
-		log.Fatal("scopes cannot be empty")
+	if options.OAuth.Audiences == nil || len(options.OAuth.Audiences) == 0 {
+		log.Fatal("Audiences cannot be empty")
 	}
 	if options.SigningAlgorithm == "" {
 		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
@@ -106,20 +106,24 @@ func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
 	claims := token.Claims.(jwtiris.MapClaims)
 
 	// Get iss from JWT and validate against desired iss
-	if !x.Resource.HasIssuer(claims["iss"].(string)) {
-		return nil, fmt.Errorf("cannot validate iss claim")
+	issuer, ok := claims["iss"].(string)
+	if !ok {
+		return nil, errors.New("issuer is required")
+	}
+	if sarray.HasStr(x.Resource.Issuers, issuer) {
+		return nil, errors.New("issuer validation failed")
 	}
 
 	// Get audience from JWT and validate against desired audience
 	var isAudienceValid bool
 	if aud, ok := claims["aud"].(string); ok {
-		isAudienceValid = x.Resource.HasScope(aud)
+		isAudienceValid = sarray.HasStr(x.Resource.Audiences, aud)
 	} else if auds, ok := claims["aud"].([]string); ok {
-		isAudienceValid = x.Resource.HasAnyScopes(auds)
+		isAudienceValid = sarray.HasAnyStr(x.Resource.Audiences, auds)
 	}
 
 	if !isAudienceValid {
-		return nil, errors.New("cannot validate audience claim")
+		return nil, errors.New("audience validation failed")
 	}
 
 	return x.PublicKey, nil

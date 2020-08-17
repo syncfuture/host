@@ -3,7 +3,7 @@ module github.com/syncfuture/host
 go 1.15
 
 require (
-	github.com/Lukiya/oauth2go v1.0.17
+	github.com/Lukiya/oauth2go v1.0.18
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
@@ -16,8 +16,6 @@ require (
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/kazegusuri/grpc-panic-handler v0.0.0-20160502122501-093ec776affc
 	github.com/mattn/go-colorable v0.1.7 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
