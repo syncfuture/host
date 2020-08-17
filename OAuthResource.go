@@ -116,7 +116,7 @@ func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
 	if !ok {
 		return nil, errors.New("issuer is required")
 	}
-	if sarray.HasStr(x.Resource.Issuers, issuer) {
+	if !sarray.HasStr(x.Resource.Issuers, issuer) {
 		return nil, errors.New("issuer validation failed")
 	}
 
