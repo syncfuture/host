@@ -98,8 +98,11 @@ func (t *ClientUser) UnmarshalJSON(d []byte) error {
 	*t = ClientUser(x.T2)
 	var status, level int64
 	t.Role, err = strconv.ParseInt(x.Role, 10, 64)
-	status, err = strconv.ParseInt(x.Role, 10, 32)
-	level, err = strconv.ParseInt(x.Role, 10, 32)
+	u.LogError(err)
+	status, err = strconv.ParseInt(x.Status, 10, 32)
+	u.LogError(err)
+	level, err = strconv.ParseInt(x.Level, 10, 32)
+	u.LogError(err)
 
 	t.Status = int32(status)
 	t.Level = int32(level)
