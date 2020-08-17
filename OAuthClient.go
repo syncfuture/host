@@ -20,7 +20,6 @@ import (
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/syncfuture/go/config"
 	log "github.com/syncfuture/go/slog"
-	"github.com/syncfuture/go/soidc"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"golang.org/x/oauth2"
@@ -210,8 +209,8 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.TokenSessionName = options.TokenSessionName
 	r.CookieManager = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
+		Cookie:       "syncsession",
 		Expires:      -1 * time.Hour,
-		Cookie:       soidc.COKI_SESSION,
 		Encode:       r.CookieManager.Encode,
 		Decode:       r.CookieManager.Decode,
 		AllowReclaim: true,

@@ -3,12 +3,11 @@ package host
 import (
 	"net"
 
-	"github.com/syncfuture/go/sgrpc"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	panichandler "github.com/kazegusuri/grpc-panic-handler"
 	"github.com/syncfuture/go/config"
 	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/host/sgrpc"
 	"google.golang.org/grpc"
 )
 
