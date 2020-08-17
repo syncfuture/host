@@ -465,8 +465,8 @@ func (x *OAuthClient) signInCallbackHandler(ctx iriscontext.Context) {
 		userStr := makeUserString(&claims)
 		session.Set(x.UserSessionName, userStr)
 
-		// // 保存令牌
-		// x.SaveToken(ctx, oauth2Token)
+		// 保存令牌
+		x.saveToken(ctx, oauth2Token)
 
 		// 重定向到登录前页面
 		ctx.Redirect(redirectUrl, http.StatusFound)
