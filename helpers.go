@@ -55,3 +55,8 @@ func ConfigHttpClient(configProvider config.IConfigProvider) {
 		http.DefaultClient.Transport = transport
 	}
 }
+
+func getRoutes(handlerName string) (string, string, string) {
+	array := strings.Split(handlerName, ".")
+	return array[0], array[1], array[2]
+}

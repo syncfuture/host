@@ -14,13 +14,13 @@ import (
 	iriscontext "github.com/kataras/iris/v12/context"
 )
 
-type AuthMidleware struct {
+type ApiAuthMidleware struct {
 	PermissionAuditor security.IPermissionAuditor
 	ActionMap         *map[string]*Action
 	ProjectName       string
 }
 
-func (x *AuthMidleware) Serve(ctx iriscontext.Context) {
+func (x *ApiAuthMidleware) Serve(ctx iriscontext.Context) {
 	var msgCode string
 	token := ctx.Values().Get("jwt").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)
@@ -33,12 +33,12 @@ func (x *AuthMidleware) Serve(ctx iriscontext.Context) {
 			route := ctx.GetCurrentRoute().Name()
 			if action, ok := (*x.ActionMap)[route]; ok {
 				// foud action
-				level := int32(0)
+				var level int
 				if levelStr, ok := claims["level"].(string); ok && levelStr != "" {
-					l, _ := strconv.ParseInt(levelStr, 10, 64)
-					level = int32(l)
+					level, err = strconv.Atoi(levelStr)
+					u.LogError(err)
 				}
-				if x.PermissionAuditor.CheckRouteWithLevel(action.Area, action.Controller, action.Action, roles, level) {
+				if x.PermissionAuditor.CheckRouteWithLevel(action.Area, action.Controller, action.Action, roles, int32(level)) {
 					// Has permission, allow
 					ctx.Next()
 					return

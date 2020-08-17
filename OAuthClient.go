@@ -256,17 +256,18 @@ func (x *OAuthClient) Run(actionGroups ...*[]*Action) {
 	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }
 
-func (x *OAuthClient) Authorize(ctx iriscontext.Context) {
+func (x *OAuthClient) MvcAuthorize(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
-	// handlerName := ctx.GetCurrentRoute().MainHandlerName()
-	route := ctx.GetCurrentRoute().Name()
-	var area, controller, action string
-	if act, ok := (*x.ActionMap)[route]; ok {
-		area = act.Area
-		controller = act.Controller
-		action = act.Action
-	}
+	handlerName := ctx.GetCurrentRoute().MainHandlerName()
+	area, controller, action := getRoutes(handlerName)
+	// route := ctx.GetCurrentRoute().Name()
+	// var area, controller, action string
+	// if act, ok := (*x.ActionMap)[route]; ok {
+	// 	area = act.Area
+	// 	controller = act.Controller
+	// 	action = act.Action
+	// }
 
 	// 判断请求是否允许访问
 	user := x.GetUser(ctx)

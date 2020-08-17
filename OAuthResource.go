@@ -92,7 +92,7 @@ func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 	})
 
 	// 授权中间件
-	authMiddleware := &AuthMidleware{
+	authMiddleware := &ApiAuthMidleware{
 		ActionMap:         x.ActionMap,
 		PermissionAuditor: x.PermissionAuditor,
 	}
