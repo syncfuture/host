@@ -1,5 +1,5 @@
 git tag | foreach-object -process { git push origin --delete $_ }
 git tag | foreach-object -process { git tag -d $_ }
-git tag v1.0.22
-git push
+git tag v1.0.23
+git pus
 git push --tags
