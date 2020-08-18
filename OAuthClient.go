@@ -310,39 +310,42 @@ func (x *OAuthClient) MvcAuthorize(ctx iriscontext.Context) {
 	}
 }
 
+// NewHttpClient create new http client with beaer token.
+// if session doesn't has token stored, requerst client credential token
+// if session has token stored, use that token, if token expired, refresh token
 func (x *OAuthClient) NewHttpClient(args ...interface{}) (*http.Client, error) {
 	goctx := context.Background()
-	if len(args) == 0 {
-		return x.OAuth.ClientCredential.Client(goctx), nil
+	if len(args) > 0 {
+		if ctx, ok := args[0].(iriscontext.Context); ok {
+			session := x.SessionManager.Start(ctx)
+			userStr := session.GetString(x.UserSessionName)
+			if userStr == "" {
+				return http.DefaultClient, fmt.Errorf("user doesn't login")
+			}
+
+			t, err := x.getToken(ctx)
+			if u.LogError(err) {
+				return http.DefaultClient, err
+			}
+
+			tokenSource := x.OAuth.TokenSource(goctx, t)
+			newToken, err := tokenSource.Token()
+			if u.LogError(err) {
+				// refresh token failed, sign user out
+				x.SignOut(ctx)
+				return http.DefaultClient, err
+			}
+
+			if newToken.AccessToken != t.AccessToken {
+				// token refreshed, store new token
+				x.saveToken(ctx, newToken)
+			}
+
+			return oauth2.NewClient(goctx, tokenSource), nil
+		}
 	}
 
-	irisctx, ok := args[0].(iriscontext.Context)
-	if !ok {
-		panic("first parameter must be iris context")
-	}
-
-	session := x.SessionManager.Start(irisctx)
-	userStr := session.GetString(x.UserSessionName)
-	if userStr == "" {
-		return http.DefaultClient, fmt.Errorf("user doesn't login")
-	}
-
-	t, err := x.getToken(irisctx)
-	if u.LogError(err) {
-		return http.DefaultClient, err
-	}
-
-	tokenSource := x.OAuth.TokenSource(goctx, t)
-	newToken, err := tokenSource.Token()
-	if u.LogError(err) {
-		return http.DefaultClient, err
-	}
-
-	if newToken.AccessToken != t.AccessToken {
-		x.saveToken(irisctx, newToken)
-	}
-
-	return oauth2.NewClient(goctx, tokenSource), nil
+	return x.OAuth.ClientCredential.Client(goctx), nil
 }
 
 func (x *OAuthClient) GetUser(ctx iriscontext.Context) (r *ClientUser) {
@@ -499,19 +502,20 @@ func (x *OAuthClient) signOutCallbackHandler(ctx iriscontext.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	state := ctx.FormValue(oauth2core.Form_State)
-	redirectUrl := session.GetString(state)
-	if redirectUrl == "" {
+	returnURL := session.GetString(state)
+	if returnURL == "" {
 		ctx.WriteString("invalid state")
 		ctx.StatusCode(http.StatusBadRequest)
 		return
 	}
-	session.Delete(state)
-	session.Delete(x.UserSessionName)
-	session.Delete(x.TokenSessionName)
-	session.Destroy()
 
+	x.SignOut(ctx)
 	// 跳转回登出时的页面
-	ctx.Redirect(redirectUrl, http.StatusFound)
+	ctx.Redirect(returnURL, http.StatusFound)
+}
+
+func (x *OAuthClient) SignOut(ctx iriscontext.Context) {
+	x.SessionManager.Destroy(ctx)
 }
 
 func (x *OAuthClient) saveToken(ctx iriscontext.Context, token *oauth2.Token) error {

@@ -3,7 +3,7 @@ module github.com/syncfuture/host
 go 1.15
 
 require (
-	github.com/Lukiya/oauth2go v1.0.18
+	github.com/Lukiya/oauth2go v1.0.19
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
