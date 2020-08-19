@@ -51,8 +51,7 @@ type (
 		SignOutPath            string
 		SignOutCallbackPath    string
 		StaticFilesDir         string
-		UserSessionName        string
-		TokenSessionName       string
+		SessionName            string
 		HashKey                string
 		BlockKey               string
 		OAuth                  *OAuthOptions
@@ -70,8 +69,10 @@ type (
 		SignOutPath            string
 		SignOutCallbackPath    string
 		StaticFilesDir         string
-		UserSessionName        string
-		TokenSessionName       string
+		SessionName            string
+		userJsonSessionkey     string
+		tokenSessionKey        string
+		userIDSessionKey       string
 		CookieManager          *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
 		UserLocks              *cache2go.CacheTable
@@ -180,11 +181,8 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	if options.SignOutCallbackPath == "" {
 		options.SignOutCallbackPath = "/signout-oauth"
 	}
-	if options.UserSessionName == "" {
-		options.UserSessionName = "OAuth.u001"
-	}
-	if options.TokenSessionName == "" {
-		options.TokenSessionName = "OAuth.t001"
+	if options.SessionName == "" {
+		options.SessionName = "xsession"
 	}
 	if options.StaticFilesDir == "" {
 		options.StaticFilesDir = "./wwwroot"
@@ -210,11 +208,13 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.SignOutCallbackPath = options.SignOutCallbackPath
 	r.AccessDeniedPath = options.AccessDeniedPath
 	r.StaticFilesDir = options.StaticFilesDir
-	r.UserSessionName = options.UserSessionName
-	r.TokenSessionName = options.TokenSessionName
+	r.SessionName = options.SessionName
+	r.tokenSessionKey = "Token"
+	r.userIDSessionKey = "UserID"
+	r.userJsonSessionkey = "UserJson"
 	r.CookieManager = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
-		Cookie:       "syncsession",
+		Cookie:       r.SessionName,
 		Expires:      -1 * time.Hour,
 		Encode:       r.CookieManager.Encode,
 		Decode:       r.CookieManager.Decode,
@@ -313,31 +313,35 @@ func (x *OAuthClient) MvcAuthorize(ctx iris.Context) {
 	}
 }
 
-func (x *OAuthClient) Client() *http.Client {
-	return x.OAuth.ClientCredential.Client(context.Background())
+func (x *OAuthClient) Client() (*http.Client, error) {
+	return x.OAuth.ClientCredential.Client(context.Background()), nil
+}
+
+func (x *OAuthClient) GetUserLock(userID string) *sync.RWMutex {
+	if !x.UserLocks.Exists(userID) {
+		x.UserLocks.Add(userID, time.Second*30, new(sync.RWMutex))
+	}
+
+	userLockCache, _ := x.UserLocks.Value(userID)
+	return userLockCache.Data().(*sync.RWMutex)
 }
 
 func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
+	session := x.SessionManager.Start(ctx)
 	goctx := context.Background()
-	user := x.GetUser(ctx)
-	if user == nil {
+	userID := session.GetString(x.userIDSessionKey)
+	if userID == "" {
 		return http.DefaultClient, nil
 	}
 
-	// 获取或新增用户锁
-	if !x.UserLocks.Exists(user.ID) {
-		x.UserLocks.Add(user.ID, time.Second*30, new(sync.RWMutex))
-	}
-	userLockCache, _ := x.UserLocks.Value(user.ID)
-	userLock := userLockCache.Data().(*sync.RWMutex)
+	// 获取用户锁
+	userLock := x.GetUserLock(userID)
 
 	// read lock
 	userLock.RLock()
-	// read unlock
-	defer userLock.RUnlock()
-
-	session := x.SessionManager.Start(ctx)
 	t, err := x.getToken(session)
+	userLock.RUnlock()
+
 	if u.LogError(err) {
 		return http.DefaultClient, err
 	}
@@ -360,18 +364,22 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 	}
 
 	return oauth2.NewClient(goctx, tokenSource), nil
-
 }
 
 func (x *OAuthClient) GetUser(ctx iris.Context) (r *ClientUser) {
 	session := x.SessionManager.Start(ctx)
-	userJson := session.GetString(x.UserSessionName)
+	userJson := session.GetString(x.userJsonSessionkey)
 	if userJson != "" {
 		// 已登录
 		err := json.Unmarshal([]byte(userJson), &r)
 		u.LogError(err)
 	}
 	return
+}
+
+func (x *OAuthClient) GetUserID(ctx iris.Context) string {
+	session := x.SessionManager.Start(ctx)
+	return session.GetString(x.userIDSessionKey)
 }
 
 func (x *OAuthClient) signinHanlder(ctx iris.Context) {
@@ -381,7 +389,7 @@ func (x *OAuthClient) signinHanlder(ctx iris.Context) {
 	}
 
 	session := x.SessionManager.Start(ctx)
-	userStr := session.GetString(x.UserSessionName)
+	userStr := session.GetString(x.userJsonSessionkey)
 	if userStr != "" {
 		// 已登录
 		ctx.Redirect(returnURL, http.StatusFound)
@@ -481,7 +489,10 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if ok {
 		userStr := makeUserString(&claims)
-		session.Set(x.UserSessionName, userStr)
+		session.Set(x.userJsonSessionkey, userStr)
+		if userID, ok := claims["sub"]; ok {
+			session.Set(x.userIDSessionKey, userID)
+		}
 
 		// 保存令牌
 		x.saveToken(session, oauth2Token)
@@ -540,14 +551,14 @@ func (x *OAuthClient) saveToken(session *sessions.Session, token *oauth2.Token) 
 	}
 
 	// 保存令牌到Session
-	session.Set(x.TokenSessionName, string(tokenJson))
+	session.Set(x.tokenSessionKey, string(tokenJson))
 
 	return nil
 }
 
 func (x *OAuthClient) getToken(session *sessions.Session) (*oauth2.Token, error) {
 	// 从Session获取令牌
-	tokenJson := session.GetString(x.TokenSessionName)
+	tokenJson := session.GetString(x.tokenSessionKey)
 
 	t := new(oauth2.Token)
 	err := json.Unmarshal([]byte(tokenJson), t)
