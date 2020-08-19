@@ -16,7 +16,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
-	iriscontext "github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/syncfuture/go/config"
 	log "github.com/syncfuture/go/slog"
@@ -55,10 +54,10 @@ type (
 		HashKey                string
 		BlockKey               string
 		OAuth                  *OAuthOptions
-		SignInHandler          iriscontext.Handler
-		SignInCallbackHandler  iriscontext.Handler
-		SignOutHandler         iriscontext.Handler
-		SignOutCallbackHandler iriscontext.Handler
+		SignInHandler          iris.Handler
+		SignInCallbackHandler  iris.Handler
+		SignOutHandler         iris.Handler
+		SignOutCallbackHandler iris.Handler
 	}
 
 	OAuthClient struct {
@@ -74,10 +73,10 @@ type (
 		CookieManager          *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
 		OAuth                  *OAuthOptions
-		SignInHandler          iriscontext.Handler
-		SignInCallbackHandler  iriscontext.Handler
-		SignOutHandler         iriscontext.Handler
-		SignOutCallbackHandler iriscontext.Handler
+		SignInHandler          iris.Handler
+		SignInCallbackHandler  iris.Handler
+		SignOutHandler         iris.Handler
+		SignOutCallbackHandler iris.Handler
 	}
 )
 
@@ -259,7 +258,7 @@ func (x *OAuthClient) Run(actionGroups ...*[]*Action) {
 	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }
 
-func (x *OAuthClient) MvcAuthorize(ctx iriscontext.Context) {
+func (x *OAuthClient) MvcAuthorize(ctx iris.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	handlerName := ctx.GetCurrentRoute().MainHandlerName()
@@ -316,7 +315,7 @@ func (x *OAuthClient) MvcAuthorize(ctx iriscontext.Context) {
 func (x *OAuthClient) NewHttpClient(args ...interface{}) (*http.Client, error) {
 	goctx := context.Background()
 	if len(args) > 0 {
-		if ctx, ok := args[0].(iriscontext.Context); ok {
+		if ctx, ok := args[0].(iris.Context); ok {
 			session := x.SessionManager.Start(ctx)
 			userStr := session.GetString(x.UserSessionName)
 			if userStr == "" {
@@ -348,7 +347,7 @@ func (x *OAuthClient) NewHttpClient(args ...interface{}) (*http.Client, error) {
 	return x.OAuth.ClientCredential.Client(goctx), nil
 }
 
-func (x *OAuthClient) GetUser(ctx iriscontext.Context) (r *ClientUser) {
+func (x *OAuthClient) GetUser(ctx iris.Context) (r *ClientUser) {
 	session := x.SessionManager.Start(ctx)
 	userJson := session.GetString(x.UserSessionName)
 	if userJson != "" {
@@ -359,7 +358,7 @@ func (x *OAuthClient) GetUser(ctx iriscontext.Context) (r *ClientUser) {
 	return
 }
 
-func (x *OAuthClient) signinHanlder(ctx iriscontext.Context) {
+func (x *OAuthClient) signinHanlder(ctx iris.Context) {
 	returnURL := ctx.FormValue(oauth2core.Form_ReturnUrl)
 	if returnURL == "" {
 		returnURL = "/"
@@ -389,7 +388,7 @@ func (x *OAuthClient) signinHanlder(ctx iriscontext.Context) {
 	}
 }
 
-func (x *OAuthClient) signInCallbackHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	state := ctx.FormValue(oauth2core.Form_State)
@@ -480,7 +479,7 @@ func (x *OAuthClient) signInCallbackHandler(ctx iriscontext.Context) {
 	}
 }
 
-func (x *OAuthClient) signOutHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signOutHandler(ctx iris.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	// 去Passport注销
@@ -498,7 +497,7 @@ func (x *OAuthClient) signOutHandler(ctx iriscontext.Context) {
 	ctx.Redirect(targetURL, http.StatusFound)
 }
 
-func (x *OAuthClient) signOutCallbackHandler(ctx iriscontext.Context) {
+func (x *OAuthClient) signOutCallbackHandler(ctx iris.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	state := ctx.FormValue(oauth2core.Form_State)
@@ -514,11 +513,11 @@ func (x *OAuthClient) signOutCallbackHandler(ctx iriscontext.Context) {
 	ctx.Redirect(returnURL, http.StatusFound)
 }
 
-func (x *OAuthClient) SignOut(ctx iriscontext.Context) {
+func (x *OAuthClient) SignOut(ctx iris.Context) {
 	x.SessionManager.Destroy(ctx)
 }
 
-func (x *OAuthClient) saveToken(ctx iriscontext.Context, token *oauth2.Token) error {
+func (x *OAuthClient) saveToken(ctx iris.Context, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if u.LogError(err) {
 		return err
@@ -531,7 +530,7 @@ func (x *OAuthClient) saveToken(ctx iriscontext.Context, token *oauth2.Token) er
 	return nil
 }
 
-func (x *OAuthClient) getToken(ctx iriscontext.Context) (*oauth2.Token, error) {
+func (x *OAuthClient) getToken(ctx iris.Context) (*oauth2.Token, error) {
 	// 从Session获取令牌
 	session := x.SessionManager.Start(ctx)
 	tokenJson := session.GetString(x.TokenSessionName)

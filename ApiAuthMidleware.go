@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/go/security"
 
 	"github.com/syncfuture/go/u"
@@ -11,7 +12,6 @@ import (
 	log "github.com/syncfuture/go/slog"
 
 	"github.com/iris-contrib/middleware/jwt"
-	iriscontext "github.com/kataras/iris/v12/context"
 )
 
 type ApiAuthMidleware struct {
@@ -20,7 +20,7 @@ type ApiAuthMidleware struct {
 	ProjectName       string
 }
 
-func (x *ApiAuthMidleware) Serve(ctx iriscontext.Context) {
+func (x *ApiAuthMidleware) Serve(ctx iris.Context) {
 	var msgCode string
 	token := ctx.Values().Get("jwt").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)

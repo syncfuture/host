@@ -8,12 +8,12 @@ import (
 	"runtime"
 	"strings"
 
-	iriscontext "github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/go/config"
 	"github.com/syncfuture/go/u"
 )
 
-func NewAction(route, area, controller string, handler iriscontext.Handler) *Action {
+func NewAction(route, area, controller string, handler iris.Handler) *Action {
 	action := runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
 	action = action[strings.LastIndex(action, ".")+1:]
 
@@ -26,7 +26,7 @@ func NewAction(route, area, controller string, handler iriscontext.Handler) *Act
 	}
 }
 
-func HandleError(ctx iriscontext.Context, err error) bool {
+func HandleError(ctx iris.Context, err error) bool {
 	if u.LogError(err) {
 		ctx.StatusCode(http.StatusInternalServerError)
 		ctx.WriteString(err.Error())

@@ -11,7 +11,6 @@ import (
 	"github.com/syncfuture/go/surl"
 
 	"github.com/kataras/iris/v12"
-	iriscontext "github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"github.com/kataras/iris/v12/view"
@@ -23,7 +22,7 @@ type (
 		Area       string
 		Controller string
 		Action     string
-		Handler    iriscontext.Handler
+		Handler    iris.Handler
 	}
 
 	BaseServerOptions struct {
@@ -57,7 +56,7 @@ type (
 		BaseServer
 		IrisApp        *iris.Application
 		ViewEngine     view.Engine
-		PreMiddlewares []iriscontext.Handler
+		PreMiddlewares []iris.Handler
 		ActionMap      *map[string]*Action
 	}
 )
@@ -126,7 +125,7 @@ func (x *IrisBaseServer) registerActions() {
 	}
 }
 
-func (x *IrisBaseServer) registerAction(name string, handlers ...iriscontext.Handler) {
+func (x *IrisBaseServer) registerAction(name string, handlers ...iris.Handler) {
 	index := strings.Index(name, "/")
 	method := name[:index]
 	path := name[index:]
