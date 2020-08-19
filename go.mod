@@ -17,6 +17,7 @@ require (
 	github.com/kazegusuri/grpc-panic-handler v0.0.0-20160502122501-093ec776affc
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
+	github.com/muesli/cache2go v0.0.0-20200423001931-a100c5aac93f
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/syncfuture/go v1.1.15

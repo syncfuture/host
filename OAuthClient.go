@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Lukiya/oauth2go"
@@ -17,6 +18,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
+	"github.com/muesli/cache2go"
 	"github.com/syncfuture/go/config"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
@@ -72,6 +74,7 @@ type (
 		TokenSessionName       string
 		CookieManager          *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
+		UserLocks              *cache2go.CacheTable
 		OAuth                  *OAuthOptions
 		SignInHandler          iris.Handler
 		SignInCallbackHandler  iris.Handler
@@ -221,6 +224,7 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.SignInCallbackHandler = options.SignInCallbackHandler
 	r.SignOutHandler = options.SignOutHandler
 	r.SignOutCallbackHandler = options.SignOutCallbackHandler
+	r.UserLocks = cache2go.Cache("UserLocks")
 
 	// 添加内置终结点
 	r.IrisApp.Get(r.SignInPath, r.SignInHandler)
@@ -309,42 +313,54 @@ func (x *OAuthClient) MvcAuthorize(ctx iris.Context) {
 	}
 }
 
-// NewHttpClient create new http client with beaer token.
-// if session doesn't has token stored, requerst client credential token
-// if session has token stored, use that token, if token expired, refresh token
-func (x *OAuthClient) NewHttpClient(args ...interface{}) (*http.Client, error) {
+func (x *OAuthClient) Client() *http.Client {
+	return x.OAuth.ClientCredential.Client(context.Background())
+}
+
+func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 	goctx := context.Background()
-	if len(args) > 0 {
-		if ctx, ok := args[0].(iris.Context); ok {
-			session := x.SessionManager.Start(ctx)
-			userStr := session.GetString(x.UserSessionName)
-			if userStr == "" {
-				return http.DefaultClient, fmt.Errorf("user doesn't login")
-			}
-
-			t, err := x.getToken(ctx)
-			if u.LogError(err) {
-				return http.DefaultClient, err
-			}
-
-			tokenSource := x.OAuth.TokenSource(goctx, t)
-			newToken, err := tokenSource.Token()
-			if u.LogError(err) {
-				// refresh token failed, sign user out
-				x.SignOut(ctx)
-				return http.DefaultClient, err
-			}
-
-			if newToken.AccessToken != t.AccessToken {
-				// token refreshed, store new token
-				x.saveToken(ctx, newToken)
-			}
-
-			return oauth2.NewClient(goctx, tokenSource), nil
-		}
+	user := x.GetUser(ctx)
+	if user == nil {
+		return http.DefaultClient, nil
 	}
 
-	return x.OAuth.ClientCredential.Client(goctx), nil
+	// 获取或新增用户锁
+	if !x.UserLocks.Exists(user.ID) {
+		x.UserLocks.Add(user.ID, time.Second*30, new(sync.RWMutex))
+	}
+	userLockCache, _ := x.UserLocks.Value(user.ID)
+	userLock := userLockCache.Data().(*sync.RWMutex)
+
+	// read lock
+	userLock.RLock()
+	// read unlock
+	defer userLock.RUnlock()
+
+	session := x.SessionManager.Start(ctx)
+	t, err := x.getToken(session)
+	if u.LogError(err) {
+		return http.DefaultClient, err
+	}
+
+	tokenSource := x.OAuth.TokenSource(goctx, t)
+	newToken, err := tokenSource.Token()
+	if u.LogError(err) {
+		// refresh token failed, sign user out
+		x.SignOut(ctx)
+		return http.DefaultClient, err
+	}
+
+	if newToken.AccessToken != t.AccessToken {
+		// token been refreshed, lock
+		userLock.Lock()
+		// save token to session
+		x.saveToken(session, newToken)
+		// unlock
+		defer userLock.Unlock()
+	}
+
+	return oauth2.NewClient(goctx, tokenSource), nil
+
 }
 
 func (x *OAuthClient) GetUser(ctx iris.Context) (r *ClientUser) {
@@ -468,7 +484,7 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 		session.Set(x.UserSessionName, userStr)
 
 		// 保存令牌
-		x.saveToken(ctx, oauth2Token)
+		x.saveToken(session, oauth2Token)
 
 		// 重定向到登录前页面
 		ctx.Redirect(redirectUrl, http.StatusFound)
@@ -517,22 +533,20 @@ func (x *OAuthClient) SignOut(ctx iris.Context) {
 	x.SessionManager.Destroy(ctx)
 }
 
-func (x *OAuthClient) saveToken(ctx iris.Context, token *oauth2.Token) error {
+func (x *OAuthClient) saveToken(session *sessions.Session, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if u.LogError(err) {
 		return err
 	}
 
 	// 保存令牌到Session
-	session := x.SessionManager.Start(ctx)
 	session.Set(x.TokenSessionName, string(tokenJson))
 
 	return nil
 }
 
-func (x *OAuthClient) getToken(ctx iris.Context) (*oauth2.Token, error) {
+func (x *OAuthClient) getToken(session *sessions.Session) (*oauth2.Token, error) {
 	// 从Session获取令牌
-	session := x.SessionManager.Start(ctx)
 	tokenJson := session.GetString(x.TokenSessionName)
 
 	t := new(oauth2.Token)
