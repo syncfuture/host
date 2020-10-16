@@ -216,8 +216,7 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.SessionManager = sessions.New(sessions.Config{
 		Cookie:       r.SessionName,
 		Expires:      -1 * time.Hour,
-		Encode:       r.CookieManager.Encode,
-		Decode:       r.CookieManager.Decode,
+		Encoding:     r.CookieManager,
 		AllowReclaim: true,
 	})
 	r.SignInHandler = options.SignInHandler

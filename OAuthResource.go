@@ -11,7 +11,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/go/config"
 	"github.com/syncfuture/go/rsautil"
-	"github.com/syncfuture/go/sarray"
+	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
 )
 
@@ -116,16 +116,16 @@ func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
 	if !ok {
 		return nil, errors.New("issuer is required")
 	}
-	if !sarray.HasStr(x.Resource.Issuers, issuer) {
+	if !sslice.HasStr(x.Resource.Issuers, issuer) {
 		return nil, errors.New("issuer validation failed")
 	}
 
 	// Get audience from JWT and validate against desired audience
 	var isAudienceValid bool
 	if aud, ok := claims["aud"].(string); ok {
-		isAudienceValid = sarray.HasStr(x.Resource.Audiences, aud)
+		isAudienceValid = sslice.HasStr(x.Resource.Audiences, aud)
 	} else if auds, ok := claims["aud"].([]string); ok {
-		isAudienceValid = sarray.HasAnyStr(x.Resource.Audiences, auds)
+		isAudienceValid = sslice.HasAnyStr(x.Resource.Audiences, auds)
 	}
 
 	if !isAudienceValid {
