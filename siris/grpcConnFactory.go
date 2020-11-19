@@ -2,15 +2,14 @@ package siris
 
 import (
 	"github.com/iris-contrib/middleware/jwt"
+	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/host/sgrpc"
 	"google.golang.org/grpc"
-
-	"github.com/kataras/iris/v12/context"
 
 	log "github.com/syncfuture/go/slog"
 )
 
-func CreateGRPCConnPool(ctx context.Context, addr string) (r *grpc.ClientConn) {
+func CreateGRPCConnPool(ctx iris.Context, addr string) (r *grpc.ClientConn) {
 	var err error
 	j := ctx.Values().Get("jwt")
 	if j != nil {
