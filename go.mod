@@ -3,12 +3,11 @@ module github.com/syncfuture/host
 go 1.15
 
 require (
-	github.com/Joker/hpp v1.0.0 // indirect
 	github.com/Lukiya/oauth2go v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/iris-contrib/middleware/jwt v0.0.0-20201115103636-07e8bced147f // DO NOT UPDATE
+	github.com/iris-contrib/middleware/jwt v0.0.0-20191219204441-78279b78a367 // DO NOT UPDATE
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/kataras/iris/v12 v12.2.0-alpha.0.20201113181155-4d09475c290d
 	github.com/kazegusuri/grpc-panic-handler v0.0.0-20160502122501-093ec776affc
