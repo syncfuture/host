@@ -41,6 +41,9 @@ func NewGrpcServer(options *GrpcServerOptions) (r *GrpcServer) {
 
 	r = new(GrpcServer)
 	r.Name = options.Name
+	r.URIKey = options.URIKey
+	r.RouteKey = options.RouteKey
+	r.PermissionKey = options.PermissionKey
 	r.configBaseServer(&options.BaseServerOptions)
 
 	// GRPC Server

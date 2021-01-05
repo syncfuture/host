@@ -14,11 +14,11 @@ import (
 	"github.com/Lukiya/oauth2go"
 	"github.com/Lukiya/oauth2go/core"
 	oauth2core "github.com/Lukiya/oauth2go/core"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/securecookie"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/muesli/cache2go"
+	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/config"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
@@ -127,6 +127,9 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	// create pointer
 	r = new(OAuthClient)
 	r.Name = options.Name
+	r.URIKey = options.URIKey
+	r.RouteKey = options.RouteKey
+	r.PermissionKey = options.PermissionKey
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
 	if options.OAuth == nil {
@@ -478,18 +481,19 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	}
 
 	// 将字符串转化为令牌对象，忽略KeyFunc不存在错误
-	jwtToken, err := new(jwt.Parser).Parse(oauth2Token.AccessToken, nil)
-	vErr := err.(*jwt.ValidationError)
-	if vErr.Errors != jwt.ValidationErrorUnverifiable {
-		ctx.WriteString(err.Error())
-		u.LogError(err)
-		return
-	}
-	claims, ok := jwtToken.Claims.(jwt.MapClaims)
-	if ok {
-		userStr := makeUserString(&claims)
+	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
+	// jwtToken, err := new(jwt.Parser).Parse(oauth2Token.AccessToken, nil)
+	// vErr := err.(*jwt.ValidationError)
+	// if vErr.Errors != jwt.ValidationErrorUnverifiable {
+	// 	ctx.WriteString(err.Error())
+	// 	u.LogError(err)
+	// 	return
+	// }
+	// claims, ok := jwtToken.Claims.(jwt.MapClaims)
+	if err == nil {
+		userStr := makeUserString(&jwtToken.Set)
 		session.Set(x.userJsonSessionkey, userStr)
-		if userID, ok := claims["sub"]; ok {
+		if userID, ok := jwtToken.Set["sub"]; ok {
 			session.Set(x.userIDSessionKey, userID)
 		}
 
@@ -568,7 +572,7 @@ func (x *OAuthClient) getToken(session *sessions.Session) (*oauth2.Token, error)
 	return t, err
 }
 
-func makeUserString(claims *jwt.MapClaims) string {
+func makeUserString(claims *map[string]interface{}) string {
 	bytes, err := json.Marshal(claims)
 	if u.LogError(err) {
 		return ""

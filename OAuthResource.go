@@ -2,16 +2,13 @@ package host
 
 import (
 	"crypto/rsa"
-	"errors"
 	"log"
 
 	"github.com/Lukiya/oauth2go/model"
-	jwtgo "github.com/dgrijalva/jwt-go"
-	jwtiris "github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/v12"
+	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/config"
 	"github.com/syncfuture/go/rsautil"
-	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
 )
 
@@ -26,7 +23,7 @@ type (
 	OAuthResource struct {
 		IrisBaseServer
 		PublicKey        *rsa.PublicKey
-		SigningAlgorithm jwtgo.SigningMethod
+		SigningAlgorithm string
 		Resource         *model.Resource
 	}
 )
@@ -56,11 +53,14 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 		log.Fatal("Audiences cannot be empty")
 	}
 	if options.SigningAlgorithm == "" {
-		options.SigningAlgorithm = jwtgo.SigningMethodPS256.Name
+		options.SigningAlgorithm = jwt.PS256
 	}
 
 	r = new(OAuthResource)
 	r.Name = options.Name
+	r.URIKey = options.URIKey
+	r.RouteKey = options.RouteKey
+	r.PermissionKey = options.PermissionKey
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
 	for i := range options.OAuth.Issuers {
@@ -69,7 +69,7 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	for i := range options.OAuth.Audiences {
 		options.OAuth.Audiences[i] = r.URLProvider.RenderURL(options.OAuth.Audiences[i])
 	}
-	r.SigningAlgorithm = jwtgo.GetSigningMethod(options.SigningAlgorithm)
+	r.SigningAlgorithm = options.SigningAlgorithm
 	r.Resource = options.OAuth
 
 	// read public certificate
@@ -90,12 +90,16 @@ func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 	}
 	x.ActionMap = &actionMap
 
+	// jwtMiddleware := jwtiris.New(jwtiris.Config{
+	// 	ValidationKeyGetter: x.validateToken,
+	// 	SigningMethod:       x.SigningAlgorithm,
+	// 	Expiration:          true,
+	// })
+
 	// JWT验证中间件
-	jwtMiddleware := jwtiris.New(jwtiris.Config{
-		ValidationKeyGetter: x.validateToken,
-		SigningMethod:       x.SigningAlgorithm,
-		Expiration:          true,
-	})
+	jwtMiddleware := &JWTMiddleware{
+		IssuerSigningKey: x.PublicKey,
+	}
 
 	// 授权中间件
 	authMiddleware := &ApiAuthMidleware{
@@ -108,32 +112,32 @@ func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 	x.PreMiddlewares = append(x.PreMiddlewares, authMiddleware.Serve)
 }
 
-func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
-	claims := token.Claims.(jwtiris.MapClaims)
+// func (x *OAuthResource) validateToken(token *jwtgo.Token) (interface{}, error) {
+// 	claims := token.Claims.(jwtiris.MapClaims)
 
-	// Get iss from JWT and validate against desired iss
-	issuer, ok := claims["iss"].(string)
-	if !ok {
-		return nil, errors.New("issuer is required")
-	}
-	if !sslice.HasStr(x.Resource.Issuers, issuer) {
-		return nil, errors.New("issuer validation failed")
-	}
+// 	// Get iss from JWT and validate against desired iss
+// 	issuer, ok := claims["iss"].(string)
+// 	if !ok {
+// 		return nil, errors.New("issuer is required")
+// 	}
+// 	if !sslice.HasStr(x.Resource.Issuers, issuer) {
+// 		return nil, errors.New("issuer validation failed")
+// 	}
 
-	// Get audience from JWT and validate against desired audience
-	var isAudienceValid bool
-	if aud, ok := claims["aud"].(string); ok {
-		isAudienceValid = sslice.HasStr(x.Resource.Audiences, aud)
-	} else if auds, ok := claims["aud"].([]string); ok {
-		isAudienceValid = sslice.HasAnyStr(x.Resource.Audiences, auds)
-	}
+// 	// Get audience from JWT and validate against desired audience
+// 	var isAudienceValid bool
+// 	if aud, ok := claims["aud"].(string); ok {
+// 		isAudienceValid = sslice.HasStr(x.Resource.Audiences, aud)
+// 	} else if auds, ok := claims["aud"].([]string); ok {
+// 		isAudienceValid = sslice.HasAnyStr(x.Resource.Audiences, auds)
+// 	}
 
-	if !isAudienceValid {
-		return nil, errors.New("audience validation failed")
-	}
+// 	if !isAudienceValid {
+// 		return nil, errors.New("audience validation failed")
+// 	}
 
-	return x.PublicKey, nil
-}
+// 	return x.PublicKey, nil
+// }
 
 func (x *OAuthResource) Run(actionGroups ...*[]*Action) {
 	x.init(actionGroups...)

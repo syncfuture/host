@@ -28,6 +28,9 @@ type (
 	BaseServerOptions struct {
 		Debug                   bool
 		Name                    string
+		URIKey                  string
+		RouteKey                string
+		PermissionKey           string
 		ListenAddr              string
 		RedisConfig             *sredis.RedisConfig
 		ConfigProvider          config.IConfigProvider
@@ -44,6 +47,9 @@ type (
 	BaseServer struct {
 		Debug                   bool
 		Name                    string
+		URIKey                  string
+		RouteKey                string
+		PermissionKey           string
 		ListenAddr              string
 		ConfigProvider          config.IConfigProvider
 		RedisConfig             *sredis.RedisConfig
@@ -65,6 +71,15 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	if options.Name == "" {
 		log.Fatal("Name cannot be empty")
 	}
+	if options.URIKey == "" {
+		log.Fatal("URIKey cannot be empty")
+	}
+	if options.RouteKey == "" {
+		log.Fatal("RouteKey cannot be empty")
+	}
+	if options.PermissionKey == "" {
+		log.Fatal("PermissionKey cannot be empty")
+	}
 	if options.ListenAddr == "" {
 		log.Fatal("ListenAddr cannot be empty")
 	}
@@ -81,11 +96,11 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	}
 
 	if options.URLProvider == nil {
-		options.URLProvider = surl.NewRedisURLProvider(options.RedisConfig)
+		options.URLProvider = surl.NewRedisURLProvider(options.URIKey, options.RedisConfig)
 	}
 
 	if options.RoutePermissionProvider == nil {
-		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.Name, options.RedisConfig)
+		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.RouteKey, options.PermissionKey, options.RedisConfig)
 	}
 
 	if options.PermissionAuditor == nil {
@@ -94,6 +109,9 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 
 	r.Debug = options.Debug
 	r.Name = options.Name
+	r.URIKey = options.URIKey
+	r.RouteKey = options.RouteKey
+	r.PermissionKey = options.PermissionKey
 	r.ListenAddr = options.ListenAddr
 	r.ConfigProvider = options.ConfigProvider
 	r.RedisConfig = options.RedisConfig

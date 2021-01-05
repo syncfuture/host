@@ -1,0 +1,29 @@
+{
+    "Log": {
+        "Level": "debug",
+        "DetailLevel": "warn"
+    },
+    "Redis": {
+        "Addrs": [
+            "192.168.188.166:6379"
+        ],
+        "Password": "Famous901"
+    },
+    "Http": {
+        "SkipCertVerification": true
+    },
+    "OAuthResource": {
+        "Debug": true,
+        "Name": "testapi",
+        "PublicKeyPath": "D:/data/cert/test.cer",
+        "OAuth": {
+            "Issuers": [
+                "https://p.ecp.com"
+            ],
+            "Audiences": [
+                "testapi"
+            ]
+        },
+        "ListenAddr": ":6000"
+    }
+}
