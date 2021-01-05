@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kataras/iris/v12"
 	"github.com/syncfuture/go/security"
+	"github.com/syncfuture/go/sslice"
 
 	"github.com/syncfuture/go/u"
 
@@ -18,11 +20,14 @@ import (
 const (
 	_authHeader = "Authorization"
 	_jwtValue   = "jwt"
+	_bearer     = "Bearer"
 )
 
 /// JWTMiddleware jwt extraction & validation middle ware
 type JWTMiddleware struct {
 	IssuerSigningKey *rsa.PublicKey
+	ValidAudiences   []string
+	ValidIssuers     []string
 }
 
 func (x *JWTMiddleware) Serve(ctx iris.Context) {
@@ -32,20 +37,53 @@ func (x *JWTMiddleware) Serve(ctx iris.Context) {
 		return
 	}
 
+	// verify authorization header
 	array := strings.Split(authHeader[0], " ")
-	if len(array) != 2 {
-		ctx.Next()
+	if len(array) != 2 || array[0] != _bearer {
+		ctx.StatusCode(http.StatusBadRequest)
+		log.Warnf("'%s'invalid authorization header format. '%s'", ctx.Request().RemoteAddr, authHeader[0])
 		return
 	}
 
-	claims, err := jwt.RSACheck([]byte(array[1]), x.IssuerSigningKey)
+	// verify signature
+	token, err := jwt.RSACheck([]byte(array[1]), x.IssuerSigningKey)
 	if err != nil {
-		log.Warn(err)
-		ctx.Next()
+		ctx.StatusCode(http.StatusUnauthorized)
+		log.Warn("'"+ctx.Request().RemoteAddr+"'", err)
 		return
 	}
 
-	ctx.Values().Set(_jwtValue, claims)
+	// validate time limits
+	isNotExpired := token.Valid(time.Now().UTC())
+	if !isNotExpired {
+		ctx.StatusCode(http.StatusUnauthorized)
+		msgCode := "current time not in token's valid period"
+		ctx.WriteString(msgCode)
+		log.Warn("'"+ctx.Request().RemoteAddr+"'", msgCode)
+		return
+	}
+
+	// validate aud
+	isValidAudience := x.ValidAudiences != nil && sslice.HasAnyStr(x.ValidAudiences, token.Audiences)
+	if !isValidAudience {
+		ctx.StatusCode(http.StatusUnauthorized)
+		msgCode := "invalid audience"
+		ctx.WriteString(msgCode)
+		log.Warn("'"+ctx.Request().RemoteAddr+"'", msgCode)
+		return
+	}
+
+	// validate iss
+	isValidIssuer := x.ValidIssuers != nil && sslice.HasStr(x.ValidIssuers, token.Issuer)
+	if !isValidIssuer {
+		ctx.StatusCode(http.StatusUnauthorized)
+		msgCode := "invalid issuer"
+		ctx.WriteString(msgCode)
+		log.Warn("'"+ctx.Request().RemoteAddr+"'", msgCode)
+		return
+	}
+
+	ctx.Values().Set(_jwtValue, token)
 	ctx.Next()
 }
 
@@ -58,10 +96,9 @@ type ApiAuthMidleware struct {
 
 func (x *ApiAuthMidleware) Serve(ctx iris.Context) {
 	var msgCode string
-	jwtValue := ctx.Values().Get(_jwtValue)
-	if jwtValue != nil {
-		token := jwtValue.(*jwt.Claims)
-		claims := token.Set
+	token := ctx.Values().Get(_jwtValue)
+	if token != nil {
+		claims := token.(*jwt.Claims).Set
 
 		if roleStr, ok := claims["role"].(string); ok && roleStr != "" {
 			// Has role filed

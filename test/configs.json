@@ -17,10 +17,10 @@
         "Name": "testapi",
         "PublicKeyPath": "D:/data/cert/test.cer",
         "OAuth": {
-            "Issuers": [
-                "https://p.ecp.com"
+            "ValidIssuers": [
+                "https://p.test.com"
             ],
-            "Audiences": [
+            "ValidAudiences": [
                 "testapi"
             ]
         },

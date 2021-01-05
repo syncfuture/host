@@ -46,10 +46,10 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	if options.OAuth == nil {
 		log.Fatal("oauth options cannot be nil")
 	}
-	if options.OAuth.Issuers == nil || len(options.OAuth.Issuers) == 0 {
+	if options.OAuth.ValidIssuers == nil || len(options.OAuth.ValidIssuers) == 0 {
 		log.Fatal("Issuers cannot be empty")
 	}
-	if options.OAuth.Audiences == nil || len(options.OAuth.Audiences) == 0 {
+	if options.OAuth.ValidAudiences == nil || len(options.OAuth.ValidAudiences) == 0 {
 		log.Fatal("Audiences cannot be empty")
 	}
 	if options.SigningAlgorithm == "" {
@@ -63,11 +63,11 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	r.PermissionKey = options.PermissionKey
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
 
-	for i := range options.OAuth.Issuers {
-		options.OAuth.Issuers[i] = r.URLProvider.RenderURL(options.OAuth.Issuers[i])
+	for i := range options.OAuth.ValidIssuers {
+		options.OAuth.ValidIssuers[i] = r.URLProvider.RenderURL(options.OAuth.ValidIssuers[i])
 	}
-	for i := range options.OAuth.Audiences {
-		options.OAuth.Audiences[i] = r.URLProvider.RenderURL(options.OAuth.Audiences[i])
+	for i := range options.OAuth.ValidAudiences {
+		options.OAuth.ValidAudiences[i] = r.URLProvider.RenderURL(options.OAuth.ValidAudiences[i])
 	}
 	r.SigningAlgorithm = options.SigningAlgorithm
 	r.Resource = options.OAuth
@@ -99,6 +99,8 @@ func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 	// JWT验证中间件
 	jwtMiddleware := &JWTMiddleware{
 		IssuerSigningKey: x.PublicKey,
+		ValidAudiences:   x.Resource.ValidAudiences,
+		ValidIssuers:     x.Resource.ValidIssuers,
 	}
 
 	// 授权中间件

@@ -3,8 +3,8 @@ package siris
 import (
 	"strconv"
 
-	"github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/v12/context"
+	"github.com/pascaldekloe/jwt"
 )
 
 func GetClaimInt64(claimName string, ctx context.Context) int64 {
@@ -16,11 +16,9 @@ func GetClaimInt64(claimName string, ctx context.Context) int64 {
 func GetClaimString(claimName string, ctx context.Context) string {
 	j := ctx.Values().Get("jwt")
 	if j != nil {
-		if token, ok := j.(*jwt.Token); ok {
-			if claims, ok := token.Claims.(jwt.MapClaims); ok {
-				if str, ok := claims[claimName].(string); ok && str != "" {
-					return str
-				}
+		if token, ok := j.(*jwt.Claims); ok {
+			if str, ok := token.Set[claimName].(string); ok && str != "" {
+				return str
 			}
 		}
 	}
