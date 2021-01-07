@@ -16,11 +16,14 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/muesli/cache2go v0.0.0-20201208071950-e3e970b4892f
+	github.com/nats-io/nats-server/v2 v2.1.9 // indirect
 	github.com/pascaldekloe/jwt v1.10.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/syncfuture/go v1.2.5
+	github.com/valyala/fasthttp v1.18.0
+	github.com/valyala/quicktemplate v1.6.3
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect

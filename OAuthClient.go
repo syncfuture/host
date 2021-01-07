@@ -3,7 +3,6 @@ package host
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -73,7 +72,7 @@ type (
 		userJsonSessionkey     string
 		tokenSessionKey        string
 		userIDSessionKey       string
-		CookieManager          *securecookie.SecureCookie
+		CookieProtoector       *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
 		UserLocks              *cache2go.CacheTable
 		OAuth                  *OAuthOptions
@@ -215,11 +214,11 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.tokenSessionKey = "Token"
 	r.userIDSessionKey = "UserID"
 	r.userJsonSessionkey = "UserJson"
-	r.CookieManager = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
+	r.CookieProtoector = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
 		Cookie:       r.SessionName,
 		Expires:      -1 * time.Hour,
-		Encoding:     r.CookieManager,
+		Encoding:     r.CookieProtoector,
 		AllowReclaim: true,
 	})
 	r.SignInHandler = options.SignInHandler
@@ -480,21 +479,31 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 		return
 	}
 
-	// 将字符串转化为令牌对象，忽略KeyFunc不存在错误
+	// 将字符串转化为令牌对象
 	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
-	// jwtToken, err := new(jwt.Parser).Parse(oauth2Token.AccessToken, nil)
-	// vErr := err.(*jwt.ValidationError)
-	// if vErr.Errors != jwt.ValidationErrorUnverifiable {
-	// 	ctx.WriteString(err.Error())
-	// 	u.LogError(err)
-	// 	return
-	// }
-	// claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if err == nil {
-		userStr := makeUserString(&jwtToken.Set)
+
+		// c := make(map[string]string, len(jwtToken.Set))
+		// c["id"] = jwtToken.Subject
+		// c["name"] = jwtToken.Set["name"].(string)
+		// c["role"] = jwtToken.Set["role"].(string)
+		// c["level"] = jwtToken.Set["level"].(string)
+		// c["status"] = jwtToken.Set["status"].(string)
+		// if oauth2Token.RefreshToken != "" {
+		// 	// 有刷新令牌
+		// 	c["refresh_token"] = oauth2Token.RefreshToken
+		// }
+		// s, err := x.CookieProtoector.Encode("sss", c)
+		// if u.LogError(err) {
+		// 	return
+		// }
+		// ctx.SetCookieKV("sss", s)
+		// x.CookieProtoector.Decode("sss", s, &c)
+
+		userStr := makeUserString(jwtToken)
 		session.Set(x.userJsonSessionkey, userStr)
-		if userID, ok := jwtToken.Set["sub"]; ok {
-			session.Set(x.userIDSessionKey, userID)
+		if jwtToken.Subject != "" {
+			session.Set(x.userIDSessionKey, jwtToken.Subject)
 		}
 
 		// 保存令牌
@@ -503,7 +512,6 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 		// 重定向到登录前页面
 		ctx.Redirect(redirectUrl, http.StatusFound)
 	} else {
-		err = errors.New("cannot convert jwtToken.Claims to jwt.MapClaims")
 		ctx.WriteString(err.Error())
 		u.LogError(err)
 	}
@@ -514,6 +522,10 @@ func (x *OAuthClient) signOutHandler(ctx iris.Context) {
 
 	// 去Passport注销
 	state := srand.String(32)
+	returnUrl := ctx.FormValue(oauth2core.Form_ReturnUrl)
+	if returnUrl == "" {
+		returnUrl = "/"
+	}
 	session.Set(state, ctx.FormValue(oauth2core.Form_ReturnUrl))
 	targetURL := fmt.Sprintf("%s?%s=%s&%s=%s&%s=%s",
 		x.OAuth.EndSessionEndpoint,
@@ -572,10 +584,7 @@ func (x *OAuthClient) getToken(session *sessions.Session) (*oauth2.Token, error)
 	return t, err
 }
 
-func makeUserString(claims *map[string]interface{}) string {
-	bytes, err := json.Marshal(claims)
-	if u.LogError(err) {
-		return ""
-	}
-	return string(bytes)
+func makeUserString(token *jwt.Claims) (r string) {
+	r = string(token.Raw)
+	return
 }

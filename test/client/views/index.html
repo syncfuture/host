@@ -1,0 +1,42 @@
+<h1>Index</h1>
+<div>
+    {{if .IsAuthenticated}}
+    Welcome, {{.Username}}
+    <a href="/signout?returnUrl=%2F">Sign Out</a>
+    {{else}}
+    <a href="/signin?returnUrl=%2F">Sign In</a>
+    {{end}}
+</div>
+<div id="app">
+    <button v-on:click="callApi" class="btn btn-primary">Call Api</button>
+    <p>${ message }</p>
+</div>
+<script>
+    const TestApp = {
+        data() {
+            return {
+                message: 'Waiting for command'
+            }
+        },
+        methods: {
+            callApi() {
+                const self = this;
+                axios.get('/users')
+                    .then(function (response) {
+                        // handle success
+                        self.message = response.data
+                    })
+                    .catch(function (error) {
+                        // handle error
+                        self.message = error
+                    })
+                    .then(function () {
+                        // always executed
+                    });
+            }
+        },
+        delimiters: ['${', '}']
+    }
+
+    Vue.createApp(TestApp).mount('#app')
+</script>

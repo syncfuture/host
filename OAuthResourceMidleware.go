@@ -28,6 +28,7 @@ type JWTMiddleware struct {
 	IssuerSigningKey *rsa.PublicKey
 	ValidAudiences   []string
 	ValidIssuers     []string
+	TokenValidator   func(*jwt.Claims) string
 }
 
 func (x *JWTMiddleware) Serve(ctx iris.Context) {
@@ -81,6 +82,15 @@ func (x *JWTMiddleware) Serve(ctx iris.Context) {
 		ctx.WriteString(msgCode)
 		log.Warn("'"+ctx.Request().RemoteAddr+"'", msgCode)
 		return
+	}
+
+	if x.TokenValidator != nil {
+		if msgCode := x.TokenValidator(token); msgCode != "" {
+			ctx.StatusCode(http.StatusUnauthorized)
+			ctx.WriteString(msgCode)
+			log.Warn("'"+ctx.Request().RemoteAddr+"'", msgCode)
+			return
+		}
 	}
 
 	ctx.Values().Set(_jwtValue, token)
