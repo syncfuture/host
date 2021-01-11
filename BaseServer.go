@@ -74,9 +74,9 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	if options.URIKey == "" {
 		log.Fatal("URIKey cannot be empty")
 	}
-	if options.RouteKey == "" {
-		log.Fatal("RouteKey cannot be empty")
-	}
+	// if options.RouteKey == "" {
+	// 	log.Fatal("RouteKey cannot be empty")
+	// }
 	if options.PermissionKey == "" {
 		log.Fatal("PermissionKey cannot be empty")
 	}
@@ -127,6 +127,10 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 
 func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 	r.configBaseServer(&options.BaseServerOptions)
+
+	if options.RouteKey == "" {
+		log.Fatal("RouteKey cannot be empty")
+	}
 
 	r.IrisApp = iris.New()
 	r.IrisApp.Logger().SetLevel(log.Level)
