@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/kataras/iris/v12"
@@ -8,6 +9,7 @@ import (
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/syncfuture/go/shttp"
 	"github.com/syncfuture/go/surl"
+	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 )
 
@@ -68,7 +70,7 @@ func (c *home) GetUsers(ctx iris.Context) {
 	api := newUserAPI(_server.URLProvider)
 	buffer := api.GetUsers(httpClient)
 	defer api.RecycleBuffer(buffer)
-	ctx.Write(*buffer)
+	ctx.Write(buffer.Bytes())
 }
 
 func configureMVC(app *mvc.Application) {
@@ -90,7 +92,11 @@ func newUserAPI(urlProvider surl.IURLProvider) *userAPI {
 	return r
 }
 
-func (x *userAPI) GetUsers(httpClient *http.Client) (r *[]byte) {
-	r = x.CallAPI(httpClient, "GET", "https://i.test.com/users", nil)
-	return
+func (x *userAPI) GetUsers(httpClient *http.Client) (r *bytes.Buffer) {
+	var err error
+	r, err = x.DoBuffer(httpClient, "GET", "https://i.test.com/users", nil, nil)
+	if u.LogError(err) {
+		return
+	}
+	return r
 }

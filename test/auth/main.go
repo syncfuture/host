@@ -24,26 +24,30 @@ func (x *myClaimsGenerator) Generate(ctx *fasthttp.RequestCtx, grantType string,
 	exp := utcNow.Add(time.Duration(client.GetAccessTokenExpireSeconds()) * time.Second).Unix()
 
 	r := map[string]interface{}{
-		"name": username,
-		"iss":  "https://p.test.com",
-		"exp":  exp,
-		"iat":  utcNow.Unix(),
-		"nbf":  utcNow.Unix(),
+		oauth2core.Claim_Name:    username,
+		oauth2core.Claim_Issuer:  "https://p.test.com",
+		oauth2core.Claim_Expire:  exp,
+		oauth2core.Claim_IssueAt: utcNow.Unix(),
+		// oauth2core.Claim_NotValidBefore: utcNow.Unix(),
 	}
 
-	r["aud"] = client.GetAudiences()
-	r["scope"] = scopes
+	rexp := client.GetRefreshTokenExpireSeconds()
+	if rexp > 0 {
+		r[oauth2core.Claim_RefreshTokenExpire] = utcNow.Add(time.Duration(rexp) * time.Second).Unix()
+	}
+
+	r[oauth2core.Claim_Audience] = client.GetAudiences()
+	r[oauth2core.Claim_Scope] = scopes
 
 	if grantType == oauth2core.GrantType_Client {
-		r["name"] = client.GetID()
-		r["role"] = "1"
+		r[oauth2core.Claim_Name] = client.GetID()
+		r[oauth2core.Claim_Role] = "1"
 	} else {
-		r["sub"] = "123456789"
-		r["name"] = username
-		r["email"] = "test@test.com"
-		r["role"] = "4"
-		r["level"] = "5"
-		r["status"] = "1"
+		r[oauth2core.Claim_Subject] = "123456789"
+		r[oauth2core.Claim_Email] = "test@test.com"
+		r[oauth2core.Claim_Role] = "4"
+		r[oauth2core.Claim_Level] = "5"
+		r[oauth2core.Claim_Status] = "1"
 	}
 
 	return &r

@@ -94,6 +94,8 @@ func NewOAuthServer(options *AuthServerOptions) (r *OAuthServer) {
 	r.Post(options.TokenEndpoint, r.TokenRequestHandler)
 	// end session
 	r.Get(options.EndSessionEndpoint, r.EndSessionRequestHandler)
+	r.Post(options.EndSessionEndpoint, r.ClearTokenRequestHandler)
+
 	// logout
 	r.Get(options.LogoutEndpoint, func(ctx *fasthttp.RequestCtx) {
 		r.DelCookie(ctx, options.AuthCookieName)

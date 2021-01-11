@@ -41,8 +41,8 @@ github.com/CloudyKit/jet/v3 v3.0.0 h1:1PwO5w5VCtlUUl+KTOBsTGZlhjWkcybsGaAau52tOy
 github.com/CloudyKit/jet/v3 v3.0.0/go.mod h1:HKQPgSJmdK8hdoAbKUUWajkHyHo4RaU5rMdUywE7VMo=
 github.com/Joker/hpp v1.0.0 h1:65+iuJYdRXv/XyN62C1uEmmOx3432rNG/rKlX6V7Kkc=
 github.com/Joker/hpp v1.0.0/go.mod h1:8x5n+M1Hp5hC0g8okX3sR3vFQwynaX/UgSOM9MeBKzY=
-github.com/Lukiya/oauth2go v1.2.2 h1:plxySCNvO8e1roQSEogoBRyiRyvklu55OIuFOckQjkI=
-github.com/Lukiya/oauth2go v1.2.2/go.mod h1:lwk9V5lTt3qlLano1IyD5qhhJbd2nynjlolgFv6YpkI=
+github.com/Lukiya/oauth2go v1.2.8 h1:f0gTw7nO+RAbXjI4PXkCLiOyb9t4c+V+W+iytMEmA78=
+github.com/Lukiya/oauth2go v1.2.8/go.mod h1:lwk9V5lTt3qlLano1IyD5qhhJbd2nynjlolgFv6YpkI=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398 h1:WDC6ySpJzbxGWFh4aMxFFC28wwGp5pEuoTtvA4q/qQ4=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
@@ -329,6 +329,8 @@ github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/syncfuture/go v1.2.5 h1:BOuT+iBB2dJ6rquecmxCKLUTcg7s7EOS4INku7F7eIc=
 github.com/syncfuture/go v1.2.5/go.mod h1:b47YEWa+FBF9Mss/FzjeyR/PU40+9UY6dVOnSxnbWVs=
+github.com/syncfuture/go v1.2.6 h1:XsSrWfrMxDBbo2xnTgRtj1R6hSUfen/KCUtP/kZ/DFg=
+github.com/syncfuture/go v1.2.6/go.mod h1:b47YEWa+FBF9Mss/FzjeyR/PU40+9UY6dVOnSxnbWVs=
 github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg=
 github.com/tebeka/strftime v0.1.5/go.mod h1:29/OidkoWHdEKZqzyDLUyC+LmgDgdHo4WAFCDT7D/Ig=
 github.com/tidwall/gjson v1.6.7 h1:Mb1M9HZCRWEcXQ8ieJo7auYyyiSux6w9XN3AdTpxJrE=

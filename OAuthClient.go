@@ -26,6 +26,8 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+const _cookieTokenProtectorKey = "token"
+
 type (
 	ClientUser struct {
 		ID       string `json:"sub,omitempty"`
@@ -51,6 +53,7 @@ type (
 		SignOutCallbackPath    string
 		StaticFilesDir         string
 		SessionName            string
+		TokenCookieName        string
 		HashKey                string
 		BlockKey               string
 		OAuth                  *OAuthOptions
@@ -69,8 +72,8 @@ type (
 		SignOutCallbackPath    string
 		StaticFilesDir         string
 		SessionName            string
+		TokenCookieName        string
 		userJsonSessionkey     string
-		tokenSessionKey        string
 		userIDSessionKey       string
 		CookieProtoector       *securecookie.SecureCookie
 		SessionManager         *sessions.Sessions
@@ -184,7 +187,10 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 		options.SignOutCallbackPath = "/signout-oauth"
 	}
 	if options.SessionName == "" {
-		options.SessionName = "xsession"
+		options.SessionName = "go.cookie1"
+	}
+	if options.TokenCookieName == "" {
+		options.TokenCookieName = "go.cookie2"
 	}
 	if options.StaticFilesDir == "" {
 		options.StaticFilesDir = "./wwwroot"
@@ -211,15 +217,16 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.AccessDeniedPath = options.AccessDeniedPath
 	r.StaticFilesDir = options.StaticFilesDir
 	r.SessionName = options.SessionName
-	r.tokenSessionKey = "Token"
+	r.TokenCookieName = options.TokenCookieName
 	r.userIDSessionKey = "UserID"
 	r.userJsonSessionkey = "UserJson"
 	r.CookieProtoector = securecookie.New([]byte(options.HashKey), []byte(options.BlockKey))
 	r.SessionManager = sessions.New(sessions.Config{
-		Cookie:       r.SessionName,
-		Expires:      -1 * time.Hour,
-		Encoding:     r.CookieProtoector,
-		AllowReclaim: true,
+		Cookie:                      r.SessionName,
+		Expires:                     time.Duration(-1),
+		Encoding:                    r.CookieProtoector,
+		AllowReclaim:                true,
+		DisableSubdomainPersistence: true,
 	})
 	r.SignInHandler = options.SignInHandler
 	r.SignInCallbackHandler = options.SignInCallbackHandler
@@ -328,9 +335,8 @@ func (x *OAuthClient) GetUserLock(userID string) *sync.RWMutex {
 }
 
 func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
-	session := x.SessionManager.Start(ctx)
 	goctx := context.Background()
-	userID := session.GetString(x.userIDSessionKey)
+	userID := x.GetUserID(ctx)
 	if userID == "" {
 		return http.DefaultClient, nil
 	}
@@ -340,7 +346,7 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 
 	// read lock
 	userLock.RLock()
-	t, err := x.getToken(session)
+	t, err := x.getToken(ctx)
 	userLock.RUnlock()
 
 	if u.LogError(err) {
@@ -349,7 +355,7 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 
 	tokenSource := x.OAuth.TokenSource(goctx, t)
 	newToken, err := tokenSource.Token()
-	if u.LogError(err) {
+	if err != nil {
 		// refresh token failed, sign user out
 		x.SignOut(ctx)
 		return http.DefaultClient, err
@@ -359,7 +365,7 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 		// token been refreshed, lock
 		userLock.Lock()
 		// save token to session
-		x.saveToken(session, newToken)
+		x.saveToken(ctx, newToken)
 		// unlock
 		defer userLock.Unlock()
 	}
@@ -465,12 +471,29 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	var oauth2Token *oauth2.Token
 	var err error
 
+	// 获取老的刷新令牌，发送给Auth服务器进行注销
+	token, _ := x.getToken(ctx)
+	var refreshTokenOption oauth2.AuthCodeOption
+	if token != nil && token.RefreshToken != "" {
+		refreshTokenOption = oauth2.SetAuthURLParam(oauth2core.Form_RefreshToken, token.RefreshToken)
+	}
+
 	if x.OAuth.PkceRequired {
 		codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeVerifier, sessionCodeVerifier)
 		codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, sessionSodeChallengeMethod)
-		oauth2Token, err = x.OAuth.Exchange(httpCtx, code, codeChanllengeParam, codeChanllengeMethodParam)
+
+		// 发送交换令牌请求
+		if refreshTokenOption != nil {
+			oauth2Token, err = x.OAuth.Exchange(httpCtx, code, codeChanllengeParam, codeChanllengeMethodParam, refreshTokenOption)
+		} else {
+			oauth2Token, err = x.OAuth.Exchange(httpCtx, code, codeChanllengeParam, codeChanllengeMethodParam)
+		}
 	} else {
-		oauth2Token, err = x.OAuth.Exchange(httpCtx, code)
+		if refreshTokenOption != nil {
+			oauth2Token, err = x.OAuth.Exchange(httpCtx, code, refreshTokenOption)
+		} else {
+			oauth2Token, err = x.OAuth.Exchange(httpCtx, code)
+		}
 	}
 
 	if u.LogError(err) {
@@ -482,24 +505,6 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	// 将字符串转化为令牌对象
 	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
 	if err == nil {
-
-		// c := make(map[string]string, len(jwtToken.Set))
-		// c["id"] = jwtToken.Subject
-		// c["name"] = jwtToken.Set["name"].(string)
-		// c["role"] = jwtToken.Set["role"].(string)
-		// c["level"] = jwtToken.Set["level"].(string)
-		// c["status"] = jwtToken.Set["status"].(string)
-		// if oauth2Token.RefreshToken != "" {
-		// 	// 有刷新令牌
-		// 	c["refresh_token"] = oauth2Token.RefreshToken
-		// }
-		// s, err := x.CookieProtoector.Encode("sss", c)
-		// if u.LogError(err) {
-		// 	return
-		// }
-		// ctx.SetCookieKV("sss", s)
-		// x.CookieProtoector.Decode("sss", s, &c)
-
 		userStr := makeUserString(jwtToken)
 		session.Set(x.userJsonSessionkey, userStr)
 		if jwtToken.Subject != "" {
@@ -507,7 +512,7 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 		}
 
 		// 保存令牌
-		x.saveToken(session, oauth2Token)
+		x.saveToken(ctx, oauth2Token)
 
 		// 重定向到登录前页面
 		ctx.Redirect(redirectUrl, http.StatusFound)
@@ -550,6 +555,25 @@ func (x *OAuthClient) signOutCallbackHandler(ctx iris.Context) {
 		return
 	}
 
+	endSessionID := ctx.FormValue(oauth2core.Form_EndSessionID)
+	if endSessionID == "" {
+		ctx.WriteString("missing es_id")
+		ctx.StatusCode(http.StatusBadRequest)
+		return
+	}
+
+	token, _ := x.getToken(ctx)
+	if token != nil {
+		// 请求Auth服务器删除老RefreshToken
+		data := make(url.Values, 5)
+		data[oauth2core.Form_State] = []string{state}
+		data[oauth2core.Form_EndSessionID] = []string{endSessionID}
+		data[oauth2core.Form_ClientID] = []string{x.OAuth.ClientID}
+		data[oauth2core.Form_ClientSecret] = []string{x.OAuth.ClientSecret}
+		data[oauth2core.Form_RefreshToken] = []string{token.RefreshToken}
+		http.PostForm(x.OAuth.EndSessionEndpoint, data)
+	}
+
 	x.SignOut(ctx)
 	// 跳转回登出时的页面
 	ctx.Redirect(returnURL, http.StatusFound)
@@ -557,26 +581,53 @@ func (x *OAuthClient) signOutCallbackHandler(ctx iris.Context) {
 
 func (x *OAuthClient) SignOut(ctx iris.Context) {
 	x.SessionManager.Destroy(ctx)
+	ctx.RemoveCookie(x.TokenCookieName)
 }
 
-func (x *OAuthClient) saveToken(session *sessions.Session, token *oauth2.Token) error {
+/// saveToken 保存令牌
+func (x *OAuthClient) saveToken(ctx iris.Context, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if u.LogError(err) {
 		return err
 	}
 
-	// 保存令牌到Session
-	session.Set(x.tokenSessionKey, string(tokenJson))
+	// 令牌加密
+	securedString, err := x.CookieProtoector.Encode(_cookieTokenProtectorKey, tokenJson)
 
+	// 保存加密后的令牌到Cookie
+	tokenCookie := new(http.Cookie)
+	tokenCookie.Name = x.TokenCookieName
+	tokenCookie.Value = securedString
+	tokenCookie.HttpOnly = true
+	tokenClaims, err := jwt.ParseWithoutCheck([]byte(token.AccessToken))
+	if u.LogError(err) {
+		return err
+	}
+	if rexp, ok := tokenClaims.Set[oauth2core.Claim_RefreshTokenExpire].(float64); ok {
+		// claims里有刷新令牌过期时间，作为Cookie
+		tokenCookie.Expires = time.Unix(int64(rexp), 0)
+		// 否则作为session存储
+	}
+
+	ctx.SetCookie(tokenCookie)
 	return nil
 }
 
-func (x *OAuthClient) getToken(session *sessions.Session) (*oauth2.Token, error) {
+/// getToken 获取令牌
+func (x *OAuthClient) getToken(ctx iris.Context) (*oauth2.Token, error) {
 	// 从Session获取令牌
-	tokenJson := session.GetString(x.tokenSessionKey)
+	tokenJson := ctx.GetCookie(x.TokenCookieName)
+	if tokenJson == "" {
+		return nil, nil
+	}
+	var tokenJsonBytes []byte
+	err := x.CookieProtoector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
+	if u.LogError(err) {
+		return nil, err
+	}
 
 	t := new(oauth2.Token)
-	err := json.Unmarshal([]byte(tokenJson), t)
+	err = json.Unmarshal(tokenJsonBytes, t)
 	if u.LogError(err) {
 		return nil, err
 	}
