@@ -41,8 +41,14 @@ github.com/CloudyKit/jet/v3 v3.0.0 h1:1PwO5w5VCtlUUl+KTOBsTGZlhjWkcybsGaAau52tOy
 github.com/CloudyKit/jet/v3 v3.0.0/go.mod h1:HKQPgSJmdK8hdoAbKUUWajkHyHo4RaU5rMdUywE7VMo=
 github.com/Joker/hpp v1.0.0 h1:65+iuJYdRXv/XyN62C1uEmmOx3432rNG/rKlX6V7Kkc=
 github.com/Joker/hpp v1.0.0/go.mod h1:8x5n+M1Hp5hC0g8okX3sR3vFQwynaX/UgSOM9MeBKzY=
+<<<<<<< HEAD
 github.com/Lukiya/oauth2go v1.2.8 h1:f0gTw7nO+RAbXjI4PXkCLiOyb9t4c+V+W+iytMEmA78=
 github.com/Lukiya/oauth2go v1.2.8/go.mod h1:lwk9V5lTt3qlLano1IyD5qhhJbd2nynjlolgFv6YpkI=
+=======
+github.com/Joker/jade v1.0.1-0.20190614124447-d475f43051e7/go.mod h1:6E6s8o2AE4KhCrqr6GRJjdC/gNfTdxkIXvuGZZda2VM=
+github.com/Lukiya/oauth2go v1.1.1 h1:dfdqXj44OSmKeO04jpvF601FH2RMAKQKed2UJZgiM+Q=
+github.com/Lukiya/oauth2go v1.1.1/go.mod h1:i2OxD4dTok+3inLXKykVgOG82IOj1GaAZ49FlAGOc1w=
+>>>>>>> 0c6e26d5f9440a7a199dbf5a07c9a77e3060fe36
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398 h1:WDC6ySpJzbxGWFh4aMxFFC28wwGp5pEuoTtvA4q/qQ4=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
@@ -327,10 +333,15 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+<<<<<<< HEAD
 github.com/syncfuture/go v1.2.5 h1:BOuT+iBB2dJ6rquecmxCKLUTcg7s7EOS4INku7F7eIc=
 github.com/syncfuture/go v1.2.5/go.mod h1:b47YEWa+FBF9Mss/FzjeyR/PU40+9UY6dVOnSxnbWVs=
 github.com/syncfuture/go v1.2.6 h1:XsSrWfrMxDBbo2xnTgRtj1R6hSUfen/KCUtP/kZ/DFg=
 github.com/syncfuture/go v1.2.6/go.mod h1:b47YEWa+FBF9Mss/FzjeyR/PU40+9UY6dVOnSxnbWVs=
+=======
+github.com/syncfuture/go v1.2.2 h1:csAJuBnWrU6a/kyWrwZVZOB5xj/R5IdPE7XrPZNdgQc=
+github.com/syncfuture/go v1.2.2/go.mod h1:WRzZsC5eBH/mWX+GqhpJ8FTpxonys1LuXIuRwoCAOGA=
+>>>>>>> 0c6e26d5f9440a7a199dbf5a07c9a77e3060fe36
 github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg=
 github.com/tebeka/strftime v0.1.5/go.mod h1:29/OidkoWHdEKZqzyDLUyC+LmgDgdHo4WAFCDT7D/Ig=
 github.com/tidwall/gjson v1.6.7 h1:Mb1M9HZCRWEcXQ8ieJo7auYyyiSux6w9XN3AdTpxJrE=
