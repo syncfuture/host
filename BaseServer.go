@@ -71,9 +71,9 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	if options.Name == "" {
 		log.Fatal("Name cannot be empty")
 	}
-	if options.URIKey == "" {
-		log.Fatal("URIKey cannot be empty")
-	}
+	// if options.URIKey == "" {
+	// 	log.Fatal("URIKey cannot be empty")
+	// }
 	// if options.RouteKey == "" {
 	// 	log.Fatal("RouteKey cannot be empty")
 	// }
@@ -95,15 +95,15 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 		}
 	}
 
-	if options.URLProvider == nil {
+	if options.URLProvider == nil && options.URIKey != "" {
 		options.URLProvider = surl.NewRedisURLProvider(options.URIKey, options.RedisConfig)
 	}
 
-	if options.RoutePermissionProvider == nil {
+	if options.RoutePermissionProvider == nil && options.RouteKey != "" && options.PermissionKey != "" {
 		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.RouteKey, options.PermissionKey, options.RedisConfig)
 	}
 
-	if options.PermissionAuditor == nil {
+	if options.PermissionAuditor == nil && options.RoutePermissionProvider != nil {
 		options.PermissionAuditor = security.NewPermissionAuditor(options.RoutePermissionProvider)
 	}
 
@@ -127,13 +127,6 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 
 func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 	r.configBaseServer(&options.BaseServerOptions)
-
-	if options.RouteKey == "" {
-		log.Fatal("RouteKey cannot be empty")
-	}
-	if options.PermissionKey == "" {
-		log.Fatal("PermissionKey cannot be empty")
-	}
 
 	r.IrisApp = iris.New()
 	r.IrisApp.Logger().SetLevel(log.Level)
