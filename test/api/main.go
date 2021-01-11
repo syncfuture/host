@@ -14,9 +14,6 @@ var _publicActions = &[]*host.Action{
 
 func main() {
 	options := host.NewOAuthResourceOptions()
-	options.URIKey = "t:URIS"
-	options.RouteKey = "ti:ROUTES"
-	options.PermissionKey = "t:PERMISSIONS"
 	server := host.NewOAuthResource(options)
 
 	server.Run(_publicActions)

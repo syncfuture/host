@@ -19,9 +19,6 @@ var (
 
 func main() {
 	options := host.NewOAuthClientOptions()
-	options.URIKey = "t:URIS"
-	options.RouteKey = "tw:ROUTES"
-	options.PermissionKey = "t:PERMISSIONS"
 	_server = host.NewOAuthClient(options)
 
 	mvc.Configure(_server.IrisApp, configureMVC)
