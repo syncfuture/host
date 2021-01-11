@@ -77,9 +77,9 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	// if options.RouteKey == "" {
 	// 	log.Fatal("RouteKey cannot be empty")
 	// }
-	if options.PermissionKey == "" {
-		log.Fatal("PermissionKey cannot be empty")
-	}
+	// if options.PermissionKey == "" {
+	// 	log.Fatal("PermissionKey cannot be empty")
+	// }
 	if options.ListenAddr == "" {
 		log.Fatal("ListenAddr cannot be empty")
 	}
@@ -130,6 +130,9 @@ func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 
 	if options.RouteKey == "" {
 		log.Fatal("RouteKey cannot be empty")
+	}
+	if options.PermissionKey == "" {
+		log.Fatal("PermissionKey cannot be empty")
 	}
 
 	r.IrisApp = iris.New()
