@@ -90,16 +90,16 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 
 	if options.RedisConfig == nil {
 		options.ConfigProvider.GetStruct("Redis", &options.RedisConfig)
-		if options.RedisConfig == nil {
-			log.Fatal("RedisConfig cannot be nil")
-		}
+		// if options.RedisConfig == nil {
+		// 	log.Fatal("RedisConfig cannot be nil")
+		// }
 	}
 
-	if options.URLProvider == nil && options.URIKey != "" {
+	if options.URLProvider == nil && options.URIKey != "" && options.RedisConfig != nil {
 		options.URLProvider = surl.NewRedisURLProvider(options.URIKey, options.RedisConfig)
 	}
 
-	if options.RoutePermissionProvider == nil && options.RouteKey != "" && options.PermissionKey != "" {
+	if options.RoutePermissionProvider == nil && options.RouteKey != "" && options.PermissionKey != "" && options.RedisConfig != nil {
 		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.RouteKey, options.PermissionKey, options.RedisConfig)
 	}
 
