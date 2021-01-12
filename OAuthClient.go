@@ -100,18 +100,24 @@ func (t *ClientUser) UnmarshalJSON(d []byte) error {
 	}{T2: T2(*t)} // don't forget this, if you do and 't' already has some fields set you would lose them
 
 	err := json.Unmarshal(d, &x)
-	if u.LogError(err) {
+	if err != nil {
 		return err
 	}
 
 	*t = ClientUser(x.T2)
 	var status, level int64
 	t.Role, err = strconv.ParseInt(x.Role, 10, 64)
-	u.LogError(err)
+	if err != nil {
+		log.Warn(err)
+	}
 	status, err = strconv.ParseInt(x.Status, 10, 32)
-	u.LogError(err)
+	if err != nil {
+		log.Warn(err)
+	}
 	level, err = strconv.ParseInt(x.Level, 10, 32)
-	u.LogError(err)
+	if err != nil {
+		log.Warn(err)
+	}
 
 	t.Status = int32(status)
 	t.Level = int32(level)
@@ -362,7 +368,7 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 	t, err := x.getToken(ctx)
 	userLock.RUnlock()
 
-	if u.LogError(err) {
+	if err != nil {
 		return http.DefaultClient, err
 	}
 
@@ -600,7 +606,7 @@ func (x *OAuthClient) SignOut(ctx iris.Context) {
 /// saveToken 保存令牌
 func (x *OAuthClient) saveToken(ctx iris.Context, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
-	if u.LogError(err) {
+	if err != nil {
 		return err
 	}
 
@@ -613,7 +619,7 @@ func (x *OAuthClient) saveToken(ctx iris.Context, token *oauth2.Token) error {
 	tokenCookie.Value = securedString
 	tokenCookie.HttpOnly = true
 	tokenClaims, err := jwt.ParseWithoutCheck([]byte(token.AccessToken))
-	if u.LogError(err) {
+	if err != nil {
 		return err
 	}
 	if rexp, ok := tokenClaims.Set[oauth2core.Claim_RefreshTokenExpire].(float64); ok {
@@ -635,13 +641,13 @@ func (x *OAuthClient) getToken(ctx iris.Context) (*oauth2.Token, error) {
 	}
 	var tokenJsonBytes []byte
 	err := x.CookieProtoector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
-	if u.LogError(err) {
+	if err != nil {
 		return nil, err
 	}
 
 	t := new(oauth2.Token)
 	err = json.Unmarshal(tokenJsonBytes, t)
-	if u.LogError(err) {
+	if err != nil {
 		return nil, err
 	}
 
