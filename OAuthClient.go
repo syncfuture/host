@@ -123,7 +123,7 @@ func NewOAuthClientOptions(args ...string) *OAuthClientOptions {
 	var options *OAuthClientOptions
 	cp.GetStruct("OAuthClient", &options)
 	if options == nil {
-		log.Fatal("missing 'ClientServer' section in configuration")
+		log.Fatal("missing 'OAuthClient' section in configuration")
 	}
 	options.ConfigProvider = cp
 	return options
