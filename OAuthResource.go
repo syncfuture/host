@@ -57,11 +57,11 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	}
 
 	r = new(OAuthResource)
-	r.Name = options.Name
-	r.URIKey = options.URIKey
-	r.RouteKey = options.RouteKey
-	r.PermissionKey = options.PermissionKey
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
+	// r.Name = options.Name
+	// r.URIKey = options.URIKey
+	// r.RouteKey = options.RouteKey
+	// r.PermissionKey = options.PermissionKey
 
 	for i := range options.OAuth.ValidIssuers {
 		options.OAuth.ValidIssuers[i] = r.URLProvider.RenderURL(options.OAuth.ValidIssuers[i])

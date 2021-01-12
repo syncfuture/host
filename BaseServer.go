@@ -42,6 +42,7 @@ type (
 	IrisBaseServerOptions struct {
 		BaseServerOptions
 		ViewEngine view.Engine
+		ViewsDir   string
 	}
 
 	BaseServer struct {
@@ -60,6 +61,7 @@ type (
 
 	IrisBaseServer struct {
 		BaseServer
+		ViewsDir       string
 		IrisApp        *iris.Application
 		ViewEngine     view.Engine
 		PreMiddlewares []iris.Handler
@@ -127,7 +129,12 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 
 func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 	r.configBaseServer(&options.BaseServerOptions)
+	if options.ViewsDir == "" {
+		options.ViewsDir = "./views"
+	}
+	r.ViewsDir = options.ViewsDir
 
+	// 创建Iris App
 	r.IrisApp = iris.New()
 	r.IrisApp.Logger().SetLevel(log.Level)
 	r.IrisApp.Use(recover.New())

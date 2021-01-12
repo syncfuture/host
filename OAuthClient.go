@@ -52,6 +52,8 @@ type (
 		SignOutPath            string
 		SignOutCallbackPath    string
 		StaticFilesDir         string
+		LayoutTemplate         string
+		ViewsExtension         string
 		SessionName            string
 		TokenCookieName        string
 		HashKey                string
@@ -71,6 +73,8 @@ type (
 		SignOutPath            string
 		SignOutCallbackPath    string
 		StaticFilesDir         string
+		ViewsExtension         string
+		LayoutTemplate         string
 		SessionName            string
 		TokenCookieName        string
 		userJsonSessionkey     string
@@ -128,11 +132,11 @@ func NewOAuthClientOptions(args ...string) *OAuthClientOptions {
 func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	// create pointer
 	r = new(OAuthClient)
-	r.Name = options.Name
-	r.URIKey = options.URIKey
-	r.RouteKey = options.RouteKey
-	r.PermissionKey = options.PermissionKey
 	r.configIrisBaseServer(&options.IrisBaseServerOptions)
+	// r.Name = options.Name
+	// r.URIKey = options.URIKey
+	// r.RouteKey = options.RouteKey
+	// r.PermissionKey = options.PermissionKey
 
 	if options.OAuth == nil {
 		log.Fatal("OAuth secion in configuration is missing")
@@ -195,6 +199,12 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	if options.StaticFilesDir == "" {
 		options.StaticFilesDir = "./wwwroot"
 	}
+	if options.ViewsExtension == "" {
+		options.ViewsExtension = ".html"
+	}
+	if options.LayoutTemplate == "" {
+		options.LayoutTemplate = "shared/_layout.html"
+	}
 	if options.SignInHandler == nil {
 		options.SignInHandler = r.signinHanlder
 	}
@@ -216,6 +226,9 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	r.SignOutCallbackPath = options.SignOutCallbackPath
 	r.AccessDeniedPath = options.AccessDeniedPath
 	r.StaticFilesDir = options.StaticFilesDir
+	r.ViewsDir = options.ViewsDir
+	r.LayoutTemplate = options.LayoutTemplate
+	r.ViewsExtension = options.ViewsExtension
 	r.SessionName = options.SessionName
 	r.TokenCookieName = options.TokenCookieName
 	r.userIDSessionKey = "UserID"
@@ -242,7 +255,7 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 
 	// 注册视图引擎
 	if r.ViewEngine == nil {
-		r.ViewEngine = iris.HTML("./views", ".html").Layout("shared/_layout.html").Reload(r.Debug)
+		r.ViewEngine = iris.HTML(r.ViewsDir, r.ViewsExtension).Layout(r.LayoutTemplate).Reload(r.Debug)
 	}
 	r.IrisApp.RegisterView(r.ViewEngine)
 
@@ -265,7 +278,7 @@ func (x *OAuthClient) Run(actionGroups ...*[]*Action) {
 	x.registerActions()
 
 	if x.ListenAddr == "" {
-		log.Fatal("Cannot find 'ListenAddr' config")
+		log.Fatal("cannot find 'ListenAddr' in config")
 	}
 	x.IrisApp.Run(iris.Addr(x.ListenAddr))
 }
