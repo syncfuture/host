@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/syncfuture/go/config"
-	"github.com/syncfuture/go/security"
+	config "github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/sredis"
+	security "github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
 
 	"github.com/kataras/iris/v12"

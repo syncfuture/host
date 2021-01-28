@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/kataras/iris/v12"
-	"github.com/syncfuture/go/config"
+	config "github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/u"
 )
 

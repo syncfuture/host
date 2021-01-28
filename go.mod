@@ -3,7 +3,7 @@ module github.com/syncfuture/host
 go 1.15
 
 require (
-	github.com/Lukiya/oauth2go v1.2.9
+	github.com/Lukiya/oauth2go v1.2.11
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/syncfuture/go v1.2.6
+	github.com/syncfuture/go v1.3.3
 	github.com/valyala/fasthttp v1.19.0
 	github.com/valyala/quicktemplate v1.6.3
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -29,6 +29,6 @@ require (
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
-	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
-	google.golang.org/grpc v1.34.1
+	golang.org/x/oauth2 v0.0.0-20210126194326-f9ce19ea3013
+	google.golang.org/grpc v1.35.0
 )

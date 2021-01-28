@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/kataras/iris/v12"
-	"github.com/syncfuture/go/security"
+	security "github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/sslice"
 
 	"github.com/syncfuture/go/u"
 
+	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/pascaldekloe/jwt"
 	log "github.com/syncfuture/go/slog"
 )
@@ -110,7 +111,7 @@ func (x *ApiAuthMidleware) Serve(ctx iris.Context) {
 	if token != nil {
 		claims := token.(*jwt.Claims).Set
 
-		if roleStr, ok := claims["role"].(string); ok && roleStr != "" {
+		if roleStr, ok := claims[oauth2core.Claim_Role].(string); ok && roleStr != "" {
 			// Has role filed
 			roles, err := strconv.ParseInt(roleStr, 10, 64)
 			if !u.LogError(err) {
@@ -119,7 +120,7 @@ func (x *ApiAuthMidleware) Serve(ctx iris.Context) {
 				if action, ok := (*x.ActionMap)[route]; ok {
 					// foud action
 					var level int
-					if levelStr, ok := claims["level"].(string); ok && levelStr != "" {
+					if levelStr, ok := claims[oauth2core.Claim_Level].(string); ok && levelStr != "" {
 						level, err = strconv.Atoi(levelStr)
 						u.LogError(err)
 					}

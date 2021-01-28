@@ -42,11 +42,12 @@ func (x *myClaimsGenerator) Generate(ctx *fasthttp.RequestCtx, grantType string,
 	if grantType == oauth2core.GrantType_Client {
 		r[oauth2core.Claim_Name] = client.GetID()
 		r[oauth2core.Claim_Role] = "1"
+		r[oauth2core.Claim_Level] = client.GetPermissionLevel()
 	} else {
 		r[oauth2core.Claim_Subject] = "123456789"
 		r[oauth2core.Claim_Email] = "test@test.com"
 		r[oauth2core.Claim_Role] = "4"
-		r[oauth2core.Claim_Level] = "5"
+		r[oauth2core.Claim_Level] = "4"
 		r[oauth2core.Claim_Status] = "1"
 	}
 

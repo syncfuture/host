@@ -7,8 +7,8 @@ import (
 	"github.com/Lukiya/oauth2go/model"
 	"github.com/kataras/iris/v12"
 	"github.com/pascaldekloe/jwt"
-	"github.com/syncfuture/go/config"
-	"github.com/syncfuture/go/rsautil"
+	config "github.com/syncfuture/go/sconfig"
+	rsautil "github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
 )
 

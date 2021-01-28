@@ -18,7 +18,7 @@ import (
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/muesli/cache2go"
 	"github.com/pascaldekloe/jwt"
-	"github.com/syncfuture/go/config"
+	config "github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
