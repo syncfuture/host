@@ -41,8 +41,8 @@ github.com/CloudyKit/jet/v3 v3.0.0 h1:1PwO5w5VCtlUUl+KTOBsTGZlhjWkcybsGaAau52tOy
 github.com/CloudyKit/jet/v3 v3.0.0/go.mod h1:HKQPgSJmdK8hdoAbKUUWajkHyHo4RaU5rMdUywE7VMo=
 github.com/Joker/hpp v1.0.0 h1:65+iuJYdRXv/XyN62C1uEmmOx3432rNG/rKlX6V7Kkc=
 github.com/Joker/hpp v1.0.0/go.mod h1:8x5n+M1Hp5hC0g8okX3sR3vFQwynaX/UgSOM9MeBKzY=
-github.com/Lukiya/oauth2go v1.2.11 h1:roNU8ai8zU3+8xKg1hvlXbeGBfkZWyvkVY8NQskzWJI=
-github.com/Lukiya/oauth2go v1.2.11/go.mod h1:kIPIGsk5MNogO4IaYLWjfwG41epN8tbROQQzyEAA7Mo=
+github.com/Lukiya/oauth2go v1.2.12 h1:ehRQ4y9Gpk/0Ozbmk8EitbaLd5J9V+W92fj275dymQg=
+github.com/Lukiya/oauth2go v1.2.12/go.mod h1:U6Z1voy5l/Ve03ILKLizxlagjtkAYZyX3T/iLuGhWIs=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398 h1:WDC6ySpJzbxGWFh4aMxFFC28wwGp5pEuoTtvA4q/qQ4=
 github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398/go.mod h1:a1uqRtAwp2Xwc6WNPJEufxJ7fx3npB4UV/JOLmbu5I0=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
