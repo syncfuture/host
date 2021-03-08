@@ -136,7 +136,7 @@ func (r *IrisBaseServer) configIrisBaseServer(options *IrisBaseServerOptions) {
 
 	// 创建Iris App
 	r.IrisApp = iris.New()
-	r.IrisApp.Logger().SetLevel(log.Level)
+	r.IrisApp.Logger().SetLevel(log.Config.Level)
 	r.IrisApp.Use(recover.New())
 	r.IrisApp.Use(logger.New())
 
