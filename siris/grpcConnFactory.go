@@ -13,12 +13,12 @@ func CreateGRPCConnPool(ctx iris.Context, addr string) (r *grpc.ClientConn) {
 	var err error
 	j := ctx.Values().Get("jwt")
 	if j != nil {
-		token, ok := j.(*jwt.Claims)
+		claims, ok := j.(*jwt.Claims)
 		if ok {
 			r, err = grpc.Dial(
 				addr,
 				grpc.WithInsecure(),
-				grpc.WithPerRPCCredentials(sgrpc.NewTokenCredential(string(token.Raw), false)),
+				grpc.WithPerRPCCredentials(sgrpc.NewTokenCredential(string(claims.Raw), false)),
 			)
 		}
 	}

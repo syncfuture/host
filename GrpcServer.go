@@ -47,7 +47,7 @@ func NewGrpcServer(options *GrpcServerOptions) (r *GrpcServer) {
 	r.configBaseServer(&options.BaseServerOptions)
 
 	// GRPC Server
-	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, sgrpc.AttachJWTToken))
+	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, sgrpc.AttachUserClaims))
 	streamHandler := grpc.StreamInterceptor(panichandler.StreamPanicHandler)
 	panichandler.InstallPanicHandler(func(r interface{}) {
 		log.Error(r)

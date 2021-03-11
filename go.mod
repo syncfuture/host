@@ -18,7 +18,7 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/syncfuture/go v1.4.2
+	github.com/syncfuture/go v1.4.4
 	github.com/valyala/fasthttp v1.22.0
 	github.com/valyala/quicktemplate v1.6.3
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect

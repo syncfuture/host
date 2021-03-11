@@ -26,17 +26,18 @@ type (
 	}
 
 	BaseServerOptions struct {
-		Debug                   bool
-		Name                    string
-		URIKey                  string
-		RouteKey                string
-		PermissionKey           string
-		ListenAddr              string
-		RedisConfig             *sredis.RedisConfig
-		ConfigProvider          config.IConfigProvider
-		URLProvider             surl.IURLProvider
-		RoutePermissionProvider security.IRoutePermissionProvider
-		PermissionAuditor       security.IPermissionAuditor
+		Debug              bool
+		Name               string
+		URIKey             string
+		RouteKey           string
+		PermissionKey      string
+		ListenAddr         string
+		RedisConfig        *sredis.RedisConfig
+		ConfigProvider     config.IConfigProvider
+		URLProvider        surl.IURLProvider
+		PermissionProvider security.IPermissionProvider
+		RouteProvider      security.IRouteProvider
+		PermissionAuditor  security.IPermissionAuditor
 	}
 
 	IrisBaseServerOptions struct {
@@ -46,17 +47,18 @@ type (
 	}
 
 	BaseServer struct {
-		Debug                   bool
-		Name                    string
-		URIKey                  string
-		RouteKey                string
-		PermissionKey           string
-		ListenAddr              string
-		ConfigProvider          config.IConfigProvider
-		RedisConfig             *sredis.RedisConfig
-		URLProvider             surl.IURLProvider
-		RoutePermissionProvider security.IRoutePermissionProvider
-		PermissionAuditor       security.IPermissionAuditor
+		Debug              bool
+		Name               string
+		URIKey             string
+		RouteKey           string
+		PermissionKey      string
+		ListenAddr         string
+		ConfigProvider     config.IConfigProvider
+		RedisConfig        *sredis.RedisConfig
+		URLProvider        surl.IURLProvider
+		PermissionProvider security.IPermissionProvider
+		RouteProvider      security.IRouteProvider
+		PermissionAuditor  security.IPermissionAuditor
 	}
 
 	IrisBaseServer struct {
@@ -101,12 +103,16 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 		options.URLProvider = surl.NewRedisURLProvider(options.URIKey, options.RedisConfig)
 	}
 
-	if options.RoutePermissionProvider == nil && options.RouteKey != "" && options.PermissionKey != "" && options.RedisConfig != nil {
-		options.RoutePermissionProvider = security.NewRedisRoutePermissionProvider(options.RouteKey, options.PermissionKey, options.RedisConfig)
+	if options.PermissionProvider == nil && options.PermissionKey != "" && options.RedisConfig != nil {
+		options.PermissionProvider = security.NewRedisPermissionProvider(options.PermissionKey, options.RedisConfig)
 	}
 
-	if options.PermissionAuditor == nil && options.RoutePermissionProvider != nil {
-		options.PermissionAuditor = security.NewPermissionAuditor(options.RoutePermissionProvider)
+	if options.RouteProvider == nil && options.RouteKey != "" && options.RedisConfig != nil {
+		options.RouteProvider = security.NewRedisRouteProvider(options.RouteKey, options.RedisConfig)
+	}
+
+	if options.PermissionAuditor == nil && options.PermissionProvider != nil { // RouteProvider 允许为空
+		options.PermissionAuditor = security.NewPermissionAuditor(options.PermissionProvider, options.RouteProvider)
 	}
 
 	r.Debug = options.Debug
@@ -118,7 +124,8 @@ func (r *BaseServer) configBaseServer(options *BaseServerOptions) {
 	r.ConfigProvider = options.ConfigProvider
 	r.RedisConfig = options.RedisConfig
 	r.URLProvider = options.URLProvider
-	r.RoutePermissionProvider = options.RoutePermissionProvider
+	r.PermissionProvider = options.PermissionProvider
+	r.RouteProvider = options.RouteProvider
 	r.PermissionAuditor = options.PermissionAuditor
 
 	log.Init(r.ConfigProvider)
