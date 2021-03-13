@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 	"time"
 
@@ -22,6 +21,7 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/sfasthttp/model"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -29,14 +29,6 @@ import (
 const _cookieTokenProtectorKey = "token"
 
 type (
-	ClientUser struct {
-		ID       string `json:"sub,omitempty"`
-		Username string `json:"name,omitempty"`
-		Email    string `json:"email,omitempty"`
-		Role     int64  `json:"role,omitempty"`
-		Level    int32  `json:"level,omitempty"`
-		Status   int32  `json:"status,omitempty"`
-	}
 	OAuthOptions struct {
 		oauth2.Config
 		PkceRequired       bool
@@ -89,40 +81,6 @@ type (
 		SignOutCallbackHandler iris.Handler
 	}
 )
-
-func (t *ClientUser) UnmarshalJSON(d []byte) error {
-	type T2 ClientUser // create new type with same structure as T but without its method set!
-	x := struct {
-		T2            // embed
-		Role   string `json:"role,omitempty"`
-		Level  string `json:"level,omitempty"`
-		Status string `json:"status,omitempty"`
-	}{T2: T2(*t)} // don't forget this, if you do and 't' already has some fields set you would lose them
-
-	err := json.Unmarshal(d, &x)
-	if err != nil {
-		return err
-	}
-
-	*t = ClientUser(x.T2)
-	var status, level int64
-	t.Role, err = strconv.ParseInt(x.Role, 10, 64)
-	if err != nil {
-		log.Warn(err)
-	}
-	status, err = strconv.ParseInt(x.Status, 10, 32)
-	if err != nil {
-		log.Warn(err)
-	}
-	level, err = strconv.ParseInt(x.Level, 10, 32)
-	if err != nil {
-		log.Warn(err)
-	}
-
-	t.Status = int32(status)
-	t.Level = int32(level)
-	return nil
-}
 
 func NewOAuthClientOptions(args ...string) *OAuthClientOptions {
 	cp := config.NewJsonConfigProvider(args...)
@@ -392,7 +350,7 @@ func (x *OAuthClient) UserClient(ctx iris.Context) (*http.Client, error) {
 	return oauth2.NewClient(goctx, tokenSource), nil
 }
 
-func (x *OAuthClient) GetUser(ctx iris.Context) (r *ClientUser) {
+func (x *OAuthClient) GetUser(ctx iris.Context) (r *model.User) {
 	session := x.SessionManager.Start(ctx)
 	userJson := session.GetString(x.userJsonSessionkey)
 	if userJson != "" {

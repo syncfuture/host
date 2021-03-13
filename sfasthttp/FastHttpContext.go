@@ -89,3 +89,7 @@ func (x *FastHttpContext) SetStatusCode(statusCode int) {
 func (x *FastHttpContext) SetContentType(cType string) {
 	x.ctx.SetContentType(cType)
 }
+
+func (x *FastHttpContext) RequestURL() string {
+	return x.ctx.URI().String()
+}

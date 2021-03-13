@@ -66,3 +66,7 @@ func (x *IrisContext) SetStatusCode(statusCode int) {
 func (x *IrisContext) SetContentType(cType string) {
 	x.ctx.ContentType(cType)
 }
+
+func (x *IrisContext) RequestURL() string {
+	return x.ctx.Request().RequestURI
+}

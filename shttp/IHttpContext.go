@@ -19,4 +19,6 @@ type IHttpContext interface {
 	WriteBytes(body []byte) (int, error)
 	SetStatusCode(statusCode int)
 	SetContentType(cType string)
+
+	RequestURL() string
 }
