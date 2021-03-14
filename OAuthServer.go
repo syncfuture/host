@@ -12,32 +12,22 @@ import (
 	rsautil "github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/surl"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/valyala/fasthttp"
 )
 
 type (
-	AuthServerOptions struct {
-		BaseServerOptions
-		oauth2go.AuthServerOptions
-		PrivateKeyPath string
-		HashKey        string
-		BlockKey       string
-		ClientStoreKey string
-		TokenStoreKey  string
-		WebRoot        string
-	}
-
 	OAuthServer struct {
 		oauth2go.IAuthServer
 		server.IWebServer
-		BaseServer
+		abstracts.BaseServer
 		ListenAddr string
 	}
 )
 
-func NewAuthServerOptions(args ...string) *AuthServerOptions {
+func NewAuthServerOptions(args ...string) *abstracts.AuthServerOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *AuthServerOptions
+	var options *abstracts.AuthServerOptions
 	cp.GetStruct("OAuthServer", &options)
 	if options == nil {
 		log.Fatal("missing 'OAuthServer' section in configuration")
@@ -45,7 +35,7 @@ func NewAuthServerOptions(args ...string) *AuthServerOptions {
 	options.ConfigProvider = cp
 	return options
 }
-func NewOAuthServer(options *AuthServerOptions) (r *OAuthServer) {
+func NewOAuthServer(options *abstracts.AuthServerOptions) (r *OAuthServer) {
 	options.ConfigProvider.GetStruct("Redis", &options.RedisConfig)
 	if options.RedisConfig == nil {
 		log.Fatal("missing 'Redis' section in configuration")

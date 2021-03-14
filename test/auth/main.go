@@ -10,6 +10,7 @@ import (
 	"github.com/Lukiya/oauth2go/security"
 	"github.com/Lukiya/oauth2go/token"
 	"github.com/syncfuture/host"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/valyala/fasthttp"
 )
 
@@ -65,7 +66,7 @@ func (x *myResourceOwnerValidator) Verify(username, password string) bool {
 }
 
 var (
-	_options    *host.AuthServerOptions
+	_options    *abstracts.AuthServerOptions
 	_authServer *host.OAuthServer
 )
 

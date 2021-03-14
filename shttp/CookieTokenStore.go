@@ -18,7 +18,7 @@ type CookieTokenStore struct {
 	TokenCookieName  string
 }
 
-func NewCookieTokenStore(tokenCookieName string, ctx IHttpContext, cookieProtoector *securecookie.SecureCookie) *CookieTokenStore {
+func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.SecureCookie) *CookieTokenStore {
 	return &CookieTokenStore{
 		TokenCookieName:  tokenCookieName,
 		CookieProtoector: cookieProtoector,

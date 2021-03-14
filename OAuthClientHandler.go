@@ -12,30 +12,36 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/shttp"
 	"golang.org/x/oauth2"
 )
 
-type IOAuthClientHandler interface {
-	SignInHandler(ctx shttp.IHttpContext)
-	SignInCallbackHandler(ctx shttp.IHttpContext)
-	SignOutHandler(ctx shttp.IHttpContext)
-	SignOutCallbackHandler(ctx shttp.IHttpContext)
-}
-
-type OAuthClientHandler struct {
-	OAuth              *OAuthOptions
+type DefaultOAuthClientHandler struct {
+	OAuth              *abstracts.OAuthOptions
 	ContextTokenStore  shttp.IContextTokenStore
 	UserJsonSessionkey string
 	UserIDSessionKey   string
 	TokenCookieName    string
 }
 
-func NewOAuthClientServer() IOAuthClientHandler {
-	return &OAuthClientHandler{}
+func NewDefaultOAuthClientHandler(
+	oauthOptions *abstracts.OAuthOptions,
+	contextTokenStore shttp.IContextTokenStore,
+	userJsonSessionkey string,
+	userIDSessionKey string,
+	tokenCookieName string,
+) abstracts.IOAuthClientHandler {
+	return &DefaultOAuthClientHandler{
+		OAuth:              oauthOptions,
+		ContextTokenStore:  contextTokenStore,
+		UserJsonSessionkey: userJsonSessionkey,
+		UserIDSessionKey:   userIDSessionKey,
+		TokenCookieName:    tokenCookieName,
+	}
 }
 
-func (x *OAuthClientHandler) SignInHandler(ctx shttp.IHttpContext) {
+func (x *DefaultOAuthClientHandler) SignInHandler(ctx shttp.IHttpContext) {
 	returnURL := ctx.GetFormString(oauth2core.Form_ReturnUrl)
 	if returnURL == "" {
 		returnURL = "/"
@@ -63,7 +69,7 @@ func (x *OAuthClientHandler) SignInHandler(ctx shttp.IHttpContext) {
 		ctx.Redirect(x.OAuth.AuthCodeURL(state), http.StatusFound)
 	}
 }
-func (x *OAuthClientHandler) SignInCallbackHandler(ctx shttp.IHttpContext) {
+func (x *DefaultOAuthClientHandler) SignInCallbackHandler(ctx shttp.IHttpContext) {
 
 	state := ctx.GetFormString(oauth2core.Form_State)
 	redirectUrl := ctx.GetSessionString(state)
@@ -148,7 +154,7 @@ func (x *OAuthClientHandler) SignInCallbackHandler(ctx shttp.IHttpContext) {
 	// 将字符串转化为令牌对象
 	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
 	if err == nil {
-		userStr := makeUserString(jwtToken)
+		userStr := u.BytesToStr(jwtToken.Raw)
 		ctx.SetSession(x.UserJsonSessionkey, userStr)
 		if jwtToken.Subject != "" {
 			ctx.SetSession(x.UserIDSessionKey, jwtToken.Subject)
@@ -164,7 +170,7 @@ func (x *OAuthClientHandler) SignInCallbackHandler(ctx shttp.IHttpContext) {
 		u.LogError(err)
 	}
 }
-func (x *OAuthClientHandler) SignOutHandler(ctx shttp.IHttpContext) {
+func (x *DefaultOAuthClientHandler) SignOutHandler(ctx shttp.IHttpContext) {
 
 	// 去Passport注销
 	state := srand.String(32)
@@ -184,7 +190,7 @@ func (x *OAuthClientHandler) SignOutHandler(ctx shttp.IHttpContext) {
 	)
 	ctx.Redirect(targetURL, http.StatusFound)
 }
-func (x *OAuthClientHandler) SignOutCallbackHandler(ctx shttp.IHttpContext) {
+func (x *DefaultOAuthClientHandler) SignOutCallbackHandler(ctx shttp.IHttpContext) {
 
 	state := ctx.GetFormString(oauth2core.Form_State)
 	returnURL := ctx.GetSessionString(state)
@@ -218,7 +224,7 @@ func (x *OAuthClientHandler) SignOutCallbackHandler(ctx shttp.IHttpContext) {
 	ctx.Redirect(returnURL, http.StatusFound)
 }
 
-func (x *OAuthClientHandler) signOut(ctx shttp.IHttpContext) {
+func (x *DefaultOAuthClientHandler) signOut(ctx shttp.IHttpContext) {
 	ctx.EndSession()
 	ctx.RemoveCookie(x.TokenCookieName)
 }

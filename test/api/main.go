@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/kataras/iris/v12"
-	"github.com/syncfuture/host"
+	"github.com/syncfuture/host/siris"
 )
 
-var _publicActions = &[]*host.Action{
-	host.NewAction("GET/users", "user", "home", getUsers),
+var _publicActions = &[]*siris.Action{
+	siris.NewAction("GET/users", "user", "home", getUsers),
 }
 
 func main() {
-	options := host.NewOAuthResourceOptions()
-	server := host.NewOAuthResource(options)
+	options := siris.NewOAuthResourceOptions()
+	server := siris.NewOAuthResource(options)
 
 	server.Run(_publicActions)
 }

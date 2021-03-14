@@ -1,4 +1,4 @@
-package host
+package siris
 
 import (
 	"context"
@@ -17,10 +17,10 @@ import (
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/muesli/cache2go"
 	"github.com/pascaldekloe/jwt"
-	config "github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -29,74 +29,32 @@ import (
 const _cookieTokenProtectorKey = "token"
 
 type (
-	OAuthOptions struct {
-		oauth2.Config
-		PkceRequired       bool
-		EndSessionEndpoint string
-		SignOutRedirectURL string
-		ClientCredential   *oauth2go.ClientCredential
-	}
-	OAuthClientOptions struct {
-		IrisBaseServerOptions
-		AccessDeniedPath       string
-		SignInPath             string
-		SignInCallbackPath     string
-		SignOutPath            string
-		SignOutCallbackPath    string
-		StaticFilesDir         string
-		LayoutTemplate         string
-		ViewsExtension         string
-		SessionName            string
-		TokenCookieName        string
-		HashKey                string
-		BlockKey               string
-		OAuth                  *OAuthOptions
-		SignInHandler          iris.Handler
-		SignInCallbackHandler  iris.Handler
-		SignOutHandler         iris.Handler
-		SignOutCallbackHandler iris.Handler
-	}
-
 	OAuthClient struct {
 		IrisBaseServer
-		AccessDeniedPath       string
-		SignInPath             string
-		SignInCallbackPath     string
-		SignOutPath            string
-		SignOutCallbackPath    string
-		StaticFilesDir         string
-		ViewsExtension         string
-		LayoutTemplate         string
-		SessionName            string
-		TokenCookieName        string
-		userJsonSessionkey     string
-		userIDSessionKey       string
-		CookieProtoector       *securecookie.SecureCookie
-		SessionManager         *sessions.Sessions
-		UserLocks              *cache2go.CacheTable
-		OAuth                  *OAuthOptions
-		SignInHandler          iris.Handler
-		SignInCallbackHandler  iris.Handler
-		SignOutHandler         iris.Handler
-		SignOutCallbackHandler iris.Handler
+		AccessDeniedPath    string
+		SignInPath          string
+		SignInCallbackPath  string
+		SignOutPath         string
+		SignOutCallbackPath string
+		StaticFilesDir      string
+		ViewsExtension      string
+		LayoutTemplate      string
+		SessionName         string
+		TokenCookieName     string
+		userJsonSessionkey  string
+		userIDSessionKey    string
+		CookieProtoector    *securecookie.SecureCookie
+		SessionManager      *sessions.Sessions
+		UserLocks           *cache2go.CacheTable
+		OAuth               *abstracts.OAuthOptions
+		OAuthClientHandler  abstracts.IOAuthClientHandler
 	}
 )
 
-func NewOAuthClientOptions(args ...string) *OAuthClientOptions {
-	cp := config.NewJsonConfigProvider(args...)
-	var options *OAuthClientOptions
-	cp.GetStruct("OAuthClient", &options)
-	if options == nil {
-		log.Fatal("missing 'OAuthClient' section in configuration")
-	}
-	options.ConfigProvider = cp
-	return options
-}
-
-func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
+func NewOAuthClient(options *abstracts.OAuthClientOptions) (r *OAuthClient) {
 	// create pointer
 	r = new(OAuthClient)
-	r.configIrisBaseServer(&options.IrisBaseServerOptions)
+	r.ConfigIrisBaseServer(&options.IrisBaseServerOptions)
 	// r.Name = options.Name
 	// r.URIKey = options.URIKey
 	// r.RouteKey = options.RouteKey
@@ -169,17 +127,21 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 	if options.LayoutTemplate == "" {
 		options.LayoutTemplate = "shared/_layout.html"
 	}
-	if options.SignInHandler == nil {
-		options.SignInHandler = r.signinHanlder
-	}
-	if options.SignInCallbackHandler == nil {
-		options.SignInCallbackHandler = r.signInCallbackHandler
-	}
-	if options.SignOutHandler == nil {
-		options.SignOutHandler = r.signOutHandler
-	}
-	if options.SignOutCallbackHandler == nil {
-		options.SignOutCallbackHandler = r.signOutCallbackHandler
+	// if options.SignInHandler == nil {
+	// 	options.SignInHandler = r.signinHanlder
+	// }
+	// if options.SignInCallbackHandler == nil {
+	// 	options.SignInCallbackHandler = r.signInCallbackHandler
+	// }
+	// if options.SignOutHandler == nil {
+	// 	options.SignOutHandler = r.signOutHandler
+	// }
+	// if options.SignOutCallbackHandler == nil {
+	// 	options.SignOutCallbackHandler = r.signOutCallbackHandler
+	// }
+	if options.OAuthClientHandler == nil {
+		// shttp.NewCookieTokenStore(options.TokenCookieName, options.)
+		// options.OAuthClientHandler = NewDefaultOAuthClientHandler(options.OAuth, )
 	}
 
 	r.OAuth = options.OAuth
@@ -205,17 +167,17 @@ func NewOAuthClient(options *OAuthClientOptions) (r *OAuthClient) {
 		AllowReclaim:                true,
 		DisableSubdomainPersistence: true,
 	})
-	r.SignInHandler = options.SignInHandler
-	r.SignInCallbackHandler = options.SignInCallbackHandler
-	r.SignOutHandler = options.SignOutHandler
-	r.SignOutCallbackHandler = options.SignOutCallbackHandler
+	// r.SignInHandler = options.SignInHandler
+	// r.SignInCallbackHandler = options.SignInCallbackHandler
+	// r.SignOutHandler = options.SignOutHandler
+	// r.SignOutCallbackHandler = options.SignOutCallbackHandler
 	r.UserLocks = cache2go.Cache("UserLocks")
 
 	// 添加内置终结点
-	r.IrisApp.Get(r.SignInPath, r.SignInHandler)
-	r.IrisApp.Get(r.SignInCallbackPath, r.SignInCallbackHandler)
-	r.IrisApp.Get(r.SignOutPath, r.SignOutHandler)
-	r.IrisApp.Get(r.SignOutCallbackPath, r.SignOutCallbackHandler)
+	r.IrisApp.Get(r.SignInPath, AdaptHandler(r.OAuthClientHandler.SignInHandler, r.SessionManager))
+	r.IrisApp.Get(r.SignInCallbackPath, AdaptHandler(r.OAuthClientHandler.SignInCallbackHandler, r.SessionManager))
+	r.IrisApp.Get(r.SignOutPath, AdaptHandler(r.OAuthClientHandler.SignOutHandler, r.SessionManager))
+	r.IrisApp.Get(r.SignOutCallbackPath, AdaptHandler(r.OAuthClientHandler.SignOutCallbackHandler, r.SessionManager))
 
 	// 注册视图引擎
 	if r.ViewEngine == nil {
@@ -239,7 +201,7 @@ func (x *OAuthClient) Run(actionGroups ...*[]*Action) {
 	}
 	x.ActionMap = &actionMap
 
-	x.registerActions()
+	x.RegisterActions()
 
 	if x.ListenAddr == "" {
 		log.Fatal("cannot find 'ListenAddr' in config")
@@ -482,7 +444,7 @@ func (x *OAuthClient) signInCallbackHandler(ctx iris.Context) {
 	// 将字符串转化为令牌对象
 	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
 	if err == nil {
-		userStr := makeUserString(jwtToken)
+		userStr := u.BytesToStr(jwtToken.Raw)
 		session.Set(x.userJsonSessionkey, userStr)
 		if jwtToken.Subject != "" {
 			session.Set(x.userIDSessionKey, jwtToken.Subject)
@@ -610,9 +572,4 @@ func (x *OAuthClient) getToken(ctx iris.Context) (*oauth2.Token, error) {
 	}
 
 	return t, err
-}
-
-func makeUserString(token *jwt.Claims) (r string) {
-	r = string(token.Raw)
-	return
 }

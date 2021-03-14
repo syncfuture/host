@@ -11,7 +11,7 @@ import (
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
 )
@@ -19,7 +19,7 @@ import (
 type AuthMiddleware struct {
 	PermissionAuditor  ssecurity.IPermissionAuditor
 	SessionManager     *sessions.Sessions
-	OAuth              *host.OAuthOptions
+	OAuth              *abstracts.OAuthOptions
 	AccessDeniedPath   string
 	userJsonSessionkey string
 }
@@ -27,7 +27,7 @@ type AuthMiddleware struct {
 func NewAuthMiddleware(
 	permissionAuditor ssecurity.IPermissionAuditor,
 	sessionManager *sessions.Sessions,
-	oauthOptions *host.OAuthOptions,
+	oauthOptions *abstracts.OAuthOptions,
 	accessDeniedPath string,
 	userJsonSessionkey string,
 ) *AuthMiddleware {

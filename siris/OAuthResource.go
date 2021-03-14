@@ -1,4 +1,4 @@
-package host
+package siris
 
 import (
 	"crypto/rsa"
@@ -10,16 +10,10 @@ import (
 	config "github.com/syncfuture/go/sconfig"
 	rsautil "github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/abstracts"
 )
 
 type (
-	OAuthResourceOptions struct {
-		IrisBaseServerOptions
-		PublicKeyPath    string
-		SigningAlgorithm string
-		OAuth            *model.Resource
-	}
-
 	OAuthResource struct {
 		IrisBaseServer
 		PublicKey        *rsa.PublicKey
@@ -28,9 +22,9 @@ type (
 	}
 )
 
-func NewOAuthResourceOptions(args ...string) *OAuthResourceOptions {
+func NewOAuthResourceOptions(args ...string) *abstracts.OAuthResourceOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *OAuthResourceOptions
+	var options *abstracts.OAuthResourceOptions
 	cp.GetStruct("OAuthResource", &options)
 	if options == nil {
 		log.Fatal("missing 'OAuthResource' section in configuration")
@@ -39,7 +33,7 @@ func NewOAuthResourceOptions(args ...string) *OAuthResourceOptions {
 	return options
 }
 
-func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
+func NewOAuthResource(options *abstracts.OAuthResourceOptions) (r *OAuthResource) {
 	if options.PublicKeyPath == "" {
 		log.Fatal("public key path cannot be empty")
 	}
@@ -57,7 +51,7 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	}
 
 	r = new(OAuthResource)
-	r.configIrisBaseServer(&options.IrisBaseServerOptions)
+	r.ConfigIrisBaseServer(&options.IrisBaseServerOptions)
 	// r.Name = options.Name
 	// r.URIKey = options.URIKey
 	// r.RouteKey = options.RouteKey
@@ -144,7 +138,7 @@ func (x *OAuthResource) init(actionGroups ...*[]*Action) {
 func (x *OAuthResource) Run(actionGroups ...*[]*Action) {
 	x.init(actionGroups...)
 
-	x.registerActions()
+	x.RegisterActions()
 
 	if x.ListenAddr == "" {
 		log.Fatal("Cannot find 'ListenAddr' config")
