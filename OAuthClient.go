@@ -21,7 +21,7 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/sfasthttp/model"
+	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )

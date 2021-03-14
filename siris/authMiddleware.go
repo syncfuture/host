@@ -12,7 +12,7 @@ import (
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
-	"github.com/syncfuture/host/sfasthttp/model"
+	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
 )
 
