@@ -13,27 +13,20 @@ import (
 
 const _cookieTokenProtectorKey = "token"
 
-type ITokenStore interface {
-	SaveToken(token *oauth2.Token) error
-	GetToken() (*oauth2.Token, error)
-}
-
 type CookieTokenStore struct {
-	ctx              IHttpContext
 	CookieProtoector *securecookie.SecureCookie
 	TokenCookieName  string
 }
 
 func NewCookieTokenStore(tokenCookieName string, ctx IHttpContext, cookieProtoector *securecookie.SecureCookie) *CookieTokenStore {
 	return &CookieTokenStore{
-		ctx:              ctx,
 		TokenCookieName:  tokenCookieName,
 		CookieProtoector: cookieProtoector,
 	}
 }
 
 /// SaveToken 保存令牌
-func (x *CookieTokenStore) SaveToken(token *oauth2.Token) error {
+func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if err != nil {
 		return err
@@ -57,14 +50,14 @@ func (x *CookieTokenStore) SaveToken(token *oauth2.Token) error {
 		// 否则作为session存储
 	}
 
-	x.ctx.SetCookie(tokenCookie)
+	ctx.SetCookie(tokenCookie)
 	return nil
 }
 
 /// GetToken 获取令牌
-func (x *CookieTokenStore) GetToken() (*oauth2.Token, error) {
+func (x *CookieTokenStore) GetToken(ctx IHttpContext) (*oauth2.Token, error) {
 	// 从Session获取令牌
-	tokenJson := x.ctx.GetCookieString(x.TokenCookieName)
+	tokenJson := ctx.GetCookieString(x.TokenCookieName)
 	if tokenJson == "" {
 		return nil, nil
 	}

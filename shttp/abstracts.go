@@ -1,6 +1,10 @@
 package shttp
 
-import "net/http"
+import (
+	"net/http"
+
+	"golang.org/x/oauth2"
+)
 
 type IHttpContext interface {
 	SetCookie(cookie *http.Cookie)
@@ -21,4 +25,11 @@ type IHttpContext interface {
 	SetContentType(cType string)
 
 	RequestURL() string
+}
+
+type RequestHandler func(ctx IHttpContext)
+
+type IContextTokenStore interface {
+	SaveToken(ctx IHttpContext, token *oauth2.Token) error
+	GetToken(ctx IHttpContext) (*oauth2.Token, error)
 }
