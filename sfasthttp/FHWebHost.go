@@ -6,6 +6,7 @@ import (
 	"github.com/syncfuture/host/shttp"
 )
 
+// FHWebHost : IWebHost
 type FHWebHost struct {
 	// 独有属性
 	Router          *router.Router

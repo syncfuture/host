@@ -27,7 +27,7 @@ type FHOAuthClientHost struct {
 	*FHWebHost
 }
 
-func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...Option) abstracts.IWebHost {
+func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...Option) *FHOAuthClientHost {
 	r := new(FHOAuthClientHost)
 	cp.GetStruct("OAuthClient", &r)
 	r.FHWebHost = new(FHWebHost)
