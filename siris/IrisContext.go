@@ -85,3 +85,7 @@ func (x *IrisContext) SetContentType(cType string) {
 func (x *IrisContext) RequestURL() string {
 	return x.ctx.Request().RequestURI
 }
+
+func (x *IrisContext) SetHeader(key, value string) {
+	x.ctx.Header(key, value)
+}

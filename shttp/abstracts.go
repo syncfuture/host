@@ -25,6 +25,8 @@ type IHttpContext interface {
 	SetContentType(cType string)
 
 	RequestURL() string
+
+	SetHeader(key, value string)
 }
 
 type RequestHandler func(ctx IHttpContext)

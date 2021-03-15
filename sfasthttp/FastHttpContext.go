@@ -108,3 +108,7 @@ func (x *FastHttpContext) SetContentType(cType string) {
 func (x *FastHttpContext) RequestURL() string {
 	return x.ctx.URI().String()
 }
+
+func (x *FastHttpContext) SetHeader(key, value string) {
+	x.ctx.Response.Header.Set(key, value)
+}
