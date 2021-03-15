@@ -2,11 +2,20 @@ package sfasthttp
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 	"github.com/valyala/fasthttp"
+)
+
+var (
+	_ctxPool = &sync.Pool{
+		New: func() interface{} {
+			return new(FastHttpContext)
+		},
+	}
 )
 
 type FastHttpContext struct {
@@ -15,9 +24,15 @@ type FastHttpContext struct {
 }
 
 func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.IHttpContext {
-	return &FastHttpContext{
-		ctx:  ctx,
-		sess: sess,
+	r := _ctxPool.Get().(*FastHttpContext)
+	r.ctx = ctx
+	r.sess = sess
+	return r
+}
+
+func PutFastHttpContext(ctx shttp.IHttpContext) {
+	if ctx != nil {
+		_ctxPool.Put(ctx)
 	}
 }
 

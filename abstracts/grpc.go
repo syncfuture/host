@@ -2,7 +2,7 @@ package abstracts
 
 type (
 	GrpcServerOptions struct {
-		BaseServerOptions
+		BaseHostOptions
 		MaxRecvMsgSize int
 	}
 )

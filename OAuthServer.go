@@ -20,7 +20,7 @@ type (
 	OAuthServer struct {
 		oauth2go.IAuthServer
 		server.IWebServer
-		abstracts.BaseServer
+		abstracts.HostBase
 		ListenAddr string
 	}
 )

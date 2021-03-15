@@ -14,7 +14,7 @@ import (
 
 type (
 	GrpcServer struct {
-		abstracts.BaseServer
+		abstracts.HostBase
 		GRPCServer *grpc.Server
 	}
 )
@@ -40,7 +40,7 @@ func NewGrpcServer(options *abstracts.GrpcServerOptions) (r *GrpcServer) {
 	r.URIKey = options.URIKey
 	// r.RouteKey = options.RouteKey
 	r.PermissionKey = options.PermissionKey
-	r.ConfigBaseServer(&options.BaseServerOptions)
+	r.BuildBaseHost(&options.BaseHostOptions)
 
 	// GRPC Server
 	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, sgrpc.AttachUserClaims))

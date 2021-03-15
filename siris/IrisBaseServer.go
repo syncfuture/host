@@ -14,7 +14,7 @@ import (
 
 type (
 	IrisBaseServer struct {
-		abstracts.BaseServer
+		abstracts.HostBase
 		ViewsDir       string
 		IrisApp        *iris.Application
 		ViewEngine     view.Engine
@@ -23,8 +23,8 @@ type (
 	}
 )
 
-func (r *IrisBaseServer) ConfigIrisBaseServer(options *abstracts.IrisBaseServerOptions) {
-	r.ConfigBaseServer(&options.BaseServerOptions)
+func (r *IrisBaseServer) ConfigIrisBaseServer(options *IrisBaseServerOptions) {
+	r.BuildBaseHost(&options.BaseHostOptions)
 	if options.ViewsDir == "" {
 		options.ViewsDir = "./views"
 	}

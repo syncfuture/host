@@ -10,17 +10,16 @@ import (
 	"github.com/syncfuture/go/shttp"
 	"github.com/syncfuture/go/surl"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/siris"
 )
 
 var (
-	_server *siris.OAuthClient
+	_server *siris.IrisOAuthClient
 )
 
 func main() {
-	options := abstracts.NewOAuthClientOptions()
-	_server = siris.NewOAuthClient(options)
+	options := siris.NewOAuthClientOptions()
+	_server = siris.NewIrisOAuthClient(options)
 
 	mvc.Configure(_server.IrisApp, configureMVC)
 

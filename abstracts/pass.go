@@ -4,7 +4,7 @@ import "github.com/Lukiya/oauth2go"
 
 type (
 	AuthServerOptions struct {
-		BaseServerOptions
+		BaseHostOptions
 		oauth2go.AuthServerOptions
 		PrivateKeyPath string
 		HashKey        string

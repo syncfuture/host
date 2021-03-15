@@ -10,7 +10,6 @@ import (
 	config "github.com/syncfuture/go/sconfig"
 	rsautil "github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
 )
 
 type (
@@ -22,9 +21,9 @@ type (
 	}
 )
 
-func NewOAuthResourceOptions(args ...string) *abstracts.OAuthResourceOptions {
+func NewOAuthResourceOptions(args ...string) *OAuthResourceOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *abstracts.OAuthResourceOptions
+	var options *OAuthResourceOptions
 	cp.GetStruct("OAuthResource", &options)
 	if options == nil {
 		log.Fatal("missing 'OAuthResource' section in configuration")
@@ -33,7 +32,7 @@ func NewOAuthResourceOptions(args ...string) *abstracts.OAuthResourceOptions {
 	return options
 }
 
-func NewOAuthResource(options *abstracts.OAuthResourceOptions) (r *OAuthResource) {
+func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	if options.PublicKeyPath == "" {
 		log.Fatal("public key path cannot be empty")
 	}

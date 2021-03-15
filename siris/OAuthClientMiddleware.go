@@ -3,7 +3,6 @@ package siris
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/kataras/iris/v12"
@@ -16,7 +15,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type AuthMiddleware struct {
+type ClientAuthMiddleware struct {
 	PermissionAuditor  ssecurity.IPermissionAuditor
 	SessionManager     *sessions.Sessions
 	OAuth              *abstracts.OAuthOptions
@@ -30,8 +29,8 @@ func NewAuthMiddleware(
 	oauthOptions *abstracts.OAuthOptions,
 	accessDeniedPath string,
 	userJsonSessionkey string,
-) *AuthMiddleware {
-	return &AuthMiddleware{
+) *ClientAuthMiddleware {
+	return &ClientAuthMiddleware{
 		PermissionAuditor:  permissionAuditor,
 		SessionManager:     sessionManager,
 		OAuth:              oauthOptions,
@@ -40,7 +39,7 @@ func NewAuthMiddleware(
 	}
 }
 
-func (x *AuthMiddleware) Serve(ctx iris.Context) {
+func (x *ClientAuthMiddleware) Serve(ctx iris.Context) {
 	session := x.SessionManager.Start(ctx)
 
 	handlerName := ctx.GetCurrentRoute().MainHandlerName()
@@ -91,7 +90,7 @@ func (x *AuthMiddleware) Serve(ctx iris.Context) {
 	}
 }
 
-func (x *AuthMiddleware) getUser(ctx iris.Context) (r *model.User) {
+func (x *ClientAuthMiddleware) getUser(ctx iris.Context) (r *model.User) {
 	session := x.SessionManager.Start(ctx)
 	userJson := session.GetString(x.userJsonSessionkey)
 	if userJson != "" {
@@ -100,9 +99,4 @@ func (x *AuthMiddleware) getUser(ctx iris.Context) (r *model.User) {
 		u.LogError(err)
 	}
 	return
-}
-
-func getRoutes(handlerName string) (string, string, string) {
-	array := strings.Split(handlerName, ".")
-	return array[0], array[1], array[2]
 }

@@ -2,10 +2,19 @@ package siris
 
 import (
 	"net/http"
+	"sync"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
 	"github.com/syncfuture/host/shttp"
+)
+
+var (
+	_ctxPool = &sync.Pool{
+		New: func() interface{} {
+			return new(IrisContext)
+		},
+	}
 )
 
 type IrisContext struct {
@@ -14,9 +23,15 @@ type IrisContext struct {
 }
 
 func NewIrisContext(ctx iris.Context, sess *sessions.Sessions) shttp.IHttpContext {
-	return &IrisContext{
-		ctx:  ctx,
-		sess: sess,
+	r := _ctxPool.Get().(*IrisContext)
+	r.ctx = ctx
+	r.sess = sess
+	return r
+}
+
+func PutIrisContext(ctx shttp.IHttpContext) {
+	if ctx != nil {
+		_ctxPool.Put(ctx)
 	}
 }
 
