@@ -65,8 +65,11 @@ func (x *FastHttpContext) GetSessionString(key string) string {
 		return ""
 	}
 
-	r := store.Get(key).(string)
-	return r
+	if r, ok := store.Get(key).(string); ok {
+		return r
+	}
+
+	return ""
 }
 func (x *FastHttpContext) RemoveSession(key string) {
 	store, err := x.sess.Get(x.ctx)
