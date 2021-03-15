@@ -20,7 +20,6 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/stretchr/testify v1.7.0
 	github.com/syncfuture/go v1.4.5
 	github.com/valyala/fasthttp v1.22.0
 	github.com/valyala/quicktemplate v1.6.3
