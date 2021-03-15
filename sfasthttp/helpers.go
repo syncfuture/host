@@ -9,7 +9,9 @@ import (
 func AdaptHandler(handler shttp.RequestHandler, sess *session.Session) fasthttp.RequestHandler {
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx shttp.IHttpContext
-		defer PutFastHttpContext(newCtx)
+		defer func() {
+			PutFastHttpContext(newCtx)
+		}()
 
 		newCtx = NewFastHttpContext(ctx, sess)
 		handler(newCtx)

@@ -31,9 +31,7 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.I
 }
 
 func PutFastHttpContext(ctx shttp.IHttpContext) {
-	if ctx != nil {
-		_ctxPool.Put(ctx)
-	}
+	_ctxPool.Put(ctx)
 }
 
 func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {

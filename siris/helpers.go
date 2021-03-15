@@ -19,7 +19,9 @@ import (
 func AdaptHandler(handler shttp.RequestHandler, sess *sessions.Sessions) iris.Handler {
 	return iris.Handler(func(ctx iris.Context) {
 		var newCtx shttp.IHttpContext
-		defer PutIrisContext(newCtx)
+		defer func() {
+			PutIrisContext(newCtx)
+		}()
 
 		newCtx = NewIrisContext(ctx, sess)
 		handler(newCtx)

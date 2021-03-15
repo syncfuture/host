@@ -30,9 +30,7 @@ func NewIrisContext(ctx iris.Context, sess *sessions.Sessions) shttp.IHttpContex
 }
 
 func PutIrisContext(ctx shttp.IHttpContext) {
-	if ctx != nil {
-		_ctxPool.Put(ctx)
-	}
+	_ctxPool.Put(ctx)
 }
 
 func (x *IrisContext) SetCookie(cookie *http.Cookie) {

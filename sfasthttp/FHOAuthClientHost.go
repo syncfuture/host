@@ -29,7 +29,8 @@ type FHOAuthClientHost struct {
 
 func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...Option) *FHOAuthClientHost {
 	r := new(FHOAuthClientHost)
-	cp.GetStruct("OAuthClient", &r)
+	cp.GetStruct("@this", &r)
+	r.ConfigProvider = cp
 	r.FHWebHost = new(FHWebHost)
 
 	for _, o := range options {
