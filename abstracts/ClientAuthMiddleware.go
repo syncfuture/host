@@ -3,12 +3,9 @@ package abstracts
 import (
 	"net/http"
 
-	oauth2core "github.com/Lukiya/oauth2go/core"
 	log "github.com/syncfuture/go/slog"
-	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/host/shttp"
-	"golang.org/x/oauth2"
 )
 
 type ClientAuthMiddleware struct {
@@ -72,18 +69,20 @@ func (x *ClientAuthMiddleware) Serve(next shttp.RequestHandler, routes ...string
 		}
 
 		// 记录请求地址，跳转去登录页面
-		state := srand.String(32)
-		ctx.SetSession(state, ctx.RequestURL())
-		if x.OAuthOptions.PkceRequired {
-			codeVerifier := oauth2core.Random64String()
-			codeChanllenge := oauth2core.ToSHA256Base64URL(codeVerifier)
-			ctx.SetSession(oauth2core.Form_CodeVerifier, codeVerifier)
-			ctx.SetSession(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
-			codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallenge, codeChanllenge)
-			codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
-			ctx.Redirect(x.OAuthOptions.AuthCodeURL(state, codeChanllengeParam, codeChanllengeMethodParam), http.StatusFound)
-		} else {
-			ctx.Redirect(x.OAuthOptions.AuthCodeURL(state), http.StatusFound)
-		}
+		redirectAuthorizeEndpoint(ctx, x.OAuthOptions, ctx.RequestURL())
+
+		// state := srand.String(32)
+		// ctx.SetSession(state, ctx.RequestURL())
+		// if x.OAuthOptions.PkceRequired {
+		// 	codeVerifier := oauth2core.Random64String()
+		// 	codeChanllenge := oauth2core.ToSHA256Base64URL(codeVerifier)
+		// 	ctx.SetSession(oauth2core.Form_CodeVerifier, codeVerifier)
+		// 	ctx.SetSession(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
+		// 	codeChanllengeParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallenge, codeChanllenge)
+		// 	codeChanllengeMethodParam := oauth2.SetAuthURLParam(oauth2core.Form_CodeChallengeMethod, oauth2core.Pkce_S256)
+		// 	ctx.Redirect(x.OAuthOptions.AuthCodeURL(state, codeChanllengeParam, codeChanllengeMethodParam), http.StatusFound)
+		// } else {
+		// 	ctx.Redirect(x.OAuthOptions.AuthCodeURL(state), http.StatusFound)
+		// }
 	}
 }

@@ -19,14 +19,18 @@ var (
 )
 
 type FastHttpContext struct {
-	ctx  *fasthttp.RequestCtx
-	sess *session.Session
+	ctx       *fasthttp.RequestCtx
+	sess      *session.Session
+	sessStore *session.Store
 }
 
 func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.IHttpContext {
 	r := _ctxPool.Get().(*FastHttpContext)
 	r.ctx = ctx
 	r.sess = sess
+	var err error
+	r.sessStore, err = r.sess.Get(ctx)
+	u.LogFaltal(err)
 	return r
 }
 
@@ -43,6 +47,7 @@ func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
 	c.SetPath(cookie.Path)
 	c.SetSecure(cookie.Secure)
 	c.SetHTTPOnly(cookie.HttpOnly)
+	c.SetExpire(cookie.Expires)
 	x.ctx.Response.Header.SetCookie(c)
 }
 func (x *FastHttpContext) GetCookieString(key string) string {
@@ -52,11 +57,15 @@ func (x *FastHttpContext) GetCookieString(key string) string {
 func (x *FastHttpContext) RemoveCookie(key string) {
 	x.ctx.Response.Header.DelClientCookie(key)
 }
+
 func (x *FastHttpContext) SetSession(key, value string) {
 	store, err := x.sess.Get(x.ctx)
 	if u.LogError(err) {
 		return
 	}
+	defer func() {
+		u.LogError(x.sess.Save(x.ctx, store))
+	}()
 	store.Set(key, value)
 }
 func (x *FastHttpContext) GetSessionString(key string) string {
@@ -64,6 +73,9 @@ func (x *FastHttpContext) GetSessionString(key string) string {
 	if u.LogError(err) {
 		return ""
 	}
+	defer func() {
+		u.LogError(x.sess.Save(x.ctx, store))
+	}()
 
 	if r, ok := store.Get(key).(string); ok {
 		return r
@@ -76,16 +88,21 @@ func (x *FastHttpContext) RemoveSession(key string) {
 	if u.LogError(err) {
 		return
 	}
+	defer func() {
+		u.LogError(x.sess.Save(x.ctx, store))
+	}()
 	store.Delete(key)
 }
 func (x *FastHttpContext) EndSession() {
-	store, err := x.sess.Get(x.ctx)
-	if u.LogError(err) {
-		return
-	}
+	x.sess.Destroy(x.ctx)
+	// store, err := x.sess.Get(x.ctx)
+	// if u.LogError(err) {
+	// 	return
+	// }
 
-	store.Reset()
+	// store.Reset()
 }
+
 func (x *FastHttpContext) GetFormString(key string) string {
 	r := x.ctx.FormValue(key)
 	return u.BytesToStr(r)

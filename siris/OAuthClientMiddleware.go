@@ -75,6 +75,7 @@ func (x *ClientAuthMiddleware) Serve(ctx iris.Context) {
 	}
 
 	// 记录请求地址，跳转去登录页面
+
 	state := srand.String(32)
 	session.Set(state, ctx.Request().RequestURI)
 	if x.OAuth.PkceRequired {

@@ -11,9 +11,10 @@ import (
 // FHWebHost : IWebHost
 type FHWebHost struct {
 	// 独有属性
-	Router          *router.Router
-	SessionProvider session.Provider
-	SessionManager  *session.Session
+	SessionCookieName string
+	Router            *router.Router
+	SessionProvider   session.Provider
+	SessionManager    *session.Session
 }
 
 func (x *FHWebHost) GET(path string, request shttp.RequestHandler) {
@@ -30,6 +31,11 @@ func (x *FHWebHost) DELETE(path string, request shttp.RequestHandler) {
 }
 
 func (x *FHWebHost) BuildFHWebHost() {
+
+	if x.SessionCookieName == "" {
+		x.SessionCookieName = "go.cookie1"
+	}
+
 	////////// router
 	if x.Router == nil {
 		x.Router = router.New()
@@ -45,6 +51,8 @@ func (x *FHWebHost) BuildFHWebHost() {
 	////////// session manager
 	if x.SessionManager == nil {
 		cfg := session.NewDefaultConfig()
+		cfg.Expiration = -1
+		cfg.CookieName = x.SessionCookieName
 		cfg.EncodeFunc = session.MSGPEncode // 内存型provider性能较好
 		cfg.DecodeFunc = session.MSGPDecode // 内存型provider性能较好
 
