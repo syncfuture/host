@@ -3,6 +3,8 @@ package sfasthttp
 import (
 	"github.com/fasthttp/router"
 	"github.com/fasthttp/session/v2"
+	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 )
 
@@ -25,4 +27,29 @@ func (x *FHWebHost) PUT(path string, request shttp.RequestHandler) {
 }
 func (x *FHWebHost) DELETE(path string, request shttp.RequestHandler) {
 	x.Router.DELETE(path, AdaptHandler(request, x.SessionManager))
+}
+
+func (x *FHWebHost) BuildFHWebHost() {
+	////////// router
+	if x.Router == nil {
+		x.Router = router.New()
+	}
+
+	////////// session provider
+	if x.SessionProvider == nil {
+		provider, err := memory.New(memory.Config{})
+		u.LogFaltal(err)
+		x.SessionProvider = provider
+	}
+
+	////////// session manager
+	if x.SessionManager == nil {
+		cfg := session.NewDefaultConfig()
+		cfg.EncodeFunc = session.MSGPEncode // 内存型provider性能较好
+		cfg.DecodeFunc = session.MSGPDecode // 内存型provider性能较好
+
+		x.SessionManager = session.New(cfg)
+		err := x.SessionManager.SetProvider(x.SessionProvider)
+		u.LogFaltal(err)
+	}
 }

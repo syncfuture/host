@@ -17,7 +17,6 @@ import (
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/abstracts"
-	"github.com/syncfuture/host/client"
 	"github.com/syncfuture/host/model"
 	"github.com/syncfuture/host/shttp"
 	"golang.org/x/oauth2"
@@ -129,7 +128,7 @@ func NewIrisOAuthClient(options *OAuthClientOptions) (r *IrisOAuthClient) {
 		options.ContextTokenStore = shttp.NewCookieTokenStore(options.TokenCookieName, cookieProtoector)
 	}
 	if options.OAuthClientHandler == nil {
-		options.OAuthClientHandler = client.NewDefaultOAuthClientHandler(options.OAuth, options.ContextTokenStore, _userJsonSessionkey, _userIDSessionKey, options.TokenCookieName)
+		options.OAuthClientHandler = abstracts.NewDefaultOAuthClientHandler(options.OAuth, options.ContextTokenStore, _userJsonSessionkey, _userIDSessionKey, options.TokenCookieName)
 	}
 
 	r.OAuthOptions = options.OAuth

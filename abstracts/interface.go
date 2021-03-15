@@ -17,4 +17,8 @@ type (
 		DELETE(path string, request shttp.RequestHandler)
 		Serve() error
 	}
+
+	IAuthMiddleware interface {
+		Serve(next shttp.RequestHandler, routes ...string) shttp.RequestHandler
+	}
 )

@@ -1,4 +1,4 @@
-package client
+package abstracts
 
 import (
 	"context"
@@ -12,13 +12,12 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/shttp"
 	"golang.org/x/oauth2"
 )
 
 type DefaultOAuthClientHandler struct {
-	OAuth              *abstracts.OAuthOptions
+	OAuth              *OAuthOptions
 	ContextTokenStore  shttp.IContextTokenStore
 	UserJsonSessionkey string
 	UserIDSessionKey   string
@@ -26,12 +25,12 @@ type DefaultOAuthClientHandler struct {
 }
 
 func NewDefaultOAuthClientHandler(
-	oauthOptions *abstracts.OAuthOptions,
+	oauthOptions *OAuthOptions,
 	contextTokenStore shttp.IContextTokenStore,
 	userJsonSessionkey string,
 	userIDSessionKey string,
 	tokenCookieName string,
-) abstracts.IOAuthClientHandler {
+) IOAuthClientHandler {
 	return &DefaultOAuthClientHandler{
 		OAuth:              oauthOptions,
 		ContextTokenStore:  contextTokenStore,
