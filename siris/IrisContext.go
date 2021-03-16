@@ -6,6 +6,7 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
+	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 )
 
@@ -62,6 +63,22 @@ func (x *IrisContext) EndSession() {
 
 func (x *IrisContext) GetFormString(key string) string {
 	return x.ctx.FormValue(key)
+}
+
+func (x *IrisContext) GetBodyString() string {
+	data, err := x.ctx.GetBody()
+	if u.LogError(err) {
+		return ""
+	}
+	return u.BytesToStr(data)
+}
+
+func (x *IrisContext) GetBodyBytes() []byte {
+	data, err := x.ctx.GetBody()
+	if u.LogError(err) {
+		return nil
+	}
+	return data
 }
 
 func (x *IrisContext) Redirect(url string, statusCode int) {

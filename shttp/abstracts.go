@@ -18,6 +18,9 @@ type IHttpContext interface {
 
 	GetFormString(key string) string
 
+	GetBodyString() string
+	GetBodyBytes() []byte
+
 	Redirect(url string, statusCode int)
 	WriteString(body string) (int, error)
 	WriteBytes(body []byte) (int, error)

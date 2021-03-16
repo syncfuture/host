@@ -128,7 +128,7 @@ func NewIrisOAuthClient(options *OAuthClientOptions) (r *IrisOAuthClient) {
 		options.ContextTokenStore = shttp.NewCookieTokenStore(options.TokenCookieName, cookieProtoector)
 	}
 	if options.OAuthClientHandler == nil {
-		options.OAuthClientHandler = abstracts.NewDefaultOAuthClientHandler(options.OAuth, options.ContextTokenStore, _userJsonSessionkey, _userIDSessionKey, options.TokenCookieName)
+		options.OAuthClientHandler = abstracts.NewOAuthClientHandler(options.OAuth, options.ContextTokenStore, _userJsonSessionkey, _userIDSessionKey, options.TokenCookieName)
 	}
 
 	r.OAuthOptions = options.OAuth

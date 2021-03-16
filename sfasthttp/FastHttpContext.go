@@ -107,6 +107,15 @@ func (x *FastHttpContext) GetFormString(key string) string {
 	r := x.ctx.FormValue(key)
 	return u.BytesToStr(r)
 }
+
+func (x *FastHttpContext) GetBodyString() string {
+	return x.ctx.Request.String()
+}
+
+func (x *FastHttpContext) GetBodyBytes() []byte {
+	return x.ctx.Request.Body()
+}
+
 func (x *FastHttpContext) Redirect(url string, statusCode int) {
 	x.ctx.Redirect(url, statusCode)
 }

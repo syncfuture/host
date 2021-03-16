@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	BaseHostOptions struct {
+	BaseHost struct {
 		Debug              bool
 		Name               string
 		URIKey             string
@@ -24,34 +24,19 @@ type (
 		RouteProvider      ssecurity.IRouteProvider
 		PermissionAuditor  ssecurity.IPermissionAuditor
 	}
-
-	HostBase struct {
-		BaseHostOptions
-	}
 )
 
-func (r *HostBase) BuildBaseHost(options *BaseHostOptions) {
-	// err := deepcopier.Copy(options).To(r)
-	// u.LogFaltal(err)
-
-	if r.Name == "" {
-		log.Fatal("Name cannot be empty")
-	}
+func (r *BaseHost) BuildBaseHost() {
+	// if r.Name == "" {
+	// 	log.Fatal("Name cannot be empty")
+	// }
 	if r.ListenAddr == "" {
 		log.Fatal("ListenAddr cannot be empty")
 	}
 
 	if r.ConfigProvider == nil {
 		r.ConfigProvider = sconfig.NewJsonConfigProvider()
-		log.Fatal("ConfigProvider cannot be nil")
 	}
-
-	// if options.RedisConfig == nil {
-	// 	options.ConfigProvider.GetStruct("Redis", &options.RedisConfig)
-	// 	// if options.RedisConfig == nil {
-	// 	// 	log.Fatal("RedisConfig cannot be nil")
-	// 	// }
-	// }
 
 	if r.URLProvider == nil && r.URIKey != "" && r.RedisConfig != nil {
 		r.URLProvider = surl.NewRedisURLProvider(r.URIKey, r.RedisConfig)
@@ -69,20 +54,7 @@ func (r *HostBase) BuildBaseHost(options *BaseHostOptions) {
 		r.PermissionAuditor = ssecurity.NewPermissionAuditor(r.PermissionProvider, r.RouteProvider)
 	}
 
-	// r.Debug = options.Debug
-	// r.Name = options.Name
-	// r.URIKey = options.URIKey
-	// r.RouteKey = options.RouteKey
-	// r.PermissionKey = options.PermissionKey
-	// r.ListenAddr = options.ListenAddr
-	// r.ConfigProvider = options.ConfigProvider
-	// r.RedisConfig = options.RedisConfig
-	// r.URLProvider = options.URLProvider
-	// r.PermissionProvider = options.PermissionProvider
-	// r.RouteProvider = options.RouteProvider
-	// r.PermissionAuditor = options.PermissionAuditor
-
-	// log.Init(r.ConfigProvider)
+	log.Init(r.ConfigProvider)
 	shttp.ConfigHttpClient(r.ConfigProvider)
 
 	return
