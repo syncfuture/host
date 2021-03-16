@@ -39,10 +39,6 @@ func (x *FHWebHost) BuildFHWebHost() {
 		x.SessionCookieName = "go.cookie1"
 	}
 
-	if x.SessionExpSeconds == 0 {
-		x.SessionExpSeconds = -1
-	}
-
 	////////// router
 	if x.Router == nil {
 		x.Router = router.New()
@@ -58,7 +54,11 @@ func (x *FHWebHost) BuildFHWebHost() {
 	////////// session manager
 	if x.SessionManager == nil {
 		cfg := session.NewDefaultConfig()
-		cfg.Expiration = time.Second * time.Duration(x.SessionExpSeconds)
+		if x.SessionExpSeconds <= 0 {
+			cfg.Expiration = -1
+		} else {
+			cfg.Expiration = time.Second * time.Duration(x.SessionExpSeconds)
+		}
 		cfg.CookieName = x.SessionCookieName
 		cfg.EncodeFunc = session.MSGPEncode // 内存型provider性能较好
 		cfg.DecodeFunc = session.MSGPDecode // 内存型provider性能较好
