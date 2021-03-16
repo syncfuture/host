@@ -29,7 +29,7 @@ type (
 		SignOutCallbackPath string
 		AccessDeniedPath    string
 		OAuthClientHandler  IOAuthClientHandler
-		AuthMiddleware      IAuthMiddleware
+		authMiddleware      IAuthMiddleware
 		ContextTokenStore   shttp.IContextTokenStore
 		CookieProtoector    *securecookie.SecureCookie
 		UserLocks           *cache2go.CacheTable
@@ -91,8 +91,8 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 	}
 
 	////////// auth middleware
-	if x.AuthMiddleware == nil {
-		x.AuthMiddleware = newClientAuthMiddleware(x.UserJsonSessionKey, x.AccessDeniedPath, x.OAuthOptions, x.PermissionAuditor)
+	if x.authMiddleware == nil {
+		x.authMiddleware = newClientAuthMiddleware(x.UserJsonSessionKey, x.AccessDeniedPath, x.OAuthOptions, x.PermissionAuditor)
 	}
 }
 
@@ -139,6 +139,10 @@ func (x *OAuthClientHost) UserHttpClient(ctx shttp.IHttpContext) (*http.Client, 
 	}
 
 	return oauth2.NewClient(goctx, tokenSource), nil
+}
+
+func (x *OAuthClientHost) Auth(next shttp.RequestHandler, routes ...string) shttp.RequestHandler {
+	return x.authMiddleware.Serve(next, routes...)
 }
 
 func (x *OAuthClientHost) getUserLock(userID string) *sync.RWMutex {
