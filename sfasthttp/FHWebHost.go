@@ -10,6 +10,7 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
+	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/spool"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
@@ -83,6 +84,10 @@ func (x *FHWebHost) BuildFHWebHost() {
 	////////// router
 	if x.Router == nil {
 		x.Router = router.New()
+		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
+			ctx.SetStatusCode(500)
+			log.Error(err)
+		}
 	}
 
 	////////// session provider
