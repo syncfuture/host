@@ -1,6 +1,8 @@
 package sfasthttp
 
 import (
+	"time"
+
 	"github.com/fasthttp/router"
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
@@ -12,6 +14,7 @@ import (
 type FHWebHost struct {
 	// 独有属性
 	SessionCookieName string
+	SessionExpSeconds int
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
@@ -36,6 +39,10 @@ func (x *FHWebHost) BuildFHWebHost() {
 		x.SessionCookieName = "go.cookie1"
 	}
 
+	if x.SessionExpSeconds == 0 {
+		x.SessionExpSeconds = -1
+	}
+
 	////////// router
 	if x.Router == nil {
 		x.Router = router.New()
@@ -51,7 +58,7 @@ func (x *FHWebHost) BuildFHWebHost() {
 	////////// session manager
 	if x.SessionManager == nil {
 		cfg := session.NewDefaultConfig()
-		cfg.Expiration = -1
+		cfg.Expiration = time.Second * time.Duration(x.SessionExpSeconds)
 		cfg.CookieName = x.SessionCookieName
 		cfg.EncodeFunc = session.MSGPEncode // 内存型provider性能较好
 		cfg.DecodeFunc = session.MSGPDecode // 内存型provider性能较好
