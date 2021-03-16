@@ -1,6 +1,7 @@
 package siris
 
 import (
+	"io"
 	"net/http"
 	"sync"
 
@@ -89,6 +90,11 @@ func (x *IrisContext) WriteString(body string) (int, error) {
 }
 func (x *IrisContext) WriteBytes(body []byte) (int, error) {
 	return x.ctx.Write(body)
+}
+func (x *IrisContext) CopyBodyAndStatusCode(resp *http.Response) {
+	x.ctx.StatusCode(resp.StatusCode)
+	_, err := io.Copy(x.ctx.ResponseWriter(), resp.Body)
+	u.LogError(err)
 }
 func (x *IrisContext) SetStatusCode(statusCode int) {
 	x.ctx.StatusCode(statusCode)

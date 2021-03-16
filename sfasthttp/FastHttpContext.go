@@ -125,6 +125,11 @@ func (x *FastHttpContext) WriteString(body string) (int, error) {
 func (x *FastHttpContext) WriteBytes(body []byte) (int, error) {
 	return x.ctx.Write(body)
 }
+
+func (x *FastHttpContext) CopyBodyAndStatusCode(resp *http.Response) {
+	x.ctx.SetStatusCode(resp.StatusCode)
+	x.ctx.SetBodyStream(resp.Body, -1)
+}
 func (x *FastHttpContext) SetStatusCode(statusCode int) {
 	x.ctx.SetStatusCode(statusCode)
 }

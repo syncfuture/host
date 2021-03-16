@@ -24,6 +24,7 @@ type IHttpContext interface {
 	Redirect(url string, statusCode int)
 	WriteString(body string) (int, error)
 	WriteBytes(body []byte) (int, error)
+	CopyBodyAndStatusCode(resp *http.Response)
 	SetStatusCode(statusCode int)
 	SetContentType(cType string)
 
