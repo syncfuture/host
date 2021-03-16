@@ -171,14 +171,13 @@ func (x *DefaultOAuthClientHandler) SignInCallbackHandler(ctx shttp.IHttpContext
 	}
 }
 func (x *DefaultOAuthClientHandler) SignOutHandler(ctx shttp.IHttpContext) {
-
 	// 去Passport注销
 	state := srand.String(32)
 	returnUrl := ctx.GetFormString(oauth2core.Form_ReturnUrl)
 	if returnUrl == "" {
 		returnUrl = "/"
 	}
-	ctx.SetSession(state, ctx.GetFormString(oauth2core.Form_ReturnUrl))
+	ctx.SetSession(state, returnUrl)
 	targetURL := fmt.Sprintf("%s?%s=%s&%s=%s&%s=%s",
 		x.OAuth.EndSessionEndpoint,
 		core.Form_ClientID,
@@ -191,7 +190,6 @@ func (x *DefaultOAuthClientHandler) SignOutHandler(ctx shttp.IHttpContext) {
 	ctx.Redirect(targetURL, http.StatusFound)
 }
 func (x *DefaultOAuthClientHandler) SignOutCallbackHandler(ctx shttp.IHttpContext) {
-
 	state := ctx.GetFormString(oauth2core.Form_State)
 	returnURL := ctx.GetSessionString(state)
 	if returnURL == "" {
