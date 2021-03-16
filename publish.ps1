@@ -1,5 +1,5 @@
-$OldTag = v1.3.15
-$NewTag = v1.3.16
+$OldTag = "v1.3.15"
+$NewTag = "v1.3.16"
 #git tag | foreach-object -process { git push origin --delete $_ }
 #git tag | foreach-object -process { git tag -d $_ }
 git push origin --delete $OldTag
