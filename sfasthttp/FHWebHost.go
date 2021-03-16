@@ -1,13 +1,24 @@
 package sfasthttp
 
 import (
+	"embed"
+	"mime"
+	fp "path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fasthttp/router"
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/syncfuture/go/spool"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
+	"github.com/valyala/fasthttp"
+)
+
+const (
+	_filepath = "filepath"
+	_suffix   = "/{" + _filepath + ":*}"
 )
 
 // FHWebHost : IWebHost
@@ -18,6 +29,7 @@ type FHWebHost struct {
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
+	bufferPool        spool.BufferPool
 }
 
 func (x *FHWebHost) GET(path string, request shttp.RequestHandler) {
@@ -33,7 +45,36 @@ func (x *FHWebHost) DELETE(path string, request shttp.RequestHandler) {
 	x.Router.DELETE(path, AdaptHandler(request, x.SessionManager))
 }
 
+func (x *FHWebHost) ServeFiles(webPath, physiblePath string) {
+	x.Router.ServeFiles(webPath, physiblePath)
+}
+
+func (x *FHWebHost) ServeEmbedFiles(webPath, physiblePath string, emd embed.FS) {
+	if !strings.HasSuffix(webPath, _suffix) {
+		panic("path must end with " + _suffix + " in path '" + webPath + "'")
+	}
+
+	x.Router.GET(webPath, func(ctx *fasthttp.RequestCtx) {
+		filepath := physiblePath + "/" + ctx.UserValue(_filepath).(string)
+		file, err := emd.Open(filepath) // embed file doesn't need to close
+		if err == nil {
+			ext := fp.Ext(filepath)
+			cType := mime.TypeByExtension(ext)
+
+			if cType != "" {
+				ctx.SetContentType(cType)
+			}
+			ctx.Response.SetBodyStream(file, -1)
+			return
+		}
+
+		ctx.SetStatusCode(404)
+		ctx.WriteString("NOT FOUND")
+	})
+}
+
 func (x *FHWebHost) BuildFHWebHost() {
+	x.bufferPool = spool.NewSyncBufferPool(1024)
 
 	if x.SessionCookieName == "" {
 		x.SessionCookieName = "go.cookie1"
