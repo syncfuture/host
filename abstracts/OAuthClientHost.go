@@ -2,6 +2,7 @@ package abstracts
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"sync"
 	"time"
@@ -75,6 +76,11 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 		x.TokenCookieName = "go.cookie2"
 	}
 
+	////////// user locks
+	if x.UserLocks == nil {
+		x.UserLocks = cache2go.Cache("UserLocks")
+	}
+
 	////////// cookie protoector
 	if x.CookieProtoector == nil {
 		x.CookieProtoector = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
@@ -96,15 +102,64 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 	}
 }
 
-func (x *OAuthClientHost) HttpClient() (*http.Client, error) {
+func (x *OAuthClientHost) GetHttpClient() (*http.Client, error) {
 	return x.OAuthOptions.ClientCredential.Client(context.Background()), nil
 }
 
-func (x *OAuthClientHost) UserHttpClient(ctx shttp.IHttpContext) (*http.Client, error) {
+func (x *OAuthClientHost) GetUserHttpClient(ctx shttp.IHttpContext) (*http.Client, error) {
+	// goctx := context.Background()
+	// userID := shttp.GetUserID(ctx, x.UserIDSessionKey)
+	// if userID == "" {
+	// 	return http.DefaultClient, nil
+	// }
+
+	// // 获取用户锁
+	// userLock := x.getUserLock(userID)
+
+	// // read lock
+	// userLock.RLock()
+	// t, err := x.ContextTokenStore.GetToken(ctx)
+	// defer func() { userLock.RUnlock() }()
+	// if err != nil {
+	// 	return http.DefaultClient, err
+	// }
+
+	// tokenSource := x.OAuthOptions.TokenSource(goctx, t)
+	// newToken, err := tokenSource.Token()
+	// if err != nil {
+	// 	// refresh token failed, sign user out
+	// 	shttp.SignOut(ctx, x.TokenCookieName)
+	// 	return http.DefaultClient, err
+	// }
+
+	// if newToken.AccessToken != t.AccessToken {
+	// 	// token been refreshed, lock
+	// 	userLock.Lock()
+	// 	// save token to session
+	// 	err = x.ContextTokenStore.SaveToken(ctx, newToken)
+	// 	// unlock
+	// 	defer func() { userLock.Unlock() }()
+	// 	if err != nil {
+	// 		return http.DefaultClient, err
+	// 	}
+	// }
+
+	tokenSource, err := x.GetUserToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return oauth2.NewClient(context.Background(), *tokenSource), nil
+}
+
+func (x *OAuthClientHost) GetClientToken(ctx shttp.IHttpContext) (*oauth2.Token, error) {
+	return x.OAuthOptions.ClientCredential.Token()
+}
+
+func (x *OAuthClientHost) GetUserToken(ctx shttp.IHttpContext) (*oauth2.TokenSource, error) {
 	goctx := context.Background()
 	userID := shttp.GetUserID(ctx, x.UserIDSessionKey)
 	if userID == "" {
-		return http.DefaultClient, nil
+		return nil, errors.New("user isn't authenticated")
 	}
 
 	// 获取用户锁
@@ -115,7 +170,7 @@ func (x *OAuthClientHost) UserHttpClient(ctx shttp.IHttpContext) (*http.Client, 
 	t, err := x.ContextTokenStore.GetToken(ctx)
 	defer func() { userLock.RUnlock() }()
 	if err != nil {
-		return http.DefaultClient, err
+		return nil, err
 	}
 
 	tokenSource := x.OAuthOptions.TokenSource(goctx, t)
@@ -123,7 +178,7 @@ func (x *OAuthClientHost) UserHttpClient(ctx shttp.IHttpContext) (*http.Client, 
 	if err != nil {
 		// refresh token failed, sign user out
 		shttp.SignOut(ctx, x.TokenCookieName)
-		return http.DefaultClient, err
+		return nil, err
 	}
 
 	if newToken.AccessToken != t.AccessToken {
@@ -134,11 +189,11 @@ func (x *OAuthClientHost) UserHttpClient(ctx shttp.IHttpContext) (*http.Client, 
 		// unlock
 		defer func() { userLock.Unlock() }()
 		if err != nil {
-			return http.DefaultClient, err
+			return nil, err
 		}
 	}
 
-	return oauth2.NewClient(goctx, tokenSource), nil
+	return &tokenSource, nil
 }
 
 func (x *OAuthClientHost) Auth(next shttp.RequestHandler, routes ...string) shttp.RequestHandler {
