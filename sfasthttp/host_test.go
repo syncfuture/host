@@ -1,6 +1,7 @@
 package sfasthttp
 
 import (
+	"log"
 	"testing"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/syncfuture/go/u"
 )
 
-func TestNewFHOAuthClient(t *testing.T) {
+func TestClient(t *testing.T) {
 	provider, err := redis.New(redis.Config{
 		KeyPrefix:   "session",
 		Addr:        "127.0.0.1:6379",
@@ -19,11 +20,20 @@ func TestNewFHOAuthClient(t *testing.T) {
 	})
 	u.LogFaltal(err)
 
-	cp := sconfig.NewJsonConfigProvider()
-	a := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {
+	cp := sconfig.NewJsonConfigProvider("client.json")
+	host := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {
 		x.ConfigProvider = cp
 		x.SessionProvider = provider
 	})
 
-	a.Serve()
+	log.Fatal(host.Serve())
+}
+
+func TestResource(t *testing.T) {
+	cp := sconfig.NewJsonConfigProvider("resource.json")
+	host := NewFHOAuthResourceHost(cp, func(x *FHOAuthResourceHost) {
+		x.ConfigProvider = cp
+	})
+
+	log.Fatal(host.Serve())
 }

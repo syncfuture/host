@@ -6,7 +6,16 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	Header_Auth     = "Authorization"
+	AuthType_Bearer = "Bearer"
+	Item_JWT        = "jwt"
+)
+
 type IHttpContext interface {
+	GetItem(key string) interface{}
+	SetItem(key string, value interface{})
+
 	SetCookie(cookie *http.Cookie)
 	GetCookieString(key string) string
 	RemoveCookie(key string)
@@ -30,7 +39,9 @@ type IHttpContext interface {
 
 	RequestURL() string
 
+	GetHeader(key string) string
 	SetHeader(key, value string)
+	GetRemoteIP() string
 }
 
 type RequestHandler func(ctx IHttpContext)

@@ -3,6 +3,7 @@ package abstracts
 import (
 	"github.com/Lukiya/oauth2go"
 	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/surl"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -17,7 +18,7 @@ type (
 	}
 )
 
-func (x *OAuthOptions) BuildOAuthOptions() {
+func (x *OAuthOptions) buildOAuthOptions(urlProvider surl.IURLProvider) {
 	if x.Endpoint.AuthURL == "" {
 		log.Fatal("OAuth.Endpoint.AuthURL cannot be empty")
 	}
@@ -32,6 +33,14 @@ func (x *OAuthOptions) BuildOAuthOptions() {
 	}
 	if x.EndSessionEndpoint == "" {
 		log.Fatal("OAuth.EndSessionEndpoint cannot be empty")
+	}
+
+	if urlProvider != nil {
+		x.Endpoint.AuthURL = urlProvider.RenderURL(x.Endpoint.AuthURL)
+		x.Endpoint.TokenURL = urlProvider.RenderURL(x.Endpoint.TokenURL)
+		x.EndSessionEndpoint = urlProvider.RenderURL(x.EndSessionEndpoint)
+		x.RedirectURL = urlProvider.RenderURL(x.RedirectURL)
+		x.SignOutRedirectURL = urlProvider.RenderURL(x.SignOutRedirectURL)
 	}
 	// if x.ClientID == "" {
 	// 	log.Fatal("OAuth.ClientID cannot be empty")

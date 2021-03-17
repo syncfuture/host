@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/securecookie"
 	config "github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
-	rsautil "github.com/syncfuture/go/srsautil"
+	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/surl"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/abstracts"
@@ -49,7 +49,7 @@ func NewOAuthServer(options *abstracts.AuthServerOptions) (r *OAuthServer) {
 		log.Fatal("missing 'PrivateKeyPath' in configuration")
 	}
 	var err error
-	options.PrivateKey, err = rsautil.ReadPrivateKeyFromFile(options.PrivateKeyPath)
+	options.PrivateKey, err = srsautil.ReadPrivateKeyFromFile(options.PrivateKeyPath)
 	u.LogFaltal(err)
 	secretEncryptor := rsa.NewRSASecretEncryptor(options.PrivateKeyPath)
 

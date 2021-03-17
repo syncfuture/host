@@ -10,6 +10,7 @@ import (
 	"github.com/kataras/iris/v12"
 	security "github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/sslice"
+	"github.com/syncfuture/host/shttp"
 
 	"github.com/syncfuture/go/u"
 
@@ -19,9 +20,8 @@ import (
 )
 
 const (
-	_authHeader = "Authorization"
-	_jwtValue   = "jwt"
-	_bearer     = "Bearer"
+	_jwtValue = "jwt"
+	_bearer   = "Bearer"
 )
 
 /// JWTMiddleware jwt extraction & validation middle ware
@@ -33,7 +33,7 @@ type JWTMiddleware struct {
 }
 
 func (x *JWTMiddleware) Serve(ctx iris.Context) {
-	authHeader := ctx.Request().Header[_authHeader]
+	authHeader := ctx.Request().Header[shttp.Header_Auth]
 	if authHeader == nil || len(authHeader) != 1 {
 		ctx.Next()
 		return

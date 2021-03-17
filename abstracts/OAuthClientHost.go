@@ -43,7 +43,7 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")
 	}
-	x.OAuthOptions.BuildOAuthOptions()
+	x.OAuthOptions.buildOAuthOptions(x.URLProvider)
 
 	if x.BlockKey == "" {
 		log.Fatal("block key cannot be empty")

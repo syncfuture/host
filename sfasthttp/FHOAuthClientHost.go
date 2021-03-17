@@ -7,14 +7,14 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type Option func(*FHOAuthClientHost)
+type ClientOption func(*FHOAuthClientHost)
 
 type FHOAuthClientHost struct {
 	*abstracts.OAuthClientHost
 	*FHWebHost
 }
 
-func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...Option) *FHOAuthClientHost {
+func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) *FHOAuthClientHost {
 	r := new(FHOAuthClientHost)
 	r.OAuthClientHost = new(abstracts.OAuthClientHost)
 	r.OAuthClientHost.BaseHost = new(abstracts.BaseHost)
@@ -31,7 +31,7 @@ func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...Option) *FHOAut
 	return r
 }
 
-func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...Option) {
+func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...ClientOption) {
 	x.BuildOAuthClientHost()
 	x.BuildFHWebHost()
 

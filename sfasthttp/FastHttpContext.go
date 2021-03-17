@@ -38,6 +38,13 @@ func PutFastHttpContext(ctx shttp.IHttpContext) {
 	_ctxPool.Put(ctx)
 }
 
+func (x *FastHttpContext) GetItem(key string) interface{} {
+	return x.ctx.UserValue(key)
+}
+func (x *FastHttpContext) SetItem(key string, value interface{}) {
+	x.ctx.SetUserValue(key, value)
+}
+
 func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
 	c := new(fasthttp.Cookie)
 	c.SetKey(cookie.Name)
@@ -143,4 +150,13 @@ func (x *FastHttpContext) RequestURL() string {
 
 func (x *FastHttpContext) SetHeader(key, value string) {
 	x.ctx.Response.Header.Set(key, value)
+}
+
+func (x *FastHttpContext) GetHeader(key string) string {
+	v := x.ctx.Request.Header.Peek(key)
+	return u.BytesToStr(v)
+}
+
+func (x *FastHttpContext) GetRemoteIP() string {
+	return x.ctx.RemoteIP().String()
 }

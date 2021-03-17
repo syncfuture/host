@@ -11,7 +11,6 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
 	log "github.com/syncfuture/go/slog"
-	"github.com/syncfuture/go/spool"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 	"github.com/valyala/fasthttp"
@@ -30,7 +29,6 @@ type FHWebHost struct {
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
-	bufferPool        spool.BufferPool
 }
 
 func (x *FHWebHost) GET(path string, request shttp.RequestHandler) {
@@ -44,6 +42,9 @@ func (x *FHWebHost) PUT(path string, request shttp.RequestHandler) {
 }
 func (x *FHWebHost) DELETE(path string, request shttp.RequestHandler) {
 	x.Router.DELETE(path, AdaptHandler(request, x.SessionManager))
+}
+func (x *FHWebHost) OPTIONS(path string, request shttp.RequestHandler) {
+	x.Router.OPTIONS(path, AdaptHandler(request, x.SessionManager))
 }
 
 func (x *FHWebHost) ServeFiles(webPath, physiblePath string) {
@@ -75,8 +76,6 @@ func (x *FHWebHost) ServeEmbedFiles(webPath, physiblePath string, emd embed.FS) 
 }
 
 func (x *FHWebHost) BuildFHWebHost() {
-	x.bufferPool = spool.NewSyncBufferPool(1024)
-
 	if x.SessionCookieName == "" {
 		x.SessionCookieName = "go.cookie1"
 	}

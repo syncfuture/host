@@ -15,6 +15,7 @@ type (
 		POST(path string, request shttp.RequestHandler)
 		PUT(path string, request shttp.RequestHandler)
 		DELETE(path string, request shttp.RequestHandler)
+		OPTIONS(path string, request shttp.RequestHandler)
 		Serve() error
 	}
 

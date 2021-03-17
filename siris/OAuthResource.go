@@ -8,7 +8,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/pascaldekloe/jwt"
 	config "github.com/syncfuture/go/sconfig"
-	rsautil "github.com/syncfuture/go/srsautil"
+	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
 )
 
@@ -66,7 +66,7 @@ func NewOAuthResource(options *OAuthResourceOptions) (r *OAuthResource) {
 	r.Resource = options.OAuth
 
 	// read public certificate
-	cert, err := rsautil.ReadCertFromFile(options.PublicKeyPath)
+	cert, err := srsautil.ReadCertFromFile(options.PublicKeyPath)
 	u.LogFaltal(err)
 	r.PublicKey = cert.PublicKey.(*rsa.PublicKey)
 

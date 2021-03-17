@@ -35,6 +35,13 @@ func PutIrisContext(ctx shttp.IHttpContext) {
 	_ctxPool.Put(ctx)
 }
 
+func (x *IrisContext) GetItem(key string) interface{} {
+	return x.ctx.Values().Get(key)
+}
+func (x *IrisContext) SetItem(key string, value interface{}) {
+	x.ctx.Values().Set(key, value)
+}
+
 func (x *IrisContext) SetCookie(cookie *http.Cookie) {
 	x.ctx.SetCookie(cookie)
 }
@@ -109,4 +116,12 @@ func (x *IrisContext) RequestURL() string {
 
 func (x *IrisContext) SetHeader(key, value string) {
 	x.ctx.Header(key, value)
+}
+
+func (x *IrisContext) GetHeader(key string) string {
+	return x.ctx.GetHeader(key)
+}
+
+func (x *IrisContext) GetRemoteIP() string {
+	return x.ctx.RemoteAddr()
 }
