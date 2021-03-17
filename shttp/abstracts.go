@@ -30,6 +30,9 @@ type IHttpContext interface {
 	GetBodyString() string
 	GetBodyBytes() []byte
 
+	GetParamString(key string) string
+	ReadJSON(objPtr interface{}) error
+
 	Redirect(url string, statusCode int)
 	WriteString(body string) (int, error)
 	WriteBytes(body []byte) (int, error)

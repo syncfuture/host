@@ -80,13 +80,20 @@ func (x *IrisContext) GetBodyString() string {
 	}
 	return u.BytesToStr(data)
 }
-
 func (x *IrisContext) GetBodyBytes() []byte {
 	data, err := x.ctx.GetBody()
 	if u.LogError(err) {
 		return nil
 	}
 	return data
+}
+
+func (x *IrisContext) GetParamString(key string) string {
+	return x.ctx.Params().Get(key)
+}
+
+func (x *IrisContext) ReadJSON(objPtr interface{}) error {
+	return x.ctx.ReadJSON(objPtr)
 }
 
 func (x *IrisContext) Redirect(url string, statusCode int) {

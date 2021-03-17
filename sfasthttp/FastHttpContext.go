@@ -1,6 +1,7 @@
 package sfasthttp
 
 import (
+	"encoding/json"
 	"net/http"
 	"sync"
 
@@ -118,9 +119,18 @@ func (x *FastHttpContext) GetFormString(key string) string {
 func (x *FastHttpContext) GetBodyString() string {
 	return x.ctx.Request.String()
 }
-
 func (x *FastHttpContext) GetBodyBytes() []byte {
 	return x.ctx.Request.Body()
+}
+
+func (x *FastHttpContext) GetParamString(key string) string {
+	r, _ := x.ctx.UserValue(key).(string)
+	return r
+}
+
+func (x *FastHttpContext) ReadJSON(objPtr interface{}) error {
+	data := x.ctx.Request.Body()
+	return json.Unmarshal(data, objPtr)
 }
 
 func (x *FastHttpContext) Redirect(url string, statusCode int) {
