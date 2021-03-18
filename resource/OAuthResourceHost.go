@@ -23,7 +23,7 @@ type OAuthResourceHost struct {
 	PublicKeyPath    string
 	SigningAlgorithm string
 	PublicKey        *rsa.PublicKey
-	TokenValidator   func(*jwt.Claims) string
+	// TokenValidator   func(*jwt.Claims) string
 }
 
 func (x *OAuthResourceHost) BuildOAuthResourceHost() {
@@ -118,14 +118,14 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		return
 	}
 
-	if x.TokenValidator != nil {
-		if msgCode := x.TokenValidator(token); msgCode != "" {
-			ctx.SetStatusCode(http.StatusUnauthorized)
-			ctx.WriteString(msgCode)
-			log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
-			return
-		}
-	}
+	// if x.TokenValidator != nil {
+	// 	if msgCode := x.TokenValidator(token); msgCode != "" {
+	// 		ctx.SetStatusCode(http.StatusUnauthorized)
+	// 		ctx.WriteString(msgCode)
+	// 		log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+	// 		return
+	// 	}
+	// }
 
 	var msgCode string
 	if token != nil {

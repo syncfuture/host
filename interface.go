@@ -4,6 +4,11 @@ import (
 	"embed"
 	"net/http"
 
+	"github.com/syncfuture/go/sconfig"
+	"github.com/syncfuture/go/sid"
+	"github.com/syncfuture/go/sredis"
+	"github.com/syncfuture/go/ssecurity"
+	"github.com/syncfuture/go/surl"
 	"golang.org/x/oauth2"
 )
 
@@ -18,6 +23,16 @@ type (
 	// IAuthMiddleware interface {
 	// 	Serve(next RequestHandler, routes ...string) RequestHandler
 	// }
+
+	IBaseHost interface {
+		GetConfigProvider() sconfig.IConfigProvider
+		GetIDGenerator() sid.IIDGenerator
+		GetRedisConfig() *sredis.RedisConfig
+		GetURLProvider() surl.IURLProvider
+		GetPermissionAuditor() ssecurity.IPermissionAuditor
+		GetPermissionProvider() ssecurity.IPermissionProvider
+		GetRouteProvider() ssecurity.IRouteProvider
+	}
 
 	IWebHost interface {
 		GET(path string, handlers ...RequestHandler)

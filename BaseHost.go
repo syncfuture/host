@@ -80,6 +80,27 @@ func (x BaseHost) HandleErr(err error, ctx IHttpContext) bool {
 	}
 	return false
 }
+func (x BaseHost) GetConfigProvider() sconfig.IConfigProvider {
+	return x.ConfigProvider
+}
+func (x BaseHost) GetIDGenerator() sid.IIDGenerator {
+	return x.IDGenerator
+}
+func (x BaseHost) GetRedisConfig() *sredis.RedisConfig {
+	return x.RedisConfig
+}
+func (x BaseHost) GetURLProvider() surl.IURLProvider {
+	return x.URLProvider
+}
+func (x BaseHost) GetPermissionAuditor() ssecurity.IPermissionAuditor {
+	return x.PermissionAuditor
+}
+func (x BaseHost) GetPermissionProvider() ssecurity.IPermissionProvider {
+	return x.PermissionProvider
+}
+func (x BaseHost) GetRouteProvider() ssecurity.IRouteProvider {
+	return x.RouteProvider
+}
 
 type BaseWebHost struct {
 	// BaseHost
