@@ -41,6 +41,8 @@ type (
 		OPTIONS(path string, handlers ...RequestHandler)
 		ServeFiles(webPath, physiblePath string)
 		ServeEmbedFiles(webPath, physiblePath string, emd embed.FS)
+		AddGlobalPreHandlers(handlers ...RequestHandler)
+		AddGlobalSufHandlers(handlers ...RequestHandler)
 		AddActionGroups(actionGroups ...*ActionGroup)
 		AddActions(actions ...*Action)
 		AddAction(route, routeKey string, handlers ...RequestHandler)

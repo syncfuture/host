@@ -78,8 +78,10 @@ func (x BaseHost) GetRouteProvider() ssecurity.IRouteProvider {
 
 type BaseWebHost struct {
 	// BaseHost
-	ListenAddr string
-	Actions    map[string]*Action
+	ListenAddr        string
+	GlobalPreHandlers []RequestHandler
+	GlobalSufHandlers []RequestHandler
+	Actions           map[string]*Action
 }
 
 func (x *BaseWebHost) BuildBaseWebHost() {
@@ -88,6 +90,14 @@ func (x *BaseWebHost) BuildBaseWebHost() {
 	}
 
 	x.Actions = make(map[string]*Action)
+}
+
+func (x *BaseWebHost) AddGlobalPreHandlers(handlers ...RequestHandler) {
+	x.GlobalPreHandlers = append(x.GlobalPreHandlers, handlers...)
+}
+
+func (x *BaseWebHost) AddGlobalSufHandlers(handlers ...RequestHandler) {
+	x.GlobalSufHandlers = append(x.GlobalSufHandlers, handlers...)
 }
 
 func (x *BaseWebHost) AddActionGroups(actionGroups ...*ActionGroup) {

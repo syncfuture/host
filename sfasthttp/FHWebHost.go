@@ -35,8 +35,6 @@ type FHWebHost struct {
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
 	PanicHandler      host.RequestHandler
-	GlobalPreHandlers []host.RequestHandler
-	GlobalSufHandlers []host.RequestHandler
 }
 
 func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWebHost {
