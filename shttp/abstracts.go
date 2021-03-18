@@ -10,6 +10,7 @@ const (
 	Header_Auth     = "Authorization"
 	AuthType_Bearer = "Bearer"
 	Item_JWT        = "jwt"
+	Item_PANIC      = "panic"
 )
 
 type IHttpContext interface {

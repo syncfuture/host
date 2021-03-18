@@ -2,12 +2,12 @@ package sfasthttp
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sync"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/iris-contrib/schema"
+	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 	"github.com/valyala/fasthttp"
@@ -32,11 +32,7 @@ type FastHttpContext struct {
 	handlerCount int
 }
 
-func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers []shttp.RequestHandler) shttp.IHttpContext {
-	if len(handlers) == 0 {
-		log.Fatal("handlers are missing")
-	}
-
+func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers ...shttp.RequestHandler) shttp.IHttpContext {
 	r := _ctxPool.Get().(*FastHttpContext)
 	r.ctx = ctx
 	r.sess = sess
@@ -55,14 +51,18 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handler
 	return r
 }
 
-func AdaptHandler(sess *session.Session, handlers ...shttp.RequestHandler) fasthttp.RequestHandler {
+func ToNativeHandler(sess *session.Session, handlers ...shttp.RequestHandler) fasthttp.RequestHandler {
+	if len(handlers) == 0 {
+		log.Fatal("handlers are missing")
+	}
+
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx shttp.IHttpContext
 		defer func() {
 			_ctxPool.Put(newCtx)
 		}()
 
-		newCtx = NewFastHttpContext(ctx, sess, handlers)
+		newCtx = NewFastHttpContext(ctx, sess, handlers...)
 		handlers[0](newCtx) // 开始
 	})
 }

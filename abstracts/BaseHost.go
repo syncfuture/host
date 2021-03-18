@@ -12,23 +12,21 @@ import (
 	"github.com/syncfuture/host/shttp"
 )
 
-type (
-	BaseHost struct {
-		Debug              bool
-		Name               string
-		URIKey             string
-		RouteKey           string
-		PermissionKey      string
-		ListenAddr         string
-		IDGenerator        sid.IIDGenerator
-		RedisConfig        *sredis.RedisConfig `json:"Redis,omitempty"`
-		ConfigProvider     sconfig.IConfigProvider
-		URLProvider        surl.IURLProvider
-		PermissionProvider ssecurity.IPermissionProvider
-		RouteProvider      ssecurity.IRouteProvider
-		PermissionAuditor  ssecurity.IPermissionAuditor
-	}
-)
+type BaseHost struct {
+	Debug              bool
+	Name               string
+	URIKey             string
+	RouteKey           string
+	PermissionKey      string
+	ListenAddr         string
+	IDGenerator        sid.IIDGenerator
+	RedisConfig        *sredis.RedisConfig `json:"Redis,omitempty"`
+	ConfigProvider     sconfig.IConfigProvider
+	URLProvider        surl.IURLProvider
+	PermissionProvider ssecurity.IPermissionProvider
+	RouteProvider      ssecurity.IRouteProvider
+	PermissionAuditor  ssecurity.IPermissionAuditor
+}
 
 func (r *BaseHost) BuildBaseHost() {
 	// if r.Name == "" {
@@ -82,4 +80,49 @@ func (x BaseHost) HandleErr(err error, ctx shttp.IHttpContext) bool {
 		return true
 	}
 	return false
+}
+
+type BaseWebHost struct {
+	*BaseHost
+	Actions map[string]*Action
+}
+
+func (x *BaseWebHost) BuildBaseWebHost() {
+	x.BaseHost = new(BaseHost)
+	x.BaseHost.BuildBaseHost()
+	x.Actions = make(map[string]*Action)
+}
+
+func (x *BaseWebHost) RegisterActionGroups(actionGroups ...*ActionGroup) {
+	////////// 添加Actions
+	x.Actions = make(map[string]*Action)
+	for _, actionGroup := range actionGroups {
+		for _, action := range actionGroup.Actions {
+			// 添加预先执行中间件
+			if len(actionGroup.PreHandlers) > 0 {
+				action.Handlers = append(actionGroup.PreHandlers, action.Handlers...)
+			}
+			// 添加后执行中间件
+			if len(actionGroup.AfterHandlers) > 0 {
+				action.Handlers = append(action.Handlers, actionGroup.AfterHandlers...)
+			}
+
+			_, ok := x.Actions[action.Route]
+			if ok {
+				log.Fatal("duplicated route found: " + action.Route)
+			}
+			x.Actions[action.Route] = action
+		}
+	}
+}
+
+func (x *BaseWebHost) RegisterActions(actions ...*Action) {
+	////////// 添加Actions
+	for _, action := range actions {
+		_, ok := x.Actions[action.Route]
+		if ok {
+			log.Fatal("duplicated route found: " + action.Route)
+		}
+		x.Actions[action.Route] = action
+	}
 }

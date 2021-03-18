@@ -2,9 +2,7 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
-	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/host/abstracts"
-	"github.com/valyala/fasthttp"
 )
 
 type ClientOption func(*FHOAuthClientHost)
@@ -33,16 +31,11 @@ func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) *
 
 func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...ClientOption) {
 	x.BuildOAuthClientHost()
-	x.BuildFHWebHost()
+	x.BuildFHWebHost(x.BaseWebHost)
 
 	////////// oauth client endpoints
-	x.Router.GET(x.SignInPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignInHandler))
-	x.Router.GET(x.SignInCallbackPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignInCallbackHandler))
-	x.Router.GET(x.SignOutPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignOutHandler))
-	x.Router.GET(x.SignOutCallbackPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignOutCallbackHandler))
-}
-
-func (x *FHOAuthClientHost) Serve() error {
-	log.Infof("Listening on %s", x.ListenAddr)
-	return fasthttp.ListenAndServe(x.ListenAddr, x.Router.Handler)
+	x.Router.GET(x.SignInPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignInHandler))
+	x.Router.GET(x.SignInCallbackPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignInCallbackHandler))
+	x.Router.GET(x.SignOutPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignOutHandler))
+	x.Router.GET(x.SignOutCallbackPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignOutCallbackHandler))
 }

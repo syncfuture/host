@@ -13,7 +13,7 @@ import (
 
 type (
 	OAuthResourceHost struct {
-		*BaseHost
+		*BaseWebHost
 		OAuthOptions     *model.Resource `json:"OAuth,omitempty"`
 		PublicKeyPath    string
 		SigningAlgorithm string
@@ -23,7 +23,7 @@ type (
 )
 
 func (x *OAuthResourceHost) BuildOAuthResourceHost() {
-	x.BaseHost.BuildBaseHost()
+	x.BaseWebHost.BuildBaseWebHost()
 
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")

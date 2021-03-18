@@ -14,9 +14,10 @@ type (
 		GET(path string, request shttp.RequestHandler)
 		POST(path string, request shttp.RequestHandler)
 		PUT(path string, request shttp.RequestHandler)
+		PATCH(path string, request shttp.RequestHandler)
 		DELETE(path string, request shttp.RequestHandler)
 		OPTIONS(path string, request shttp.RequestHandler)
-		Serve() error
+		Run(actionGroups ...*ActionGroup) error
 	}
 
 	IAuthMiddleware interface {

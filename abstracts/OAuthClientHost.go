@@ -17,7 +17,7 @@ import (
 
 type (
 	OAuthClientHost struct {
-		*BaseHost
+		*BaseWebHost
 		OAuthOptions        *OAuthOptions `json:"OAuth,omitempty"`
 		HashKey             string
 		BlockKey            string
@@ -38,7 +38,7 @@ type (
 )
 
 func (x *OAuthClientHost) BuildOAuthClientHost() {
-	x.BaseHost.BuildBaseHost()
+	// x.BaseWebHost.BuildBaseWebHost()
 
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")

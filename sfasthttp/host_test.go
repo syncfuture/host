@@ -26,7 +26,7 @@ func TestClient(t *testing.T) {
 		x.SessionProvider = provider
 	})
 
-	log.Fatal(host.Serve())
+	log.Fatal(host.Run())
 }
 
 func TestResource(t *testing.T) {
@@ -35,5 +35,5 @@ func TestResource(t *testing.T) {
 		x.ConfigProvider = cp
 	})
 
-	log.Fatal(host.Serve())
+	log.Fatal(host.Run())
 }

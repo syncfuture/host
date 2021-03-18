@@ -2,9 +2,7 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
-	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/host/abstracts"
-	"github.com/valyala/fasthttp"
 )
 
 type ResourceOption func(*FHOAuthResourceHost)
@@ -33,10 +31,5 @@ func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOptio
 
 func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost(options ...ResourceOption) {
 	x.BuildOAuthResourceHost()
-	x.BuildFHWebHost()
-}
-
-func (x *FHOAuthResourceHost) Serve() error {
-	log.Infof("Listening on %s", x.ListenAddr)
-	return fasthttp.ListenAndServe(x.ListenAddr, x.Router.Handler)
+	x.BuildFHWebHost(x.BaseWebHost)
 }
