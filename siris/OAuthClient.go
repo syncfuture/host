@@ -161,10 +161,10 @@ func NewIrisOAuthClient(options *OAuthClientOptions) (r *IrisOAuthClient) {
 	r.UserLocks = cache2go.Cache("UserLocks")
 
 	// 添加内置终结点
-	r.IrisApp.Get(r.SignInPath, AdaptHandler(r.OAuthClientHandler.SignInHandler, r.SessionManager))
-	r.IrisApp.Get(r.SignInCallbackPath, AdaptHandler(r.OAuthClientHandler.SignInCallbackHandler, r.SessionManager))
-	r.IrisApp.Get(r.SignOutPath, AdaptHandler(r.OAuthClientHandler.SignOutHandler, r.SessionManager))
-	r.IrisApp.Get(r.SignOutCallbackPath, AdaptHandler(r.OAuthClientHandler.SignOutCallbackHandler, r.SessionManager))
+	r.IrisApp.Get(r.SignInPath, AdaptHandler(r.SessionManager, r.OAuthClientHandler.SignInHandler))
+	r.IrisApp.Get(r.SignInCallbackPath, AdaptHandler(r.SessionManager, r.OAuthClientHandler.SignInCallbackHandler))
+	r.IrisApp.Get(r.SignOutPath, AdaptHandler(r.SessionManager, r.OAuthClientHandler.SignOutHandler))
+	r.IrisApp.Get(r.SignOutCallbackPath, AdaptHandler(r.SessionManager, r.OAuthClientHandler.SignOutCallbackHandler))
 
 	// 注册视图引擎
 	if r.ViewEngine == nil {

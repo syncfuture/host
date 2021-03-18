@@ -9,24 +9,10 @@ import (
 	"time"
 
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/sessions"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sproto/timestamp"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/shttp"
 )
-
-func AdaptHandler(handler shttp.RequestHandler, sess *sessions.Sessions) iris.Handler {
-	return iris.Handler(func(ctx iris.Context) {
-		var newCtx shttp.IHttpContext
-		defer func() {
-			PutIrisContext(newCtx)
-		}()
-
-		newCtx = NewIrisContext(ctx, sess)
-		handler(newCtx)
-	})
-}
 
 func HandleError(ctx iris.Context, err error) bool {
 	if u.LogError(err) {

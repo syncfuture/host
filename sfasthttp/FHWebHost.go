@@ -31,20 +31,20 @@ type FHWebHost struct {
 	SessionManager    *session.Session
 }
 
-func (x *FHWebHost) GET(path string, request shttp.RequestHandler) {
-	x.Router.GET(path, AdaptHandler(request, x.SessionManager))
+func (x *FHWebHost) GET(path string, handlers ...shttp.RequestHandler) {
+	x.Router.GET(path, AdaptHandler(x.SessionManager, handlers...))
 }
-func (x *FHWebHost) POST(path string, request shttp.RequestHandler) {
-	x.Router.POST(path, AdaptHandler(request, x.SessionManager))
+func (x *FHWebHost) POST(path string, handlers ...shttp.RequestHandler) {
+	x.Router.POST(path, AdaptHandler(x.SessionManager, handlers...))
 }
-func (x *FHWebHost) PUT(path string, request shttp.RequestHandler) {
-	x.Router.PUT(path, AdaptHandler(request, x.SessionManager))
+func (x *FHWebHost) PUT(path string, handlers ...shttp.RequestHandler) {
+	x.Router.PUT(path, AdaptHandler(x.SessionManager, handlers...))
 }
-func (x *FHWebHost) DELETE(path string, request shttp.RequestHandler) {
-	x.Router.DELETE(path, AdaptHandler(request, x.SessionManager))
+func (x *FHWebHost) DELETE(path string, handlers ...shttp.RequestHandler) {
+	x.Router.DELETE(path, AdaptHandler(x.SessionManager, handlers...))
 }
-func (x *FHWebHost) OPTIONS(path string, request shttp.RequestHandler) {
-	x.Router.OPTIONS(path, AdaptHandler(request, x.SessionManager))
+func (x *FHWebHost) OPTIONS(path string, handlers ...shttp.RequestHandler) {
+	x.Router.OPTIONS(path, AdaptHandler(x.SessionManager, handlers...))
 }
 
 func (x *FHWebHost) ServeFiles(webPath, physiblePath string) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/sessions"
+	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 )
@@ -31,8 +32,20 @@ func NewIrisContext(ctx iris.Context, sess *sessions.Sessions) shttp.IHttpContex
 	return r
 }
 
-func PutIrisContext(ctx shttp.IHttpContext) {
-	_ctxPool.Put(ctx)
+func AdaptHandler(sess *sessions.Sessions, handlers ...shttp.RequestHandler) iris.Handler {
+	if len(handlers) == 0 {
+		log.Fatal("handlers are missing")
+	}
+
+	return iris.Handler(func(ctx iris.Context) {
+		var newCtx shttp.IHttpContext
+		defer func() {
+			_ctxPool.Put(ctx)
+		}()
+
+		newCtx = NewIrisContext(ctx, sess)
+		handlers[0](newCtx)
+	})
 }
 
 func (x *IrisContext) GetItem(key string) interface{} {
@@ -145,4 +158,8 @@ func (x *IrisContext) GetHeader(key string) string {
 
 func (x *IrisContext) GetRemoteIP() string {
 	return x.ctx.RemoteAddr()
+}
+
+func (x *IrisContext) Next() {
+	x.ctx.Next()
 }

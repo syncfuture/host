@@ -36,10 +36,10 @@ func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...ClientOption) {
 	x.BuildFHWebHost()
 
 	////////// oauth client endpoints
-	x.Router.GET(x.SignInPath, AdaptHandler(x.OAuthClientHandler.SignInHandler, x.SessionManager))
-	x.Router.GET(x.SignInCallbackPath, AdaptHandler(x.OAuthClientHandler.SignInCallbackHandler, x.SessionManager))
-	x.Router.GET(x.SignOutPath, AdaptHandler(x.OAuthClientHandler.SignOutHandler, x.SessionManager))
-	x.Router.GET(x.SignOutCallbackPath, AdaptHandler(x.OAuthClientHandler.SignOutCallbackHandler, x.SessionManager))
+	x.Router.GET(x.SignInPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignInHandler))
+	x.Router.GET(x.SignInCallbackPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignInCallbackHandler))
+	x.Router.GET(x.SignOutPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignOutHandler))
+	x.Router.GET(x.SignOutCallbackPath, AdaptHandler(x.SessionManager, x.OAuthClientHandler.SignOutCallbackHandler))
 }
 
 func (x *FHOAuthClientHost) Serve() error {

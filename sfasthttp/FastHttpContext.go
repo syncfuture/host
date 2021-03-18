@@ -2,6 +2,7 @@ package sfasthttp
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
 
@@ -27,9 +28,16 @@ type FastHttpContext struct {
 	mapPool      *sync.Pool
 	strSlicePool *sync.Pool
 	decoder      *schema.Decoder
+	handlerIndex int
+	handlerCount int
+	handlers     []shttp.RequestHandler
 }
 
-func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.IHttpContext {
+func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers []shttp.RequestHandler) shttp.IHttpContext {
+	if len(handlers) == 0 {
+		log.Fatal("handlers are missing")
+	}
+
 	r := _ctxPool.Get().(*FastHttpContext)
 	r.ctx = ctx
 	r.sess = sess
@@ -47,11 +55,21 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.I
 		},
 	}
 	r.decoder = schema.NewDecoder()
+	r.handlers = handlers
+	r.handlerCount = len(handlers)
 	return r
 }
 
-func PutFastHttpContext(ctx shttp.IHttpContext) {
-	_ctxPool.Put(ctx)
+func AdaptHandler(sess *session.Session, handlers ...shttp.RequestHandler) fasthttp.RequestHandler {
+	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
+		var newCtx shttp.IHttpContext
+		defer func() {
+			_ctxPool.Put(ctx)
+		}()
+
+		newCtx = NewFastHttpContext(ctx, sess, handlers)
+		handlers[0](newCtx) // 开始
+	})
 }
 
 func (x *FastHttpContext) GetItem(key string) interface{} {
@@ -59,6 +77,14 @@ func (x *FastHttpContext) GetItem(key string) interface{} {
 }
 func (x *FastHttpContext) SetItem(key string, value interface{}) {
 	x.ctx.SetUserValue(key, value)
+}
+
+func (x *FastHttpContext) GetItemString(key string) string {
+	r, ok := x.ctx.UserValue(key).(string)
+	if ok {
+		return r
+	}
+	return ""
 }
 
 func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
@@ -228,4 +254,15 @@ func (x *FastHttpContext) GetHeader(key string) string {
 
 func (x *FastHttpContext) GetRemoteIP() string {
 	return x.ctx.RemoteIP().String()
+}
+
+func (x *FastHttpContext) Next() {
+	if x.handlers == nil {
+		return
+	}
+
+	if x.handlerIndex < x.handlerCount-1 {
+		x.handlerIndex++
+		x.handlers[x.handlerIndex](x)
+	}
 }
