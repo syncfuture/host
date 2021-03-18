@@ -40,7 +40,7 @@ func AdaptHandler(sess *sessions.Sessions, handlers ...shttp.RequestHandler) iri
 	return iris.Handler(func(ctx iris.Context) {
 		var newCtx shttp.IHttpContext
 		defer func() {
-			_ctxPool.Put(ctx)
+			_ctxPool.Put(newCtx)
 		}()
 
 		newCtx = NewIrisContext(ctx, sess)

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"mime"
 	fp "path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -85,7 +86,7 @@ func (x *FHWebHost) BuildFHWebHost() {
 		x.Router = router.New()
 		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
 			ctx.SetStatusCode(500)
-			log.Error(err)
+			log.Errorf("%s %v", ctx.URI().String(), runtime.StartTrace())
 		}
 	}
 

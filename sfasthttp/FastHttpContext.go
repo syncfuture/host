@@ -64,7 +64,7 @@ func AdaptHandler(sess *session.Session, handlers ...shttp.RequestHandler) fasth
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx shttp.IHttpContext
 		defer func() {
-			_ctxPool.Put(ctx)
+			_ctxPool.Put(newCtx)
 		}()
 
 		newCtx = NewFastHttpContext(ctx, sess, handlers)
