@@ -24,6 +24,7 @@ type (
 	// }
 
 	IBaseHost interface {
+		GetDebug() bool
 		GetConfigProvider() sconfig.IConfigProvider
 		GetRedisConfig() *sredis.RedisConfig
 		GetURLProvider() surl.IURLProvider

@@ -57,6 +57,10 @@ func (x *BaseHost) BuildBaseHost() {
 	return
 }
 
+func (x BaseHost) GetDebug() bool {
+	return x.Debug
+}
+
 func (x BaseHost) GetConfigProvider() sconfig.IConfigProvider {
 	return x.ConfigProvider
 }
