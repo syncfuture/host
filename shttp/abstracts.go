@@ -31,6 +31,9 @@ type IHttpContext interface {
 	GetBodyBytes() []byte
 
 	GetParamString(key string) string
+	GetParamIntDefault(key string, def int) int
+	GetParamInt32Default(key string, def int32) int32
+
 	ReadJSON(objPtr interface{}) error
 	ReadQuery(objPtr interface{}) error
 	ReadForm(objPtr interface{}) error

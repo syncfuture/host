@@ -142,6 +142,20 @@ func (x *FastHttpContext) GetParamString(key string) string {
 	r, _ := x.ctx.UserValue(key).(string)
 	return r
 }
+func (x *FastHttpContext) GetParamIntDefault(key string, def int) int {
+	r, ok := x.ctx.UserValue(key).(int)
+	if ok {
+		return r
+	}
+	return def
+}
+func (x *FastHttpContext) GetParamInt32Default(key string, def int32) int32 {
+	r, ok := x.ctx.UserValue(key).(int32)
+	if ok {
+		return r
+	}
+	return def
+}
 
 func (x *FastHttpContext) ReadJSON(objPtr interface{}) error {
 	data := x.ctx.Request.Body()

@@ -91,6 +91,12 @@ func (x *IrisContext) GetBodyBytes() []byte {
 func (x *IrisContext) GetParamString(key string) string {
 	return x.ctx.Params().Get(key)
 }
+func (x *IrisContext) GetParamIntDefault(key string, def int) int {
+	return x.ctx.Params().GetIntDefault(key, def)
+}
+func (x *IrisContext) GetParamInt32Default(key string, def int32) int32 {
+	return x.ctx.Params().GetInt32Default(key, def)
+}
 
 func (x *IrisContext) ReadJSON(objPtr interface{}) error {
 	return x.ctx.ReadJSON(objPtr)
