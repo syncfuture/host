@@ -2,6 +2,7 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
+	"github.com/syncfuture/host/abstracts"
 	"github.com/syncfuture/host/client"
 )
 
@@ -12,7 +13,7 @@ type FHOAuthClientHost struct {
 	FHWebHost
 }
 
-func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) *FHOAuthClientHost {
+func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) abstracts.IWebHost {
 	x := new(FHOAuthClientHost)
 	cp.GetStruct("@this", &x)
 	x.ConfigProvider = cp

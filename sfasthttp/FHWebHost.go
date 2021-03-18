@@ -29,14 +29,14 @@ type WebHostOption func(*FHWebHost)
 type FHWebHost struct {
 	abstracts.BaseWebHost
 	// 独有属性
-	SessionCookieName   string
-	SessionExpSeconds   int
-	Router              *router.Router
-	SessionProvider     session.Provider
-	SessionManager      *session.Session
-	PanicHandler        abstracts.RequestHandler
-	GlobalPreHandlers   []abstracts.RequestHandler
-	GlobalAfterHandlers []abstracts.RequestHandler
+	SessionCookieName string
+	SessionExpSeconds int
+	Router            *router.Router
+	SessionProvider   session.Provider
+	SessionManager    *session.Session
+	PanicHandler      abstracts.RequestHandler
+	GlobalPreHandlers []abstracts.RequestHandler
+	GlobalSufHandlers []abstracts.RequestHandler
 }
 
 func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) abstracts.IWebHost {
@@ -108,14 +108,14 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...abstracts.Re
 	if len(x.GlobalPreHandlers) > 0 {
 		handlers = append(x.GlobalPreHandlers, handlers...)
 	}
-	if len(x.GlobalAfterHandlers) > 0 {
-		handlers = append(handlers, x.GlobalPreHandlers...)
+	if len(x.GlobalSufHandlers) > 0 {
+		handlers = append(handlers, x.GlobalSufHandlers...)
 	}
 
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx abstracts.IHttpContext
 		newCtx = NewFastHttpContext(ctx, x.SessionManager, handlers...)
-		newCtx.SetItem(abstracts.Item_JWT, routeKey)
+		newCtx.SetItem(abstracts.Item_RouteKey, routeKey)
 		defer func() {
 			newCtx.Reset()
 			_ctxPool.Put(newCtx)
@@ -171,15 +171,15 @@ func (x *FHWebHost) ServeEmbedFiles(webPath, physiblePath string, emd embed.FS) 
 	})
 }
 
-func (x *FHWebHost) Run(listenAddr string) error {
+func (x *FHWebHost) Run() error {
 	////////// 注册Actions到路由
 	for _, v := range x.Actions {
 		x.RegisterActionsToRouter(v)
 	}
 
 	////////// 开始Serve
-	log.Infof("Listening on %s", listenAddr)
-	return fasthttp.ListenAndServe(listenAddr, x.Router.Handler)
+	log.Infof("Listening on %s", x.ListenAddr)
+	return fasthttp.ListenAndServe(x.ListenAddr, x.Router.Handler)
 }
 
 func (x *FHWebHost) RegisterActionsToRouter(action *abstracts.Action) {

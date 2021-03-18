@@ -12,12 +12,12 @@ import (
 )
 
 type BaseHost struct {
+	// ListenAddr         string
 	Debug              bool
 	Name               string
 	URIKey             string
 	RouteKey           string
 	PermissionKey      string
-	ListenAddr         string
 	IDGenerator        sid.IIDGenerator
 	RedisConfig        *sredis.RedisConfig `json:"Redis,omitempty"`
 	ConfigProvider     sconfig.IConfigProvider
@@ -27,40 +27,40 @@ type BaseHost struct {
 	PermissionAuditor  ssecurity.IPermissionAuditor
 }
 
-func (r *BaseHost) BuildBaseHost() {
+func (x *BaseHost) BuildBaseHost() {
 	// if r.Name == "" {
 	// 	log.Fatal("Name cannot be empty")
 	// }
-	if r.ListenAddr == "" {
-		log.Fatal("ListenAddr cannot be empty")
+	// if r.ListenAddr == "" {
+	// 	log.Fatal("ListenAddr cannot be empty")
+	// }
+
+	if x.IDGenerator == nil {
+		x.IDGenerator = sid.NewSonyflakeIDGenerator()
 	}
 
-	if r.IDGenerator == nil {
-		r.IDGenerator = sid.NewSonyflakeIDGenerator()
+	if x.ConfigProvider == nil {
+		x.ConfigProvider = sconfig.NewJsonConfigProvider()
 	}
 
-	if r.ConfigProvider == nil {
-		r.ConfigProvider = sconfig.NewJsonConfigProvider()
+	if x.URLProvider == nil && x.URIKey != "" && x.RedisConfig != nil {
+		x.URLProvider = surl.NewRedisURLProvider(x.URIKey, x.RedisConfig)
 	}
 
-	if r.URLProvider == nil && r.URIKey != "" && r.RedisConfig != nil {
-		r.URLProvider = surl.NewRedisURLProvider(r.URIKey, r.RedisConfig)
+	if x.PermissionProvider == nil && x.PermissionKey != "" && x.RedisConfig != nil {
+		x.PermissionProvider = ssecurity.NewRedisPermissionProvider(x.PermissionKey, x.RedisConfig)
 	}
 
-	if r.PermissionProvider == nil && r.PermissionKey != "" && r.RedisConfig != nil {
-		r.PermissionProvider = ssecurity.NewRedisPermissionProvider(r.PermissionKey, r.RedisConfig)
+	if x.RouteProvider == nil && x.RouteKey != "" && x.RedisConfig != nil {
+		x.RouteProvider = ssecurity.NewRedisRouteProvider(x.RouteKey, x.RedisConfig)
 	}
 
-	if r.RouteProvider == nil && r.RouteKey != "" && r.RedisConfig != nil {
-		r.RouteProvider = ssecurity.NewRedisRouteProvider(r.RouteKey, r.RedisConfig)
+	if x.PermissionAuditor == nil && x.PermissionProvider != nil { // RouteProvider 允许为空
+		x.PermissionAuditor = ssecurity.NewPermissionAuditor(x.PermissionProvider, x.RouteProvider)
 	}
 
-	if r.PermissionAuditor == nil && r.PermissionProvider != nil { // RouteProvider 允许为空
-		r.PermissionAuditor = ssecurity.NewPermissionAuditor(r.PermissionProvider, r.RouteProvider)
-	}
-
-	log.Init(r.ConfigProvider)
-	ConfigHttpClient(r.ConfigProvider)
+	log.Init(x.ConfigProvider)
+	ConfigHttpClient(x.ConfigProvider)
 
 	return
 }
@@ -83,10 +83,15 @@ func (x BaseHost) HandleErr(err error, ctx IHttpContext) bool {
 
 type BaseWebHost struct {
 	// BaseHost
-	Actions map[string]*Action
+	ListenAddr string
+	Actions    map[string]*Action
 }
 
 func (x *BaseWebHost) BuildBaseWebHost() {
+	if x.ListenAddr == "" {
+		log.Fatal("ListenAddr cannot be empty")
+	}
+
 	x.Actions = make(map[string]*Action)
 }
 

@@ -14,6 +14,7 @@ __debug_bin
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+cert
 configs.json
 client.json
 resource.json

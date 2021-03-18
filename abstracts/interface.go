@@ -32,7 +32,7 @@ type (
 		AddActions(actions ...*Action)
 		AddAction(route, routeKey string, handlers ...RequestHandler)
 		RegisterActionsToRouter(action *Action)
-		Run(listenAddr string) error
+		Run() error
 	}
 
 	IHttpContext interface {
