@@ -50,6 +50,8 @@ type IHttpContext interface {
 	GetHeader(key string) string
 	SetHeader(key, value string)
 	GetRemoteIP() string
+
+	Next()
 }
 
 type RequestHandler func(ctx IHttpContext)
