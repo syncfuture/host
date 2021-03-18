@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/syncfuture/go/sconfig"
-	"github.com/syncfuture/go/sid"
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
@@ -26,7 +25,6 @@ type (
 
 	IBaseHost interface {
 		GetConfigProvider() sconfig.IConfigProvider
-		GetIDGenerator() sid.IIDGenerator
 		GetRedisConfig() *sredis.RedisConfig
 		GetURLProvider() surl.IURLProvider
 		GetPermissionAuditor() ssecurity.IPermissionAuditor

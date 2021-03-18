@@ -11,10 +11,16 @@ import (
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
+	"github.com/syncfuture/go/sid"
+	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
+)
+
+var (
+	_idGenerator = sid.NewSonyflakeIDGenerator()
 )
 
 func ConfigHttpClient(configProvider sconfig.IConfigProvider) {
@@ -87,6 +93,22 @@ func RedirectAuthorizeEndpoint(ctx IHttpContext, oauthOptions *OAuthOptions, ret
 	} else {
 		ctx.Redirect(oauthOptions.AuthCodeURL(state), http.StatusFound)
 	}
+}
+
+func GenerateID() string {
+	return _idGenerator.GenerateString()
+}
+
+func HandleErr(err error, ctx IHttpContext) bool {
+	if err != nil {
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		errID := _idGenerator.GenerateString()
+		log.Errorf("[%s] %s", errID, err.Error())
+		ctx.WriteString(`{"err":"` + errID + `"}`)
+
+		return true
+	}
+	return false
 }
 
 func GetClaims(ctx IHttpContext) *jwt.Claims {

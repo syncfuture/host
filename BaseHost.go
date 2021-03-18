@@ -1,10 +1,7 @@
 package host
 
 import (
-	"net/http"
-
 	"github.com/syncfuture/go/sconfig"
-	"github.com/syncfuture/go/sid"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
@@ -18,7 +15,6 @@ type BaseHost struct {
 	URIKey             string
 	RouteKey           string
 	PermissionKey      string
-	IDGenerator        sid.IIDGenerator
 	RedisConfig        *sredis.RedisConfig `json:"Redis,omitempty"`
 	ConfigProvider     sconfig.IConfigProvider
 	URLProvider        surl.IURLProvider
@@ -34,10 +30,6 @@ func (x *BaseHost) BuildBaseHost() {
 	// if r.ListenAddr == "" {
 	// 	log.Fatal("ListenAddr cannot be empty")
 	// }
-
-	if x.IDGenerator == nil {
-		x.IDGenerator = sid.NewSonyflakeIDGenerator()
-	}
 
 	if x.ConfigProvider == nil {
 		x.ConfigProvider = sconfig.NewJsonConfigProvider()
@@ -65,26 +57,8 @@ func (x *BaseHost) BuildBaseHost() {
 	return
 }
 
-func (x BaseHost) HandleErr(err error, ctx IHttpContext) bool {
-	if err != nil {
-		ctx.SetStatusCode(http.StatusInternalServerError)
-		if !x.Debug {
-			errID := x.IDGenerator.GenerateString()
-			log.Errorf("[%s] %s", errID, err.Error())
-			ctx.WriteString(`{"err":"` + errID + `"}`)
-		} else {
-			log.Error(err)
-			ctx.WriteString(`{"err":"` + err.Error() + `"}`)
-		}
-		return true
-	}
-	return false
-}
 func (x BaseHost) GetConfigProvider() sconfig.IConfigProvider {
 	return x.ConfigProvider
-}
-func (x BaseHost) GetIDGenerator() sid.IIDGenerator {
-	return x.IDGenerator
 }
 func (x BaseHost) GetRedisConfig() *sredis.RedisConfig {
 	return x.RedisConfig
