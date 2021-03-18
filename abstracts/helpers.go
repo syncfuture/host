@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
+	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconfig"
+	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/model"
@@ -85,4 +87,32 @@ func RedirectAuthorizeEndpoint(ctx IHttpContext, oauthOptions *OAuthOptions, ret
 	} else {
 		ctx.Redirect(oauthOptions.AuthCodeURL(state), http.StatusFound)
 	}
+}
+
+func GetClaims(ctx IHttpContext) *jwt.Claims {
+	j, ok := ctx.GetItem(Item_JWT).(*jwt.Claims)
+	if ok {
+		return j
+	}
+	return nil
+}
+
+func GetClaimValue(ctx IHttpContext, claimName string) interface{} {
+	j := GetClaims(ctx)
+	if j != nil {
+		if v, ok := j.Set[claimName]; ok {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetClaimString(ctx IHttpContext, claimName string) string {
+	v := GetClaimValue(ctx, claimName)
+	return sconv.ToString(v)
+}
+
+func GetClaimInt64(ctx IHttpContext, claimName string) int64 {
+	v := GetClaimValue(ctx, claimName)
+	return sconv.ToInt64(v)
 }
