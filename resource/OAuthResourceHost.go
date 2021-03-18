@@ -3,7 +3,6 @@ package resource
 import (
 	"crypto/rsa"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -15,11 +14,11 @@ import (
 	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 )
 
 type OAuthResourceHost struct {
-	abstracts.BaseHost
+	host.BaseHost
 	OAuthOptions     *model.Resource `json:"OAuth,omitempty"`
 	PublicKeyPath    string
 	SigningAlgorithm string
@@ -65,8 +64,8 @@ func (x *OAuthResourceHost) BuildOAuthResourceHost() {
 	x.PublicKey = cert.PublicKey.(*rsa.PublicKey)
 }
 
-func (x *OAuthResourceHost) AuthHandler(ctx abstracts.IHttpContext) {
-	authHeader := ctx.GetHeader(abstracts.Header_Auth)
+func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
+	authHeader := ctx.GetHeader(host.Header_Auth)
 	if authHeader == "" {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		ctx.WriteString("Authorization header is missing")
@@ -75,7 +74,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx abstracts.IHttpContext) {
 
 	// verify authorization header
 	array := strings.Split(authHeader, " ")
-	if len(array) != 2 || array[0] != abstracts.AuthType_Bearer {
+	if len(array) != 2 || array[0] != host.AuthType_Bearer {
 		ctx.SetStatusCode(http.StatusBadRequest)
 		log.Warnf("'%s'invalid authorization header format. '%s'", ctx.GetRemoteIP(), authHeader)
 		return
@@ -130,14 +129,14 @@ func (x *OAuthResourceHost) AuthHandler(ctx abstracts.IHttpContext) {
 
 	var msgCode string
 	if token != nil {
-		routeKey := ctx.GetItemString(abstracts.Item_RouteKey)
-		area, controller, action := abstracts.GetRoutesByKey(routeKey)
+		routeKey := ctx.GetItemString(host.Item_RouteKey)
+		area, controller, action := host.GetRoutesByKey(routeKey)
 
 		roles := sconv.ToInt64(token.Set[oauth2core.Claim_Role])
 		level := sconv.ToInt64(token.Set[oauth2core.Claim_Level])
 		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level)) {
 			// Has permission, allow
-			ctx.SetItem(abstracts.Item_JWT, token)
+			ctx.SetItem(host.Item_JWT, token)
 			ctx.Next()
 			return
 		} else {
@@ -148,119 +147,4 @@ func (x *OAuthResourceHost) AuthHandler(ctx abstracts.IHttpContext) {
 	// Not allow
 	ctx.SetStatusCode(http.StatusUnauthorized)
 	ctx.WriteString(msgCode)
-}
-
-func (x *OAuthResourceHost) CreateAuthHandler(next abstracts.RequestHandler, routes ...string) abstracts.RequestHandler {
-	var area, controller, action string
-	count := len(routes)
-	if count == 0 || count > 3 {
-		log.Fatal("invalid routes array")
-	}
-
-	area = routes[0]
-	if count >= 2 {
-		controller = routes[1]
-	}
-	if count == 3 {
-		action = routes[2]
-	}
-
-	return func(ctx abstracts.IHttpContext) {
-		authHeader := ctx.GetHeader(abstracts.Header_Auth)
-		if authHeader == "" {
-			next(ctx)
-			return
-		}
-
-		// verify authorization header
-		array := strings.Split(authHeader, " ")
-		if len(array) != 2 || array[0] != abstracts.AuthType_Bearer {
-			ctx.SetStatusCode(http.StatusBadRequest)
-			log.Warnf("'%s'invalid authorization header format. '%s'", ctx.GetRemoteIP(), authHeader)
-			return
-		}
-
-		// verify signature
-		token, err := jwt.RSACheck([]byte(array[1]), x.PublicKey)
-		if err != nil {
-			ctx.SetStatusCode(http.StatusUnauthorized)
-			log.Warn("'"+ctx.GetRemoteIP()+"'", err)
-			return
-		}
-
-		// validate time limits
-		isNotExpired := token.Valid(time.Now().UTC())
-		if !isNotExpired {
-			ctx.SetStatusCode(http.StatusUnauthorized)
-			msgCode := "current time not in token's valid period"
-			ctx.WriteString(msgCode)
-			log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
-			return
-		}
-
-		// validate aud
-		isValidAudience := x.OAuthOptions.ValidAudiences != nil && sslice.HasAnyStr(x.OAuthOptions.ValidAudiences, token.Audiences)
-		if !isValidAudience {
-			ctx.SetStatusCode(http.StatusUnauthorized)
-			msgCode := "invalid audience"
-			ctx.WriteString(msgCode)
-			log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
-			return
-		}
-
-		// validate iss
-		isValidIssuer := x.OAuthOptions.ValidIssuers != nil && sslice.HasStr(x.OAuthOptions.ValidIssuers, token.Issuer)
-		if !isValidIssuer {
-			ctx.SetStatusCode(http.StatusUnauthorized)
-			msgCode := "invalid issuer"
-			ctx.WriteString(msgCode)
-			log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
-			return
-		}
-
-		if x.TokenValidator != nil {
-			if msgCode := x.TokenValidator(token); msgCode != "" {
-				ctx.SetStatusCode(http.StatusUnauthorized)
-				ctx.WriteString(msgCode)
-				log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
-				return
-			}
-		}
-
-		var msgCode string
-		if token != nil {
-			claims := token.Set
-
-			if roleStr, ok := claims[oauth2core.Claim_Role].(string); ok && roleStr != "" {
-				// Has role filed
-				roles, err := strconv.ParseInt(roleStr, 10, 64)
-				if !u.LogError(err) {
-					// Role can parse to int64
-					var level int
-					if levelStr, ok := claims[oauth2core.Claim_Level].(string); ok && levelStr != "" {
-						level, err = strconv.Atoi(levelStr)
-						u.LogError(err)
-					}
-					if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level)) {
-						// Has permission, allow
-						ctx.SetItem(abstracts.Item_JWT, token)
-						next(ctx)
-						return
-					} else {
-						msgCode = "permission denied"
-					}
-
-				} else {
-					msgCode = "parse role error"
-				}
-			} else {
-				msgCode = "token doesn't have role field"
-				log.Warn(msgCode, " ", claims)
-			}
-		}
-
-		// Not allow
-		ctx.SetStatusCode(http.StatusUnauthorized)
-		ctx.WriteString(msgCode)
-	}
 }

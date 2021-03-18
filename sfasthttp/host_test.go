@@ -8,31 +8,31 @@ import (
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 )
 
 func TestWebHost(t *testing.T) {
 	cp := sconfig.NewJsonConfigProvider("resource.json")
-	host := NewFHWebHost(cp, func(x *FHWebHost) {
-		x.GlobalPreHandlers = []abstracts.RequestHandler{func(ctx abstracts.IHttpContext) {
+	h := NewFHWebHost(cp, func(x *FHWebHost) {
+		x.GlobalPreHandlers = []host.RequestHandler{func(ctx host.IHttpContext) {
 			log.Info("GlobalPreHandlers")
 			ctx.Next()
 		}}
 
-		x.GlobalSufHandlers = []abstracts.RequestHandler{func(ctx abstracts.IHttpContext) {
+		x.GlobalSufHandlers = []host.RequestHandler{func(ctx host.IHttpContext) {
 			log.Info("GlobalSufHandlers")
 			ctx.Next()
 		}}
 	})
 
-	host.GET("/", func(ctx abstracts.IHttpContext) {
+	h.GET("/", func(ctx host.IHttpContext) {
 		log.Info("Handler")
-		routeKey := ctx.GetItemString(abstracts.Item_RouteKey)
+		routeKey := ctx.GetItemString(host.Item_RouteKey)
 		ctx.WriteString(routeKey)
 		ctx.Next()
 	})
 
-	log.Fatal(host.Run())
+	log.Fatal(h.Run())
 }
 
 func TestClient(t *testing.T) {
@@ -46,22 +46,20 @@ func TestClient(t *testing.T) {
 	u.LogFaltal(err)
 
 	cp := sconfig.NewJsonConfigProvider("client.json")
-	host := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {
+	h := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {
 		x.SessionProvider = provider
 	})
 
-	host.AddAction("GET/", "root__", func(ctx abstracts.IHttpContext) {
+	h.AddAction("GET/", "root__", func(ctx host.IHttpContext) {
 		ctx.WriteString("Test")
 	})
 
-	log.Fatal(host.Run())
+	log.Fatal(h.Run())
 }
 
 func TestResource(t *testing.T) {
 	cp := sconfig.NewJsonConfigProvider("resource.json")
-	host := NewFHOAuthResourceHost(cp, func(x *FHOAuthResourceHost) {
-		x.ConfigProvider = cp
-	})
+	h := NewFHOAuthResourceHost(cp)
 
-	log.Fatal(host.Run())
+	log.Fatal(h.Run())
 }

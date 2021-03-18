@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
 )
 
@@ -27,12 +27,12 @@ type FastHttpContext struct {
 	sess         *session.Session
 	sessStore    *session.Store
 	mapPool      *sync.Pool
-	handlers     []abstracts.RequestHandler
+	handlers     []host.RequestHandler
 	handlerIndex int
 	handlerCount int
 }
 
-func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers ...abstracts.RequestHandler) abstracts.IHttpContext {
+func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers ...host.RequestHandler) host.IHttpContext {
 	r := _ctxPool.Get().(*FastHttpContext)
 	r.ctx = ctx
 	r.sess = sess

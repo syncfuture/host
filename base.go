@@ -1,4 +1,4 @@
-package abstracts
+package host
 
 import (
 	"github.com/syncfuture/go/sconfig"

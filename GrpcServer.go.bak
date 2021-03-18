@@ -7,21 +7,21 @@ import (
 	panichandler "github.com/kazegusuri/grpc-panic-handler"
 	config "github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 	"github.com/syncfuture/host/sgrpc"
 	"google.golang.org/grpc"
 )
 
 type (
 	GrpcServer struct {
-		abstracts.HostBase
+		host.HostBase
 		GRPCServer *grpc.Server
 	}
 )
 
-func NewGrpcServerOptions(args ...string) *abstracts.GrpcServerOptions {
+func NewGrpcServerOptions(args ...string) *host.GrpcServerOptions {
 	cp := config.NewJsonConfigProvider(args...)
-	var options *abstracts.GrpcServerOptions
+	var options *host.GrpcServerOptions
 	cp.GetStruct("GrpcServer", &options)
 	if options == nil {
 		log.Fatal("missing 'GrpcServer' section in configuration")
@@ -30,7 +30,7 @@ func NewGrpcServerOptions(args ...string) *abstracts.GrpcServerOptions {
 	return options
 }
 
-func NewGrpcServer(options *abstracts.GrpcServerOptions) (r *GrpcServer) {
+func NewGrpcServer(options *host.GrpcServerOptions) (r *GrpcServer) {
 	if options.MaxRecvMsgSize == 0 {
 		options.MaxRecvMsgSize = 10 * 1024 * 1024
 	}

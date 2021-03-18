@@ -12,25 +12,25 @@ import (
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 	"golang.org/x/oauth2"
 )
 
 type OAuthClientHandler struct {
-	OAuth              *abstracts.OAuthOptions
-	ContextTokenStore  abstracts.IContextTokenStore
+	OAuth              *host.OAuthOptions
+	ContextTokenStore  host.IContextTokenStore
 	UserJsonSessionkey string
 	UserIDSessionKey   string
 	TokenCookieName    string
 }
 
 func NewOAuthClientHandler(
-	oauthOptions *abstracts.OAuthOptions,
-	contextTokenStore abstracts.IContextTokenStore,
+	oauthOptions *host.OAuthOptions,
+	contextTokenStore host.IContextTokenStore,
 	userJsonSessionkey string,
 	userIDSessionKey string,
 	tokenCookieName string,
-) abstracts.IOAuthClientHandler {
+) host.IOAuthClientHandler {
 	return &OAuthClientHandler{
 		OAuth:              oauthOptions,
 		ContextTokenStore:  contextTokenStore,
@@ -40,7 +40,7 @@ func NewOAuthClientHandler(
 	}
 }
 
-func (x *OAuthClientHandler) SignInHandler(ctx abstracts.IHttpContext) {
+func (x *OAuthClientHandler) SignInHandler(ctx host.IHttpContext) {
 	returnURL := ctx.GetFormString(oauth2core.Form_ReturnUrl)
 	if returnURL == "" {
 		returnURL = "/"
@@ -54,7 +54,7 @@ func (x *OAuthClientHandler) SignInHandler(ctx abstracts.IHttpContext) {
 	}
 
 	// 记录请求地址，跳转去登录页面
-	abstracts.RedirectAuthorizeEndpoint(ctx, x.OAuth, returnURL)
+	host.RedirectAuthorizeEndpoint(ctx, x.OAuth, returnURL)
 	// state := srand.String(32)
 	// ctx.SetSession(state, returnURL)
 	// if x.OAuth.PkceRequired {
@@ -69,7 +69,7 @@ func (x *OAuthClientHandler) SignInHandler(ctx abstracts.IHttpContext) {
 	// 	ctx.Redirect(x.OAuth.AuthCodeURL(state), http.StatusFound)
 	// }
 }
-func (x *OAuthClientHandler) SignInCallbackHandler(ctx abstracts.IHttpContext) {
+func (x *OAuthClientHandler) SignInCallbackHandler(ctx host.IHttpContext) {
 
 	state := ctx.GetFormString(oauth2core.Form_State)
 	redirectUrl := ctx.GetSessionString(state)
@@ -170,7 +170,7 @@ func (x *OAuthClientHandler) SignInCallbackHandler(ctx abstracts.IHttpContext) {
 		u.LogError(err)
 	}
 }
-func (x *OAuthClientHandler) SignOutHandler(ctx abstracts.IHttpContext) {
+func (x *OAuthClientHandler) SignOutHandler(ctx host.IHttpContext) {
 	// 去Passport注销
 	state := srand.String(32)
 	returnUrl := ctx.GetFormString(oauth2core.Form_ReturnUrl)
@@ -189,7 +189,7 @@ func (x *OAuthClientHandler) SignOutHandler(ctx abstracts.IHttpContext) {
 	)
 	ctx.Redirect(targetURL, http.StatusFound)
 }
-func (x *OAuthClientHandler) SignOutCallbackHandler(ctx abstracts.IHttpContext) {
+func (x *OAuthClientHandler) SignOutCallbackHandler(ctx host.IHttpContext) {
 	state := ctx.GetFormString(oauth2core.Form_State)
 	returnURL := ctx.GetSessionString(state)
 	if returnURL == "" {
@@ -217,7 +217,7 @@ func (x *OAuthClientHandler) SignOutCallbackHandler(ctx abstracts.IHttpContext) 
 		http.PostForm(x.OAuth.EndSessionEndpoint, data)
 	}
 
-	abstracts.SignOut(ctx, x.TokenCookieName)
+	host.SignOut(ctx, x.TokenCookieName)
 
 	// 跳转回登出时的页面
 	ctx.Redirect(returnURL, http.StatusFound)

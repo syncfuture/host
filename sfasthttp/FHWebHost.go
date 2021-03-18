@@ -14,7 +14,7 @@ import (
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
 )
 
@@ -27,19 +27,19 @@ type WebHostOption func(*FHWebHost)
 
 // FHWebHost : IWebHost
 type FHWebHost struct {
-	abstracts.BaseWebHost
+	host.BaseWebHost
 	// 独有属性
 	SessionCookieName string
 	SessionExpSeconds int
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
-	PanicHandler      abstracts.RequestHandler
-	GlobalPreHandlers []abstracts.RequestHandler
-	GlobalSufHandlers []abstracts.RequestHandler
+	PanicHandler      host.RequestHandler
+	GlobalPreHandlers []host.RequestHandler
+	GlobalSufHandlers []host.RequestHandler
 }
 
-func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) abstracts.IWebHost {
+func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWebHost {
 	r := new(FHWebHost)
 	cp.GetStruct("@this", &r)
 
@@ -65,7 +65,7 @@ func (x *FHWebHost) buildFHWebHost() {
 		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
 			if x.PanicHandler != nil {
 				newCtx := NewFastHttpContext(ctx, x.SessionManager)
-				newCtx.SetItem(abstracts.Item_PANIC, err)
+				newCtx.SetItem(host.Item_PANIC, err)
 				x.PanicHandler(newCtx)
 				return
 			}
@@ -99,7 +99,7 @@ func (x *FHWebHost) buildFHWebHost() {
 	}
 }
 
-func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...abstracts.RequestHandler) fasthttp.RequestHandler {
+func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.RequestHandler) fasthttp.RequestHandler {
 	if len(handlers) == 0 {
 		log.Fatal("handlers are missing")
 	}
@@ -113,9 +113,9 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...abstracts.Re
 	}
 
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
-		var newCtx abstracts.IHttpContext
+		var newCtx host.IHttpContext
 		newCtx = NewFastHttpContext(ctx, x.SessionManager, handlers...)
-		newCtx.SetItem(abstracts.Item_RouteKey, routeKey)
+		newCtx.SetItem(host.Item_RouteKey, routeKey)
 		defer func() {
 			newCtx.Reset()
 			_ctxPool.Put(newCtx)
@@ -124,22 +124,22 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...abstracts.Re
 	})
 }
 
-func (x *FHWebHost) GET(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) GET(path string, handlers ...host.RequestHandler) {
 	x.Router.GET(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) POST(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) POST(path string, handlers ...host.RequestHandler) {
 	x.Router.POST(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) PUT(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) PUT(path string, handlers ...host.RequestHandler) {
 	x.Router.PUT(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) PATCH(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) PATCH(path string, handlers ...host.RequestHandler) {
 	x.Router.PATCH(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) DELETE(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) DELETE(path string, handlers ...host.RequestHandler) {
 	x.Router.DELETE(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) OPTIONS(path string, handlers ...abstracts.RequestHandler) {
+func (x *FHWebHost) OPTIONS(path string, handlers ...host.RequestHandler) {
 	x.Router.OPTIONS(path, x.BuildNativeHandler(path, handlers...))
 }
 
@@ -182,7 +182,7 @@ func (x *FHWebHost) Run() error {
 	return fasthttp.ListenAndServe(x.ListenAddr, x.Router.Handler)
 }
 
-func (x *FHWebHost) RegisterActionsToRouter(action *abstracts.Action) {
+func (x *FHWebHost) RegisterActionsToRouter(action *host.Action) {
 	index := strings.Index(action.Route, "/")
 	method := action.Route[:index]
 	path := action.Route[index:]

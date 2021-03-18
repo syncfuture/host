@@ -2,7 +2,7 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host"
 	"github.com/syncfuture/host/resource"
 )
 
@@ -13,10 +13,10 @@ type FHOAuthResourceHost struct {
 	FHWebHost
 }
 
-func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOption) abstracts.IWebHost {
+func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOption) host.IWebHost {
 	r := new(FHOAuthResourceHost)
 	// r.OAuthResourceHost = new(resource.OAuthResourceHost)
-	// r.OAuthResourceHost.BaseHost = new(abstracts.BaseHost)
+	// r.OAuthResourceHost.BaseHost = new(host.BaseHost)
 	// r.FHWebHost = new(FHWebHost)
 	cp.GetStruct("@this", &r)
 	r.ConfigProvider = cp
