@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/iris-contrib/schema v0.0.1
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/kazegusuri/grpc-panic-handler v0.0.0-20160502122501-093ec776affc
 	github.com/moul/http2curl v1.0.0 // indirect

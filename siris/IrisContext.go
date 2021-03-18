@@ -96,6 +96,14 @@ func (x *IrisContext) ReadJSON(objPtr interface{}) error {
 	return x.ctx.ReadJSON(objPtr)
 }
 
+func (x *IrisContext) ReadQuery(objPtr interface{}) error {
+	return x.ctx.ReadQuery(objPtr)
+}
+
+func (x *IrisContext) ReadForm(objPtr interface{}) error {
+	return x.ctx.ReadForm(objPtr)
+}
+
 func (x *IrisContext) Redirect(url string, statusCode int) {
 	x.ctx.Redirect(url, statusCode)
 }

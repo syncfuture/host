@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/fasthttp/session/v2"
+	"github.com/iris-contrib/schema"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/shttp"
 	"github.com/valyala/fasthttp"
@@ -20,9 +21,12 @@ var (
 )
 
 type FastHttpContext struct {
-	ctx       *fasthttp.RequestCtx
-	sess      *session.Session
-	sessStore *session.Store
+	ctx          *fasthttp.RequestCtx
+	sess         *session.Session
+	sessStore    *session.Store
+	mapPool      *sync.Pool
+	strSlicePool *sync.Pool
+	decoder      *schema.Decoder
 }
 
 func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.IHttpContext {
@@ -32,6 +36,17 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session) shttp.I
 	var err error
 	r.sessStore, err = r.sess.Get(ctx)
 	u.LogFaltal(err)
+	r.mapPool = &sync.Pool{
+		New: func() interface{} {
+			return make(map[string][]string)
+		},
+	}
+	r.strSlicePool = &sync.Pool{
+		New: func() interface{} {
+			return make([]string, 1)
+		},
+	}
+	r.decoder = schema.NewDecoder()
 	return r
 }
 
@@ -131,6 +146,36 @@ func (x *FastHttpContext) GetParamString(key string) string {
 func (x *FastHttpContext) ReadJSON(objPtr interface{}) error {
 	data := x.ctx.Request.Body()
 	return json.Unmarshal(data, objPtr)
+}
+
+func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
+	dic := x.mapPool.Get().(map[string][]string)
+	defer func() {
+		x.mapPool.Put(dic)
+	}()
+	x.ctx.QueryArgs().VisitAll(func(key, value []byte) {
+		v := x.strSlicePool.Get().([]string)
+		v[0] = u.BytesToStr(value)
+		dic[u.BytesToStr(key)] = v
+		x.strSlicePool.Put(v)
+	})
+
+	return x.decoder.Decode(objPtr, dic)
+}
+
+func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
+	dic := x.mapPool.Get().(map[string][]string)
+	defer func() {
+		x.mapPool.Put(dic)
+	}()
+	x.ctx.PostArgs().VisitAll(func(key, value []byte) {
+		v := x.strSlicePool.Get().([]string)
+		v[0] = u.BytesToStr(value)
+		dic[u.BytesToStr(key)] = v
+		x.strSlicePool.Put(v)
+	})
+
+	return x.decoder.Decode(objPtr, dic)
 }
 
 func (x *FastHttpContext) Redirect(url string, statusCode int) {

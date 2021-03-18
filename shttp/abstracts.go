@@ -32,6 +32,8 @@ type IHttpContext interface {
 
 	GetParamString(key string) string
 	ReadJSON(objPtr interface{}) error
+	ReadQuery(objPtr interface{}) error
+	ReadForm(objPtr interface{}) error
 
 	Redirect(url string, statusCode int)
 	WriteString(body string) (int, error)
