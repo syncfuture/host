@@ -8,6 +8,7 @@ import (
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/u"
+	"github.com/syncfuture/host/abstracts"
 )
 
 func TestClient(t *testing.T) {
@@ -22,11 +23,14 @@ func TestClient(t *testing.T) {
 
 	cp := sconfig.NewJsonConfigProvider("client.json")
 	host := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {
-		x.ConfigProvider = cp
 		x.SessionProvider = provider
 	})
 
-	log.Fatal(host.Run())
+	host.AddAction("GET/", "root__", func(ctx abstracts.IHttpContext) {
+		ctx.WriteString("Test")
+	})
+
+	log.Fatal(host.Run(host.ListenAddr))
 }
 
 func TestResource(t *testing.T) {
@@ -35,5 +39,5 @@ func TestResource(t *testing.T) {
 		x.ConfigProvider = cp
 	})
 
-	log.Fatal(host.Run())
+	log.Fatal(host.Run(host.ListenAddr))
 }

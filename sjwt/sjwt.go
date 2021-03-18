@@ -4,18 +4,18 @@ import (
 	"strconv"
 
 	"github.com/pascaldekloe/jwt"
-	"github.com/syncfuture/host/shttp"
+	"github.com/syncfuture/host/abstracts"
 )
 
-func GetClaims(ctx shttp.IHttpContext) *jwt.Claims {
-	j, ok := ctx.GetItem(shttp.Item_JWT).(*jwt.Claims)
+func GetClaims(ctx abstracts.IHttpContext) *jwt.Claims {
+	j, ok := ctx.GetItem(abstracts.Item_JWT).(*jwt.Claims)
 	if ok {
 		return j
 	}
 	return nil
 }
 
-func GetClaimValue(ctx shttp.IHttpContext, claimName string) interface{} {
+func GetClaimValue(ctx abstracts.IHttpContext, claimName string) interface{} {
 	j := GetClaims(ctx)
 	if j != nil {
 		if v, ok := j.Set[claimName]; ok {
@@ -25,7 +25,7 @@ func GetClaimValue(ctx shttp.IHttpContext, claimName string) interface{} {
 	return nil
 }
 
-func GetClaimString(ctx shttp.IHttpContext, claimName string) string {
+func GetClaimString(ctx abstracts.IHttpContext, claimName string) string {
 	v, ok := GetClaimValue(ctx, claimName).(string)
 	if ok {
 		return v
@@ -33,7 +33,7 @@ func GetClaimString(ctx shttp.IHttpContext, claimName string) string {
 	return v
 }
 
-func GetClaimInt64(ctx shttp.IHttpContext, claimName string) int64 {
+func GetClaimInt64(ctx abstracts.IHttpContext, claimName string) int64 {
 	v := GetClaimValue(ctx, claimName)
 	switch value := v.(type) {
 	case int64:

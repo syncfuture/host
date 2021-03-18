@@ -2,21 +2,21 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host/resource"
 )
 
 type ResourceOption func(*FHOAuthResourceHost)
 
 type FHOAuthResourceHost struct {
-	*abstracts.OAuthResourceHost
-	*FHWebHost
+	resource.OAuthResourceHost
+	FHWebHost
 }
 
 func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOption) *FHOAuthResourceHost {
 	r := new(FHOAuthResourceHost)
-	r.OAuthResourceHost = new(abstracts.OAuthResourceHost)
-	r.OAuthResourceHost.BaseHost = new(abstracts.BaseHost)
-	r.FHWebHost = new(FHWebHost)
+	// r.OAuthResourceHost = new(resource.OAuthResourceHost)
+	// r.OAuthResourceHost.BaseHost = new(abstracts.BaseHost)
+	// r.FHWebHost = new(FHWebHost)
 	cp.GetStruct("@this", &r)
 	r.ConfigProvider = cp
 
@@ -31,5 +31,5 @@ func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOptio
 
 func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost(options ...ResourceOption) {
 	x.BuildOAuthResourceHost()
-	x.BuildFHWebHost(x.BaseWebHost)
+	x.buildFHWebHost()
 }

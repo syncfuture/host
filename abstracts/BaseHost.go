@@ -9,7 +9,6 @@ import (
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
-	"github.com/syncfuture/host/shttp"
 )
 
 type BaseHost struct {
@@ -61,12 +60,12 @@ func (r *BaseHost) BuildBaseHost() {
 	}
 
 	log.Init(r.ConfigProvider)
-	shttp.ConfigHttpClient(r.ConfigProvider)
+	ConfigHttpClient(r.ConfigProvider)
 
 	return
 }
 
-func (x BaseHost) HandleErr(err error, ctx shttp.IHttpContext) bool {
+func (x BaseHost) HandleErr(err error, ctx IHttpContext) bool {
 	if err != nil {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		if !x.Debug {
@@ -83,19 +82,16 @@ func (x BaseHost) HandleErr(err error, ctx shttp.IHttpContext) bool {
 }
 
 type BaseWebHost struct {
-	*BaseHost
+	// BaseHost
 	Actions map[string]*Action
 }
 
 func (x *BaseWebHost) BuildBaseWebHost() {
-	x.BaseHost = new(BaseHost)
-	x.BaseHost.BuildBaseHost()
 	x.Actions = make(map[string]*Action)
 }
 
-func (x *BaseWebHost) RegisterActionGroups(actionGroups ...*ActionGroup) {
+func (x *BaseWebHost) AddActionGroups(actionGroups ...*ActionGroup) {
 	////////// 添加Actions
-	x.Actions = make(map[string]*Action)
 	for _, actionGroup := range actionGroups {
 		for _, action := range actionGroup.Actions {
 			// 添加预先执行中间件
@@ -116,7 +112,7 @@ func (x *BaseWebHost) RegisterActionGroups(actionGroups ...*ActionGroup) {
 	}
 }
 
-func (x *BaseWebHost) RegisterActions(actions ...*Action) {
+func (x *BaseWebHost) AddActions(actions ...*Action) {
 	////////// 添加Actions
 	for _, action := range actions {
 		_, ok := x.Actions[action.Route]
@@ -125,4 +121,14 @@ func (x *BaseWebHost) RegisterActions(actions ...*Action) {
 		}
 		x.Actions[action.Route] = action
 	}
+}
+
+func (x *BaseWebHost) AddAction(route, routeKey string, handlers ...RequestHandler) {
+	////////// 添加Action
+	action := NewAction(route, routeKey, handlers...)
+	_, ok := x.Actions[action.Route]
+	if ok {
+		log.Fatal("duplicated route found: " + action.Route)
+	}
+	x.Actions[action.Route] = action
 }

@@ -2,40 +2,41 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
-	"github.com/syncfuture/host/abstracts"
+	"github.com/syncfuture/host/client"
 )
 
 type ClientOption func(*FHOAuthClientHost)
 
 type FHOAuthClientHost struct {
-	*abstracts.OAuthClientHost
-	*FHWebHost
+	client.OAuthClientHost
+	FHWebHost
 }
 
 func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) *FHOAuthClientHost {
-	r := new(FHOAuthClientHost)
-	r.OAuthClientHost = new(abstracts.OAuthClientHost)
-	r.OAuthClientHost.BaseHost = new(abstracts.BaseHost)
-	r.FHWebHost = new(FHWebHost)
-	cp.GetStruct("@this", &r)
-	r.ConfigProvider = cp
+	x := new(FHOAuthClientHost)
+	cp.GetStruct("@this", &x)
+	x.ConfigProvider = cp
+
+	// if x.FHWebHost == nil {
+	// 	x.FHWebHost = new(FHWebHost)
+	// }
 
 	for _, o := range options {
-		o(r)
+		o(x)
 	}
 
-	r.BuildFHOAuthClientHost()
+	x.BuildFHOAuthClientHost()
 
-	return r
+	return x
 }
 
 func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...ClientOption) {
 	x.BuildOAuthClientHost()
-	x.BuildFHWebHost(x.BaseWebHost)
+	x.buildFHWebHost()
 
 	////////// oauth client endpoints
-	x.Router.GET(x.SignInPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignInHandler))
-	x.Router.GET(x.SignInCallbackPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignInCallbackHandler))
-	x.Router.GET(x.SignOutPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignOutHandler))
-	x.Router.GET(x.SignOutCallbackPath, ToNativeHandler(x.SessionManager, x.OAuthClientHandler.SignOutCallbackHandler))
+	x.Router.GET(x.SignInPath, x.FHWebHost.BuildNativeHandler(x.SignInPath, x.OAuthClientHandler.SignInHandler))
+	x.Router.GET(x.SignInCallbackPath, x.FHWebHost.BuildNativeHandler(x.SignInPath, x.OAuthClientHandler.SignInCallbackHandler))
+	x.Router.GET(x.SignOutPath, x.FHWebHost.BuildNativeHandler(x.SignInPath, x.OAuthClientHandler.SignOutHandler))
+	x.Router.GET(x.SignOutCallbackPath, x.FHWebHost.BuildNativeHandler(x.SignInPath, x.OAuthClientHandler.SignOutCallbackHandler))
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
-	"github.com/syncfuture/host/shttp"
 )
 
 type (
@@ -83,7 +82,7 @@ func (r *HostBase) BuildBaseHost(options *BaseHostOptions) {
 	// r.PermissionAuditor = options.PermissionAuditor
 
 	// log.Init(r.ConfigProvider)
-	shttp.ConfigHttpClient(r.ConfigProvider)
+	ConfigHttpClient(r.ConfigProvider)
 
 	return
 }

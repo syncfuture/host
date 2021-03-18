@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func (x *OAuthOptions) buildOAuthOptions(urlProvider surl.IURLProvider) {
+func (x *OAuthOptions) BuildOAuthOptions(urlProvider surl.IURLProvider) {
 	if x.Endpoint.AuthURL == "" {
 		log.Fatal("OAuth.Endpoint.AuthURL cannot be empty")
 	}

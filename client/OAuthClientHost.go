@@ -1,9 +1,10 @@
-package abstracts
+package client
 
 import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,39 +12,39 @@ import (
 	"github.com/muesli/cache2go"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/shttp"
+	"github.com/syncfuture/host/abstracts"
 	"golang.org/x/oauth2"
 )
 
-type (
-	OAuthClientHost struct {
-		*BaseWebHost
-		OAuthOptions        *OAuthOptions `json:"OAuth,omitempty"`
-		HashKey             string
-		BlockKey            string
-		UserJsonSessionKey  string
-		UserIDSessionKey    string
-		TokenCookieName     string
-		SignInPath          string
-		SignInCallbackPath  string
-		SignOutPath         string
-		SignOutCallbackPath string
-		AccessDeniedPath    string
-		OAuthClientHandler  IOAuthClientHandler
-		authMiddleware      IAuthMiddleware
-		ContextTokenStore   shttp.IContextTokenStore
-		CookieProtoector    *securecookie.SecureCookie
-		UserLocks           *cache2go.CacheTable
-	}
-)
+type OAuthClientHost struct {
+	abstracts.BaseHost
+	OAuthOptions        *abstracts.OAuthOptions `json:"OAuth,omitempty"`
+	HashKey             string
+	BlockKey            string
+	UserJsonSessionKey  string
+	UserIDSessionKey    string
+	TokenCookieName     string
+	SignInPath          string
+	SignInCallbackPath  string
+	SignOutPath         string
+	SignOutCallbackPath string
+	AccessDeniedPath    string
+	OAuthClientHandler  abstracts.IOAuthClientHandler
+	ContextTokenStore   abstracts.IContextTokenStore
+	CookieProtoector    *securecookie.SecureCookie
+	UserLocks           *cache2go.CacheTable
+}
 
 func (x *OAuthClientHost) BuildOAuthClientHost() {
-	// x.BaseWebHost.BuildBaseWebHost()
+	// if x.BaseWebHost == nil {
+	// 	x.BaseWebHost = new(abstracts.BaseWebHost)
+	// }
+	x.BaseHost.BuildBaseHost()
 
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")
 	}
-	x.OAuthOptions.buildOAuthOptions(x.URLProvider)
+	x.OAuthOptions.BuildOAuthOptions(x.URLProvider)
 
 	if x.BlockKey == "" {
 		log.Fatal("block key cannot be empty")
@@ -88,7 +89,7 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 
 	////////// context token store
 	if x.ContextTokenStore == nil {
-		x.ContextTokenStore = shttp.NewCookieTokenStore(x.TokenCookieName, x.CookieProtoector)
+		x.ContextTokenStore = abstracts.NewCookieTokenStore(x.TokenCookieName, x.CookieProtoector)
 	}
 
 	////////// oauth client handler
@@ -96,19 +97,19 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 		x.OAuthClientHandler = NewOAuthClientHandler(x.OAuthOptions, x.ContextTokenStore, x.UserJsonSessionKey, x.UserIDSessionKey, x.TokenCookieName)
 	}
 
-	////////// auth middleware
-	if x.authMiddleware == nil {
-		x.authMiddleware = newClientAuthMiddleware(x.UserJsonSessionKey, x.AccessDeniedPath, x.OAuthOptions, x.PermissionAuditor)
-	}
+	// ////////// auth middleware
+	// if x.authMiddleware == nil {
+	// 	x.authMiddleware = newClientAuthMiddleware(x.UserJsonSessionKey, x.AccessDeniedPath, x.OAuthOptions, x.PermissionAuditor)
+	// }
 }
 
 func (x *OAuthClientHost) GetHttpClient() (*http.Client, error) {
 	return x.OAuthOptions.ClientCredential.Client(context.Background()), nil
 }
 
-func (x *OAuthClientHost) GetUserHttpClient(ctx shttp.IHttpContext) (*http.Client, error) {
+func (x *OAuthClientHost) GetUserHttpClient(ctx abstracts.IHttpContext) (*http.Client, error) {
 	// goctx := context.Background()
-	// userID := shttp.GetUserID(ctx, x.UserIDSessionKey)
+	// userID := abstracts.GetUserID(ctx, x.UserIDSessionKey)
 	// if userID == "" {
 	// 	return http.DefaultClient, nil
 	// }
@@ -128,7 +129,7 @@ func (x *OAuthClientHost) GetUserHttpClient(ctx shttp.IHttpContext) (*http.Clien
 	// newToken, err := tokenSource.Token()
 	// if err != nil {
 	// 	// refresh token failed, sign user out
-	// 	shttp.SignOut(ctx, x.TokenCookieName)
+	// 	abstracts.SignOut(ctx, x.TokenCookieName)
 	// 	return http.DefaultClient, err
 	// }
 
@@ -151,13 +152,13 @@ func (x *OAuthClientHost) GetUserHttpClient(ctx shttp.IHttpContext) (*http.Clien
 	return oauth2.NewClient(context.Background(), *tokenSource), nil
 }
 
-func (x *OAuthClientHost) GetClientToken(ctx shttp.IHttpContext) (*oauth2.Token, error) {
+func (x *OAuthClientHost) GetClientToken(ctx abstracts.IHttpContext) (*oauth2.Token, error) {
 	return x.OAuthOptions.ClientCredential.Token()
 }
 
-func (x *OAuthClientHost) GetUserToken(ctx shttp.IHttpContext) (*oauth2.TokenSource, error) {
+func (x *OAuthClientHost) GetUserToken(ctx abstracts.IHttpContext) (*oauth2.TokenSource, error) {
 	goctx := context.Background()
-	userID := shttp.GetUserID(ctx, x.UserIDSessionKey)
+	userID := abstracts.GetUserID(ctx, x.UserIDSessionKey)
 	if userID == "" {
 		return nil, errors.New("user isn't authenticated")
 	}
@@ -177,7 +178,7 @@ func (x *OAuthClientHost) GetUserToken(ctx shttp.IHttpContext) (*oauth2.TokenSou
 	newToken, err := tokenSource.Token()
 	if err != nil {
 		// refresh token failed, sign user out
-		shttp.SignOut(ctx, x.TokenCookieName)
+		abstracts.SignOut(ctx, x.TokenCookieName)
 		return nil, err
 	}
 
@@ -196,8 +197,55 @@ func (x *OAuthClientHost) GetUserToken(ctx shttp.IHttpContext) (*oauth2.TokenSou
 	return &tokenSource, nil
 }
 
-func (x *OAuthClientHost) Auth(next shttp.RequestHandler, routes ...string) shttp.RequestHandler {
-	return x.authMiddleware.Serve(next, routes...)
+func (x *OAuthClientHost) AuthHandler(ctx abstracts.IHttpContext) {
+	routeKey := ctx.GetItemString(abstracts.Item_JWT)
+	if routeKey == "" {
+		ctx.SetStatusCode(500)
+		ctx.WriteString("route key does not exist")
+		return
+	}
+
+	routes := strings.Split(routeKey, "_")
+
+	var area, controller, action string
+	count := len(routes)
+	if count == 0 || count > 3 {
+		log.Fatal("invalid routes array")
+	}
+
+	area = routes[0]
+	if count >= 2 {
+		controller = routes[1]
+	}
+	if count == 3 {
+		action = routes[2]
+	}
+
+	user := abstracts.GetUser(ctx, x.UserJsonSessionKey)
+
+	// 判断请求是否允许访问
+	if user != nil {
+		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, user.Role, user.Level) {
+			// 有权限
+			ctx.Next()
+			return
+		} else {
+			// 没权限
+			ctx.Redirect(x.AccessDeniedPath, http.StatusFound)
+			return
+		}
+	}
+
+	// 未登录
+	allow := x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, 0, 0)
+	if allow {
+		// 允许匿名
+		ctx.Next()
+		return
+	}
+
+	// 记录请求地址，跳转去登录页面
+	abstracts.RedirectAuthorizeEndpoint(ctx, x.OAuthOptions, ctx.RequestURL())
 }
 
 func (x *OAuthClientHost) getUserLock(userID string) *sync.RWMutex {

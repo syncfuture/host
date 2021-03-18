@@ -11,10 +11,10 @@ import (
 	"github.com/fasthttp/router"
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
+	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/abstracts"
-	"github.com/syncfuture/host/shttp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -23,20 +23,38 @@ const (
 	_suffix   = "/{" + _filepath + ":*}"
 )
 
+type WebHostOption func(*FHWebHost)
+
 // FHWebHost : IWebHost
 type FHWebHost struct {
-	base *abstracts.BaseWebHost
+	abstracts.BaseWebHost
 	// 独有属性
-	SessionCookieName string
-	SessionExpSeconds int
-	Router            *router.Router
-	SessionProvider   session.Provider
-	SessionManager    *session.Session
-	PanicHandler      shttp.RequestHandler
+	SessionCookieName   string
+	SessionExpSeconds   int
+	Router              *router.Router
+	SessionProvider     session.Provider
+	SessionManager      *session.Session
+	PanicHandler        abstracts.RequestHandler
+	GlobalPreHandlers   []abstracts.RequestHandler
+	GlobalAfterHandlers []abstracts.RequestHandler
 }
 
-func (x *FHWebHost) BuildFHWebHost(base *abstracts.BaseWebHost) {
-	x.base = base
+func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) abstracts.IWebHost {
+	r := new(FHWebHost)
+	cp.GetStruct("@this", &r)
+
+	for _, o := range options {
+		o(r)
+	}
+
+	r.buildFHWebHost()
+
+	return r
+}
+
+func (x *FHWebHost) buildFHWebHost() {
+	x.BuildBaseWebHost()
+
 	if x.SessionCookieName == "" {
 		x.SessionCookieName = "go.cookie1"
 	}
@@ -47,7 +65,7 @@ func (x *FHWebHost) BuildFHWebHost(base *abstracts.BaseWebHost) {
 		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
 			if x.PanicHandler != nil {
 				newCtx := NewFastHttpContext(ctx, x.SessionManager)
-				newCtx.SetItem(shttp.Item_PANIC, err)
+				newCtx.SetItem(abstracts.Item_PANIC, err)
 				x.PanicHandler(newCtx)
 				return
 			}
@@ -81,23 +99,48 @@ func (x *FHWebHost) BuildFHWebHost(base *abstracts.BaseWebHost) {
 	}
 }
 
-func (x *FHWebHost) GET(path string, handlers ...shttp.RequestHandler) {
-	x.Router.GET(path, ToNativeHandler(x.SessionManager, handlers...))
+func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...abstracts.RequestHandler) fasthttp.RequestHandler {
+	if len(handlers) == 0 {
+		log.Fatal("handlers are missing")
+	}
+
+	// 注册全局中间件
+	if len(x.GlobalPreHandlers) > 0 {
+		handlers = append(x.GlobalPreHandlers, handlers...)
+	}
+	if len(x.GlobalAfterHandlers) > 0 {
+		handlers = append(handlers, x.GlobalPreHandlers...)
+	}
+
+	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
+		var newCtx abstracts.IHttpContext
+		newCtx = NewFastHttpContext(ctx, x.SessionManager, handlers...)
+		newCtx.SetItem(abstracts.Item_JWT, routeKey)
+		defer func() {
+			newCtx.Reset()
+			_ctxPool.Put(newCtx)
+		}()
+		handlers[0](newCtx) // 开始执行第一个Handler
+	})
 }
-func (x *FHWebHost) POST(path string, handlers ...shttp.RequestHandler) {
-	x.Router.POST(path, ToNativeHandler(x.SessionManager, handlers...))
+
+func (x *FHWebHost) GET(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.GET(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) PUT(path string, handlers ...shttp.RequestHandler) {
-	x.Router.PUT(path, ToNativeHandler(x.SessionManager, handlers...))
+func (x *FHWebHost) POST(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.POST(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) PATCH(path string, handlers ...shttp.RequestHandler) {
-	x.Router.PATCH(path, ToNativeHandler(x.SessionManager, handlers...))
+func (x *FHWebHost) PUT(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.PUT(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) DELETE(path string, handlers ...shttp.RequestHandler) {
-	x.Router.DELETE(path, ToNativeHandler(x.SessionManager, handlers...))
+func (x *FHWebHost) PATCH(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.PATCH(path, x.BuildNativeHandler(path, handlers...))
 }
-func (x *FHWebHost) OPTIONS(path string, handlers ...shttp.RequestHandler) {
-	x.Router.OPTIONS(path, ToNativeHandler(x.SessionManager, handlers...))
+func (x *FHWebHost) DELETE(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.DELETE(path, x.BuildNativeHandler(path, handlers...))
+}
+func (x *FHWebHost) OPTIONS(path string, handlers ...abstracts.RequestHandler) {
+	x.Router.OPTIONS(path, x.BuildNativeHandler(path, handlers...))
 }
 
 func (x *FHWebHost) ServeFiles(webPath, physiblePath string) {
@@ -128,44 +171,40 @@ func (x *FHWebHost) ServeEmbedFiles(webPath, physiblePath string, emd embed.FS) 
 	})
 }
 
-func (x *FHWebHost) Run(actionGroups ...*abstracts.ActionGroup) error {
-
-	////////// 添加Actions
-	x.base.RegisterActionGroups(actionGroups...)
-
-	////////// 注册Actions到路由表
-	for k, v := range x.base.Actions {
-		x.registerActionToRoute(k, v.Handlers...)
+func (x *FHWebHost) Run(listenAddr string) error {
+	////////// 注册Actions到路由
+	for _, v := range x.Actions {
+		x.RegisterActionsToRouter(v)
 	}
 
 	////////// 开始Serve
-	log.Infof("Listening on %s", x.base.ListenAddr)
-	return fasthttp.ListenAndServe(x.base.ListenAddr, x.Router.Handler)
+	log.Infof("Listening on %s", listenAddr)
+	return fasthttp.ListenAndServe(listenAddr, x.Router.Handler)
 }
 
-func (x *FHWebHost) registerActionToRoute(route string, handlers ...shttp.RequestHandler) {
-	index := strings.Index(route, "/")
-	method := route[:index]
-	path := route[index:]
+func (x *FHWebHost) RegisterActionsToRouter(action *abstracts.Action) {
+	index := strings.Index(action.Route, "/")
+	method := action.Route[:index]
+	path := action.Route[index:]
 
 	switch method {
 	case http.MethodPost:
-		x.Router.POST(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.POST(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	case http.MethodGet:
-		x.Router.GET(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.GET(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	case http.MethodPut:
-		x.Router.PUT(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.PUT(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	case http.MethodPatch:
-		x.Router.PATCH(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.PATCH(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	case http.MethodDelete:
-		x.Router.DELETE(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.DELETE(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	case http.MethodOptions:
-		x.Router.OPTIONS(path, ToNativeHandler(x.SessionManager, handlers...))
+		x.Router.OPTIONS(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
 		break
 	default:
 		panic("does not support method " + method)

@@ -1,4 +1,4 @@
-package shttp
+package abstracts
 
 import (
 	"encoding/json"
