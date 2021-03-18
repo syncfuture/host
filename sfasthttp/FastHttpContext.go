@@ -26,7 +26,6 @@ type FastHttpContext struct {
 	sess         *session.Session
 	sessStore    *session.Store
 	mapPool      *sync.Pool
-	strSlicePool *sync.Pool
 	decoder      *schema.Decoder
 	handlerIndex int
 	handlerCount int
@@ -47,11 +46,6 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handler
 	r.mapPool = &sync.Pool{
 		New: func() interface{} {
 			return make(map[string][]string)
-		},
-	}
-	r.strSlicePool = &sync.Pool{
-		New: func() interface{} {
-			return make([]string, 1)
 		},
 	}
 	r.decoder = schema.NewDecoder()
@@ -191,13 +185,13 @@ func (x *FastHttpContext) ReadJSON(objPtr interface{}) error {
 func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 	dic := x.mapPool.Get().(map[string][]string)
 	defer func() {
+		for k := range dic { // this will compile to use "mapclear" internal function
+			delete(dic, k)
+		}
 		x.mapPool.Put(dic)
 	}()
 	x.ctx.QueryArgs().VisitAll(func(key, value []byte) {
-		v := x.strSlicePool.Get().([]string)
-		v[0] = u.BytesToStr(value)
-		dic[u.BytesToStr(key)] = v
-		x.strSlicePool.Put(v)
+		dic[u.BytesToStr(key)] = []string{u.BytesToStr(value)}
 	})
 
 	return x.decoder.Decode(objPtr, dic)
@@ -206,13 +200,13 @@ func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
 	dic := x.mapPool.Get().(map[string][]string)
 	defer func() {
+		for k := range dic { // this will compile to use "mapclear" internal function
+			delete(dic, k)
+		}
 		x.mapPool.Put(dic)
 	}()
 	x.ctx.PostArgs().VisitAll(func(key, value []byte) {
-		v := x.strSlicePool.Get().([]string)
-		v[0] = u.BytesToStr(value)
-		dic[u.BytesToStr(key)] = v
-		x.strSlicePool.Put(v)
+		dic[u.BytesToStr(key)] = []string{u.BytesToStr(value)}
 	})
 
 	return x.decoder.Decode(objPtr, dic)
