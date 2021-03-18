@@ -27,9 +27,9 @@ type FastHttpContext struct {
 	sessStore    *session.Store
 	mapPool      *sync.Pool
 	decoder      *schema.Decoder
+	handlers     []shttp.RequestHandler
 	handlerIndex int
 	handlerCount int
-	handlers     []shttp.RequestHandler
 }
 
 func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers []shttp.RequestHandler) shttp.IHttpContext {
@@ -50,6 +50,7 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handler
 	}
 	r.decoder = schema.NewDecoder()
 	r.handlers = handlers
+	r.handlerIndex = 0
 	r.handlerCount = len(handlers)
 	return r
 }
