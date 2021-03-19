@@ -7,4 +7,5 @@ const (
 	Item_RouteKey   = "RouteKey"
 	Item_JWT        = "jwt"
 	Item_PANIC      = "panic"
+	CType_Json      = "application/json; charset=utf-8"
 )
