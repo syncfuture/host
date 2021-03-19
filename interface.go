@@ -89,6 +89,7 @@ type (
 		SetContentType(cType string)
 		WriteString(body string) (int, error)
 		WriteBytes(body []byte) (int, error)
+		WriteJsonBytes(body []byte) (int, error)
 
 		RequestURL() string
 		GetRemoteIP() string

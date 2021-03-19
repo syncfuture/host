@@ -1,6 +1,7 @@
 package host
 
 const (
+	// Header_ContentType = "Content-Type"
 	Seperator_Route = "_"
 	Header_Auth     = "Authorization"
 	AuthType_Bearer = "Bearer"

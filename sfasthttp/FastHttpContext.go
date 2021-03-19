@@ -214,6 +214,11 @@ func (x *FastHttpContext) WriteBytes(body []byte) (int, error) {
 	return x.ctx.Write(body)
 }
 
+func (x *FastHttpContext) WriteJsonBytes(body []byte) (int, error) {
+	x.ctx.SetContentType(host.CType_Json)
+	return x.ctx.Write(body)
+}
+
 func (x *FastHttpContext) RequestURL() string {
 	return x.ctx.URI().String()
 }

@@ -164,7 +164,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 	}
 
 	// 获取用户锁
-	userLock := x.getUserLock(userID)
+	userLock := x.GetUserLock(userID)
 
 	// read lock
 	userLock.RLock()
@@ -198,7 +198,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 }
 
 func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
-	routeKey := ctx.GetItemString(host.Item_JWT)
+	routeKey := ctx.GetItemString(host.Item_RouteKey)
 	if routeKey == "" {
 		ctx.SetStatusCode(500)
 		ctx.WriteString("route key does not exist")
@@ -248,7 +248,7 @@ func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
 	host.RedirectAuthorizeEndpoint(ctx, x.OAuthOptions, ctx.RequestURL())
 }
 
-func (x *OAuthClientHost) getUserLock(userID string) *sync.RWMutex {
+func (x *OAuthClientHost) GetUserLock(userID string) *sync.RWMutex {
 	if !x.UserLocks.Exists(userID) {
 		x.UserLocks.Add(userID, time.Second*30, new(sync.RWMutex))
 	}
@@ -256,4 +256,12 @@ func (x *OAuthClientHost) getUserLock(userID string) *sync.RWMutex {
 	userLockCache, err := x.UserLocks.Value(userID)
 	u.LogError(err)
 	return userLockCache.Data().(*sync.RWMutex)
+}
+
+func (x *OAuthClientHost) GetUserJsonSessionKey() string {
+	return x.UserJsonSessionKey
+}
+
+func (x *OAuthClientHost) GetUserIDSessionKey() string {
+	return x.UserIDSessionKey
 }
