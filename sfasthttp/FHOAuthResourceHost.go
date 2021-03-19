@@ -2,6 +2,7 @@ package sfasthttp
 
 import (
 	"github.com/syncfuture/go/sconfig"
+	"github.com/syncfuture/host"
 	"github.com/syncfuture/host/resource"
 )
 
@@ -32,4 +33,25 @@ func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOptio
 func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost(options ...ResourceOption) {
 	x.BuildOAuthResourceHost()
 	x.buildFHWebHost()
+
+	if x.CORS != nil {
+		x.AddGlobalPreHandlers(true, func(ctx host.IHttpContext) {
+			if x.CORS.AllowedOrigin != "" {
+				ctx.SetHeader("Access-Control-Allow-Origin", x.CORS.AllowedOrigin)
+			}
+			ctx.Next()
+		})
+
+		x.OPTIONS("/{filepath:*}", func(ctx host.IHttpContext) {
+			// if x.CORS.AllowedOrigin != "" {	// 上面的全局中间件已经添加
+			// 	ctx.SetHeader("Access-Control-Allow-Origin", x.CORS.AllowedOrigin)
+			// }
+			if x.CORS.AllowedMethods != "" {
+				ctx.SetHeader("Access-Control-Allow-Methods", x.CORS.AllowedMethods)
+			}
+			if x.CORS.AllowedHeaders != "" {
+				ctx.SetHeader("Access-Control-Allow-Headers", x.CORS.AllowedHeaders)
+			}
+		})
+	}
 }

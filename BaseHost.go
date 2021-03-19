@@ -96,12 +96,22 @@ func (x *BaseWebHost) BuildBaseWebHost() {
 	x.Actions = make(map[string]*Action)
 }
 
-func (x *BaseWebHost) AddGlobalPreHandlers(handlers ...RequestHandler) {
-	x.GlobalPreHandlers = append(x.GlobalPreHandlers, handlers...)
+// AddGlobalPreHandlers 添加全局前置中间件, toTail: 是否添加在已有全局前置中间件的尾部
+func (x *BaseWebHost) AddGlobalPreHandlers(toTail bool, handlers ...RequestHandler) {
+	if toTail {
+		x.GlobalPreHandlers = append(x.GlobalPreHandlers, handlers...)
+	} else {
+		x.GlobalPreHandlers = append(handlers, x.GlobalPreHandlers...)
+	}
 }
 
-func (x *BaseWebHost) AddGlobalSufHandlers(handlers ...RequestHandler) {
-	x.GlobalSufHandlers = append(x.GlobalSufHandlers, handlers...)
+// AppendGlobalSufHandlers 添加全局后置中间件, toTail: 是否添加在已有全局后置中间件的尾部
+func (x *BaseWebHost) AppendGlobalSufHandlers(toTail bool, handlers ...RequestHandler) {
+	if toTail {
+		x.GlobalSufHandlers = append(x.GlobalSufHandlers, handlers...)
+	} else {
+		x.GlobalSufHandlers = append(handlers, x.GlobalSufHandlers...)
+	}
 }
 
 func (x *BaseWebHost) AddActionGroups(actionGroups ...*ActionGroup) {

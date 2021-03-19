@@ -20,9 +20,10 @@ import (
 type OAuthResourceHost struct {
 	host.BaseHost
 	OAuthOptions     *model.Resource `json:"OAuth,omitempty"`
+	PublicKey        *rsa.PublicKey
 	PublicKeyPath    string
 	SigningAlgorithm string
-	PublicKey        *rsa.PublicKey
+	CORS             *host.CORSOptions
 	// TokenValidator   func(*jwt.Claims) string
 }
 
