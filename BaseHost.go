@@ -83,6 +83,7 @@ func (x BaseHost) GetRouteProvider() ssecurity.IRouteProvider {
 type BaseWebHost struct {
 	// BaseHost
 	ListenAddr        string
+	CORS              *CORSOptions
 	GlobalPreHandlers []RequestHandler
 	GlobalSufHandlers []RequestHandler
 	Actions           map[string]*Action

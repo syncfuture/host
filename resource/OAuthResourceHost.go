@@ -23,7 +23,6 @@ type OAuthResourceHost struct {
 	PublicKey        *rsa.PublicKey
 	PublicKeyPath    string
 	SigningAlgorithm string
-	CORS             *host.CORSOptions
 	// TokenValidator   func(*jwt.Claims) string
 }
 
