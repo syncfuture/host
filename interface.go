@@ -2,6 +2,7 @@ package host
 
 import (
 	"embed"
+	"io"
 	"net/http"
 
 	"github.com/syncfuture/go/sconfig"
@@ -55,6 +56,7 @@ type (
 	}
 
 	IHttpContext interface {
+		io.Writer
 		SetItem(key string, value interface{})
 		GetItem(key string) interface{}
 		GetItemString(key string) string

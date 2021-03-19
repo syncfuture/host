@@ -49,6 +49,10 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handler
 	return r
 }
 
+func (x *FastHttpContext) Write(p []byte) (n int, err error) {
+	return x.ctx.Write(p)
+}
+
 func (x *FastHttpContext) SetItem(key string, value interface{}) {
 	x.ctx.SetUserValue(key, value)
 }
