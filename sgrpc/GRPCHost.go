@@ -33,6 +33,8 @@ func NewGRPCServiceHost(cp sconfig.IConfigProvider, options ...GRPCOption) IGRPC
 		o(x)
 	}
 
+	x.BuildGRPCServiceHost()
+
 	return x
 }
 
