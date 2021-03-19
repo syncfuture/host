@@ -97,6 +97,7 @@ type (
 		WriteJsonBytes(body []byte) (int, error)
 
 		RequestURL() string
+		RequestPath() string
 		GetRemoteIP() string
 
 		Redirect(url string, statusCode int)

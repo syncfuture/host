@@ -8,6 +8,7 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/gorilla/schema"
 	"github.com/syncfuture/go/sconv"
+	"github.com/syncfuture/go/shttp"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
@@ -219,12 +220,15 @@ func (x *FastHttpContext) WriteBytes(body []byte) (int, error) {
 }
 
 func (x *FastHttpContext) WriteJsonBytes(body []byte) (int, error) {
-	x.ctx.SetContentType(host.CType_Json)
+	x.ctx.SetContentType(shttp.CTYPE_JSON)
 	return x.ctx.Write(body)
 }
 
 func (x *FastHttpContext) RequestURL() string {
 	return x.ctx.URI().String()
+}
+func (x *FastHttpContext) RequestPath() string {
+	return u.BytesToStr(x.ctx.URI().Path())
 }
 func (x *FastHttpContext) GetRemoteIP() string {
 	return x.ctx.RemoteIP().String()

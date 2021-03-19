@@ -20,6 +20,8 @@ type IOAuthClientHost interface {
 	host.IBaseHost
 	host.IWebHost
 	AuthHandler(ctx host.IHttpContext)
+	GetHttpClient() (*http.Client, error)
+	GetUserHttpClient(ctx host.IHttpContext) (*http.Client, error)
 	GetClientToken(ctx host.IHttpContext) (*oauth2.Token, error)
 	GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSource, error)
 	GetUserLock(userID string) *sync.RWMutex

@@ -10,6 +10,7 @@ import (
 	"github.com/Lukiya/oauth2go/model"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconv"
+	"github.com/syncfuture/go/shttp"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/sslice"
@@ -71,7 +72,7 @@ func (x *OAuthResourceHost) BuildOAuthResourceHost() {
 }
 
 func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
-	authHeader := ctx.GetHeader(host.Header_Auth)
+	authHeader := ctx.GetHeader(shttp.HEADER_AUTH)
 	if authHeader == "" {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		ctx.WriteString("Authorization header is missing")
