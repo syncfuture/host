@@ -16,6 +16,17 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type IOAuthClientHost interface {
+	host.IBaseHost
+	host.IWebHost
+	AuthHandler(ctx host.IHttpContext)
+	GetClientToken(ctx host.IHttpContext) (*oauth2.Token, error)
+	GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSource, error)
+	GetUserLock(userID string) *sync.RWMutex
+	GetUserJsonSessionKey() string
+	GetUserIDSessionKey() string
+}
+
 type OAuthClientHost struct {
 	host.BaseHost
 	OAuthOptions        *host.OAuthOptions `json:"OAuth,omitempty"`

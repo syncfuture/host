@@ -17,6 +17,12 @@ import (
 	"github.com/syncfuture/host"
 )
 
+type IOAuthRespirceHost interface {
+	host.IBaseHost
+	host.IWebHost
+	AuthHandler(ctx host.IHttpContext)
+}
+
 type OAuthResourceHost struct {
 	host.BaseHost
 	OAuthOptions     *model.Resource `json:"OAuth,omitempty"`

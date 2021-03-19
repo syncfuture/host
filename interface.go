@@ -19,6 +19,9 @@ type (
 		SignOutCallbackHandler(ctx IHttpContext)
 	}
 
+	IHost interface {
+		Run() error
+	}
 	// IAuthMiddleware interface {
 	// 	Serve(next RequestHandler, routes ...string) RequestHandler
 	// }
@@ -34,6 +37,7 @@ type (
 	}
 
 	IWebHost interface {
+		IHost
 		GET(path string, handlers ...RequestHandler)
 		POST(path string, handlers ...RequestHandler)
 		PUT(path string, handlers ...RequestHandler)
@@ -48,7 +52,6 @@ type (
 		AddActions(actions ...*Action)
 		AddAction(route, routeKey string, handlers ...RequestHandler)
 		RegisterActionsToRouter(action *Action)
-		Run() error
 	}
 
 	IHttpContext interface {
