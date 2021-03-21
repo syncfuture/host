@@ -6,6 +6,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	panichandler "github.com/kazegusuri/grpc-panic-handler"
 	"github.com/syncfuture/go/sconfig"
+	"github.com/syncfuture/go/serr"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/host/service"
 	"google.golang.org/grpc"
@@ -62,9 +63,9 @@ func (x *GRPCServiceHost) GetGRPCServer() *grpc.Server {
 func (x *GRPCServiceHost) Run() error {
 	listen, err := net.Listen("tcp", x.ListenAddr)
 	if err != nil {
-		return err
+		return serr.Wrap(err)
 	}
 
 	log.Infof("Listening at %v\n", x.ListenAddr)
-	return x.GRPCServer.Serve(listen)
+	return serr.Wrap(x.GRPCServer.Serve(listen))
 }

@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 	"sync"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"github.com/muesli/cache2go"
+	"github.com/syncfuture/go/serr"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
@@ -173,7 +173,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 	goctx := context.Background()
 	userID := host.GetUserID(ctx, x.UserIDSessionKey)
 	if userID == "" {
-		return nil, errors.New("user isn't authenticated")
+		return nil, serr.New("user isn't authenticated")
 	}
 
 	// 获取用户锁

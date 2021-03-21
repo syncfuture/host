@@ -8,6 +8,7 @@ import (
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/gorilla/securecookie"
 	"github.com/pascaldekloe/jwt"
+	"github.com/syncfuture/go/serr"
 	"golang.org/x/oauth2"
 )
 
@@ -29,7 +30,7 @@ func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.
 func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if err != nil {
-		return err
+		return serr.Wrap(err)
 	}
 
 	// 令牌加密
@@ -42,7 +43,7 @@ func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) erro
 	tokenCookie.HttpOnly = true
 	tokenClaims, err := jwt.ParseWithoutCheck([]byte(token.AccessToken))
 	if err != nil {
-		return err
+		return serr.Wrap(err)
 	}
 	if rexp, ok := tokenClaims.Set[oauth2core.Claim_RefreshTokenExpire].(float64); ok {
 		// claims里有刷新令牌过期时间，作为Cookie

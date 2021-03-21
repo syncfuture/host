@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/syncfuture/go/serr"
 	log "github.com/syncfuture/go/slog"
 )
 
@@ -27,7 +28,7 @@ func (t *User) UnmarshalJSON(d []byte) error {
 
 	err := json.Unmarshal(d, &x)
 	if err != nil {
-		return err
+		return serr.Wrap(err)
 	}
 
 	*t = User(x.T2)
