@@ -3,6 +3,7 @@ package sfasthttp
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -79,11 +80,7 @@ func (x *FastHttpContext) GetItemInt64(key string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func (x *FastHttpContext) SetCookie(cookie *http.Cookie, options ...func(*http.Cookie)) {
-	for _, o := range options {
-		o(cookie)
-	}
-
+func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
 	c := new(fasthttp.Cookie)
 	c.SetKey(cookie.Name)
 	c.SetValue(cookie.Value)
@@ -94,6 +91,28 @@ func (x *FastHttpContext) SetCookie(cookie *http.Cookie, options ...func(*http.C
 	c.SetExpire(cookie.Expires)
 	c.SetMaxAge(cookie.MaxAge)
 	x.ctx.Response.Header.SetCookie(c)
+}
+func (x *FastHttpContext) SetCookieKV(key, value string, options ...func(*http.Cookie)) {
+	c := new(http.Cookie)
+
+	if len(options) > 0 {
+		for _, o := range options {
+			o(c)
+		}
+	} else {
+		c.Path = "/"
+		c.Name = key
+		c.Value = url.QueryEscape(value)
+		c.HttpOnly = true
+
+		// MaxAge=0 means no 'Max-Age' attribute specified.
+		// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+		// MaxAge>0 means Max-Age attribute present and given in seconds
+		c.Expires = time.Now().Add(_setCookieKVExpiration)
+		c.MaxAge = int(time.Until(c.Expires).Seconds())
+	}
+
+	x.SetCookie(c)
 }
 func (x *FastHttpContext) GetCookieString(key string) string {
 	r := x.ctx.Request.Header.Cookie(key)
