@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/gorilla/schema"
@@ -20,7 +21,8 @@ var (
 			return new(FastHttpContext)
 		},
 	}
-	_decoder = schema.NewDecoder()
+	_decoder               = schema.NewDecoder()
+	_setCookieKVExpiration = 8760 * time.Hour
 )
 
 type FastHttpContext struct {
@@ -77,16 +79,20 @@ func (x *FastHttpContext) GetItemInt64(key string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
+func (x *FastHttpContext) SetCookie(cookie *http.Cookie, options ...func(*http.Cookie)) {
+	for _, o := range options {
+		o(cookie)
+	}
+
 	c := new(fasthttp.Cookie)
 	c.SetKey(cookie.Name)
 	c.SetValue(cookie.Value)
-	c.SetMaxAge(cookie.MaxAge)
 	c.SetDomain(cookie.Domain)
 	c.SetPath(cookie.Path)
 	c.SetSecure(cookie.Secure)
 	c.SetHTTPOnly(cookie.HttpOnly)
 	c.SetExpire(cookie.Expires)
+	c.SetMaxAge(cookie.MaxAge)
 	x.ctx.Response.Header.SetCookie(c)
 }
 func (x *FastHttpContext) GetCookieString(key string) string {

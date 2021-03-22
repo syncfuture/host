@@ -64,7 +64,7 @@ type (
 		GetItemInt32(key string) int32
 		GetItemInt64(key string) int64
 
-		SetCookie(cookie *http.Cookie)
+		SetCookie(cookie *http.Cookie, options ...func(*http.Cookie))
 		GetCookieString(key string) string
 		RemoveCookie(key string)
 
