@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/gorilla/schema"
@@ -22,8 +21,8 @@ var (
 			return new(FastHttpContext)
 		},
 	}
-	_decoder               = schema.NewDecoder()
-	_setCookieKVExpiration = 8760 * time.Hour
+	_decoder = schema.NewDecoder()
+	// _setCookieKVExpiration = 8760 * time.Hour
 )
 
 type FastHttpContext struct {
@@ -93,24 +92,24 @@ func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
 	x.ctx.Response.Header.SetCookie(c)
 }
 func (x *FastHttpContext) SetCookieKV(key, value string, options ...func(*http.Cookie)) {
-	c := new(http.Cookie)
-
-	if len(options) > 0 {
-		for _, o := range options {
-			o(c)
-		}
-	} else {
-		c.Path = "/"
-		c.Name = key
-		c.Value = url.QueryEscape(value)
-		c.HttpOnly = true
-
-		// MaxAge=0 means no 'Max-Age' attribute specified.
-		// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-		// MaxAge>0 means Max-Age attribute present and given in seconds
-		c.Expires = time.Now().Add(_setCookieKVExpiration)
-		c.MaxAge = int(time.Until(c.Expires).Seconds())
+	c := &http.Cookie{
+		Name:  key,
+		Value: url.QueryEscape(value),
 	}
+
+	for _, o := range options {
+		o(c)
+	}
+	//  else {
+	// 	c.Path = "/"
+	// 	c.HttpOnly = true
+
+	// 	// MaxAge=0 means no 'Max-Age' attribute specified.
+	// 	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+	// 	// MaxAge>0 means Max-Age attribute present and given in seconds
+	// 	c.Expires = time.Now().Add(_setCookieKVExpiration)
+	// 	c.MaxAge = int(time.Until(c.Expires).Seconds())
+	// }
 
 	x.SetCookie(c)
 }
