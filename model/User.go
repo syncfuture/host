@@ -28,7 +28,7 @@ func (t *User) UnmarshalJSON(d []byte) error {
 
 	err := json.Unmarshal(d, &x)
 	if err != nil {
-		return serr.Wrap(err)
+		return serr.WithStack(err)
 	}
 
 	*t = User(x.T2)

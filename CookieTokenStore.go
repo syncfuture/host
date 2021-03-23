@@ -30,7 +30,7 @@ func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.
 func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if err != nil {
-		return serr.Wrap(err)
+		return serr.WithStack(err)
 	}
 
 	// 令牌加密
@@ -43,7 +43,7 @@ func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) erro
 	tokenCookie.HttpOnly = true
 	tokenClaims, err := jwt.ParseWithoutCheck([]byte(token.AccessToken))
 	if err != nil {
-		return serr.Wrap(err)
+		return serr.WithStack(err)
 	}
 	if rexp, ok := tokenClaims.Set[oauth2core.Claim_RefreshTokenExpire].(float64); ok {
 		// claims里有刷新令牌过期时间，作为Cookie
@@ -65,14 +65,14 @@ func (x *CookieTokenStore) GetToken(ctx IHttpContext) (*oauth2.Token, error) {
 	var tokenJsonBytes []byte
 	err := x.CookieProtoector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
 	if err != nil {
-		return nil, err
+		return nil, serr.WithStack(err)
 	}
 
 	t := new(oauth2.Token)
 	err = json.Unmarshal(tokenJsonBytes, t)
 	if err != nil {
-		return nil, err
+		return nil, serr.WithStack(err)
 	}
 
-	return t, err
+	return t, serr.WithStack(err)
 }

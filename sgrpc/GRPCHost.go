@@ -63,9 +63,9 @@ func (x *GRPCServiceHost) GetGRPCServer() *grpc.Server {
 func (x *GRPCServiceHost) Run() error {
 	listen, err := net.Listen("tcp", x.ListenAddr)
 	if err != nil {
-		return serr.Wrap(err)
+		return serr.WithStack(err)
 	}
 
 	log.Infof("Listening at %v\n", x.ListenAddr)
-	return serr.Wrap(x.GRPCServer.Serve(listen))
+	return serr.WithStack(x.GRPCServer.Serve(listen))
 }

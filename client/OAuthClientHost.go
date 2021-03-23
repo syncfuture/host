@@ -184,7 +184,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 	t, err := x.ContextTokenStore.GetToken(ctx)
 	defer func() { userLock.RUnlock() }()
 	if err != nil {
-		return nil, err
+		return nil, serr.WithStack(err)
 	}
 
 	tokenSource := x.OAuthOptions.TokenSource(goctx, t)
@@ -192,7 +192,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 	if err != nil {
 		// refresh token failed, sign user out
 		host.SignOut(ctx, x.TokenCookieName)
-		return nil, err
+		return nil, serr.WithStack(err)
 	}
 
 	if newToken.AccessToken != t.AccessToken {
