@@ -35,6 +35,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/Lukiya/oauth2go v1.3.1 h1:RbE3PIZIXywnqPawAjSgmcCqt8Bl7ZNVOi3OiiWRmA4=
 github.com/Lukiya/oauth2go v1.3.1/go.mod h1:lBoLNKiTDdnPutvG4J73r1puGg1789qz2/tfqh35kx0=
+github.com/Lukiya/oauth2go v1.3.2 h1:OMFGjGwlvkV7YVzOuUGHfHIa33aWy3iIQ2WWyfcJZOE=
+github.com/Lukiya/oauth2go v1.3.2/go.mod h1:63KlvpZquu8e7OeruqQiHaK1nBE8GjYdxchq+Hdkw7A=
 github.com/andybalholm/brotli v1.0.0/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
 github.com/andybalholm/brotli v1.0.1 h1:KqhlKozYbRtJvsPrrEeXcO+N2l6NYT5A2QAFmSULpEc=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
@@ -218,6 +220,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/syncfuture/go v1.5.3 h1:Q9ghHNBPrm63UWpSsx1TX8ETmthLi67eQ37tLRgu3s4=
 github.com/syncfuture/go v1.5.3/go.mod h1:pcMavNTDtz0tKpBNCQE5H8xETx53lkoYMt8oZB+bpm0=
+github.com/syncfuture/go v1.5.4 h1:247meKR4Oh54TTBbAJeRhBLM+69NRz1mC8eLnhBy2oM=
+github.com/syncfuture/go v1.5.4/go.mod h1:pcMavNTDtz0tKpBNCQE5H8xETx53lkoYMt8oZB+bpm0=
 github.com/tidwall/gjson v1.6.8 h1:CTmXMClGYPAmln7652e69B7OLXfTi5ABcPPwjIWUv7w=
 github.com/tidwall/gjson v1.6.8/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
 github.com/tidwall/match v1.0.3 h1:FQUVvBImDutD8wJLN6c5eMzWtjgONK9MwIBCOrUJKeE=
