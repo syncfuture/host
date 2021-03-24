@@ -5,14 +5,14 @@ import (
 	"github.com/syncfuture/host/resource"
 )
 
-type ResourceOption func(*FHOAuthResourceHost)
+type ResourceHostOption func(*FHOAuthResourceHost)
 
 type FHOAuthResourceHost struct {
 	resource.OAuthResourceHost
 	FHWebHost
 }
 
-func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOption) resource.IOAuthRespirceHost {
+func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceHostOption) resource.IOAuthRespirceHost {
 	r := new(FHOAuthResourceHost)
 	// r.OAuthResourceHost = new(resource.OAuthResourceHost)
 	// r.OAuthResourceHost.BaseHost = new(host.BaseHost)
@@ -29,7 +29,7 @@ func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceOptio
 	return r
 }
 
-func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost(options ...ResourceOption) {
+func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost() {
 	x.BuildOAuthResourceHost()
 	x.buildFHWebHost()
 }

@@ -5,21 +5,17 @@ import (
 	"github.com/syncfuture/host/client"
 )
 
-type ClientOption func(*FHOAuthClientHost)
+type ClientHostOption func(*FHOAuthClientHost)
 
 type FHOAuthClientHost struct {
 	client.OAuthClientHost
 	FHWebHost
 }
 
-func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) client.IOAuthClientHost {
+func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientHostOption) client.IOAuthClientHost {
 	x := new(FHOAuthClientHost)
 	cp.GetStruct("@this", &x)
 	x.ConfigProvider = cp
-
-	// if x.FHWebHost == nil {
-	// 	x.FHWebHost = new(FHWebHost)
-	// }
 
 	for _, o := range options {
 		o(x)
@@ -30,7 +26,7 @@ func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientOption) c
 	return x
 }
 
-func (x *FHOAuthClientHost) BuildFHOAuthClientHost(options ...ClientOption) {
+func (x *FHOAuthClientHost) BuildFHOAuthClientHost() {
 	x.BuildOAuthClientHost()
 	x.buildFHWebHost()
 

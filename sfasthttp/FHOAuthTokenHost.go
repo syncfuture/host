@@ -5,18 +5,15 @@ import (
 	"github.com/syncfuture/host/token"
 )
 
-type TokenOption func(*FHOAuthTokenHost)
+type TokenHostOption func(*FHOAuthTokenHost)
 
 type FHOAuthTokenHost struct {
 	token.OAuthTokenHost
 	FHWebHost
 }
 
-func NewFHOAuthTokenHost(cp sconfig.IConfigProvider, options ...TokenOption) token.IOAuthTokenHost {
+func NewFHOAuthTokenHost(cp sconfig.IConfigProvider, options ...TokenHostOption) token.IOAuthTokenHost {
 	r := new(FHOAuthTokenHost)
-	// r.OAuthTokenHost = new(resource.OAuthTokenHost)
-	// r.OAuthTokenHost.BaseHost = new(host.BaseHost)
-	// r.FHWebHost = new(FHWebHost)
 	cp.GetStruct("@this", &r)
 	r.ConfigProvider = cp
 
@@ -29,7 +26,12 @@ func NewFHOAuthTokenHost(cp sconfig.IConfigProvider, options ...TokenOption) tok
 	return r
 }
 
-func (x *FHOAuthTokenHost) BuildFHOAuthTokenHost(options ...TokenOption) {
+func (x *FHOAuthTokenHost) BuildFHOAuthTokenHost() {
 	x.BuildOAuthTokenHost()
 	x.buildFHWebHost()
+
+	x.Router.POST(x.TokenEndpoint, x.TokenHost.TokenRequestHandler)
+	x.Router.GET(x.AuthorizeEndpoint, x.TokenHost.AuthorizeRequestHandler)
+	x.Router.GET(x.EndSessionEndpoint, x.TokenHost.EndSessionRequestHandler)
+	x.Router.POST(x.EndSessionEndpoint, x.TokenHost.ClearTokenRequestHandler)
 }
