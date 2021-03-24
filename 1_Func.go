@@ -11,16 +11,11 @@ import (
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
-	"github.com/syncfuture/go/sid"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
-)
-
-var (
-	_idGenerator = sid.NewSonyflakeIDGenerator()
 )
 
 func ConfigHttpClient(configProvider sconfig.IConfigProvider) {

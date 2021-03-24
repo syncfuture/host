@@ -102,7 +102,7 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 
 	////////// context token store
 	if x.ContextTokenStore == nil {
-		x.ContextTokenStore = host.NewCookieTokenStore(x.TokenCookieName, x.CookieProtoector)
+		x.ContextTokenStore = NewCookieTokenStore(x.TokenCookieName, x.CookieProtoector)
 	}
 
 	////////// oauth client handler

@@ -23,9 +23,6 @@ type (
 	IHost interface {
 		Run() error
 	}
-	// IAuthMiddleware interface {
-	// 	Serve(next RequestHandler, routes ...string) RequestHandler
-	// }
 
 	IBaseHost interface {
 		GetDebug() bool
@@ -107,8 +104,6 @@ type (
 		Next()
 		Reset()
 	}
-
-	RequestHandler func(ctx IHttpContext)
 
 	IContextTokenStore interface {
 		SaveToken(ctx IHttpContext, token *oauth2.Token) error

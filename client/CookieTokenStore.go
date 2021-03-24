@@ -1,4 +1,4 @@
-package host
+package client
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/serr"
+	"github.com/syncfuture/host"
 	"golang.org/x/oauth2"
 )
 
@@ -27,7 +28,7 @@ func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.
 }
 
 /// SaveToken 保存令牌
-func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) error {
+func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if err != nil {
 		return serr.WithStack(err)
@@ -56,7 +57,7 @@ func (x *CookieTokenStore) SaveToken(ctx IHttpContext, token *oauth2.Token) erro
 }
 
 /// GetToken 获取令牌
-func (x *CookieTokenStore) GetToken(ctx IHttpContext) (*oauth2.Token, error) {
+func (x *CookieTokenStore) GetToken(ctx host.IHttpContext) (*oauth2.Token, error) {
 	// 从Session获取令牌
 	tokenJson := ctx.GetCookieString(x.TokenCookieName)
 	if tokenJson == "" {
