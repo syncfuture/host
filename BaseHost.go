@@ -1,6 +1,7 @@
 package host
 
 import (
+	"github.com/gorilla/securecookie"
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/sredis"
@@ -84,6 +85,7 @@ type BaseWebHost struct {
 	// BaseHost
 	ListenAddr        string
 	CORS              *CORSOptions
+	CookieProtector   *securecookie.SecureCookie
 	GlobalPreHandlers []RequestHandler
 	GlobalSufHandlers []RequestHandler
 	Actions           map[string]*Action

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sredis"
@@ -108,5 +109,10 @@ type (
 	IContextTokenStore interface {
 		SaveToken(ctx IHttpContext, token *oauth2.Token) error
 		GetToken(ctx IHttpContext) (*oauth2.Token, error)
+	}
+
+	ISecureCookieHost interface {
+		GetEncryptedCookie(ctx IHttpContext, name string) string
+		SetEncryptedCookie(ctx IHttpContext, key, value string, duration time.Duration)
 	}
 )

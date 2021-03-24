@@ -3,13 +3,13 @@ package sfasthttp
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"sync"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/gorilla/schema"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/shttp"
+	"github.com/syncfuture/go/spool"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
@@ -21,7 +21,8 @@ var (
 			return new(FastHttpContext)
 		},
 	}
-	_decoder = schema.NewDecoder()
+	_cookiePool = spool.NewSyncCookiePool()
+	_decoder    = schema.NewDecoder()
 	// _setCookieKVExpiration = 8760 * time.Hour
 )
 
@@ -80,7 +81,11 @@ func (x *FastHttpContext) GetItemInt64(key string) int64 {
 }
 
 func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
-	c := new(fasthttp.Cookie)
+	c := fasthttp.AcquireCookie()
+	defer func() {
+		fasthttp.ReleaseCookie(c)
+	}()
+
 	c.SetKey(cookie.Name)
 	c.SetValue(cookie.Value)
 	c.SetDomain(cookie.Domain)
@@ -92,24 +97,16 @@ func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
 	x.ctx.Response.Header.SetCookie(c)
 }
 func (x *FastHttpContext) SetCookieKV(key, value string, options ...func(*http.Cookie)) {
-	c := &http.Cookie{
-		Name:  key,
-		Value: url.QueryEscape(value),
-	}
+	c := _cookiePool.GetCookie()
+	defer func() {
+		_cookiePool.PutCookie(c)
+	}()
+	c.Name = key
+	c.Value = value
 
 	for _, o := range options {
 		o(c)
 	}
-	//  else {
-	// 	c.Path = "/"
-	// 	c.HttpOnly = true
-
-	// 	// MaxAge=0 means no 'Max-Age' attribute specified.
-	// 	// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-	// 	// MaxAge>0 means Max-Age attribute present and given in seconds
-	// 	c.Expires = time.Now().Add(_setCookieKVExpiration)
-	// 	c.MaxAge = int(time.Until(c.Expires).Seconds())
-	// }
 
 	x.SetCookie(c)
 }

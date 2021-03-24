@@ -1,6 +1,8 @@
 package token
 
 import (
+	"time"
+
 	"github.com/Lukiya/oauth2go"
 	"github.com/Lukiya/oauth2go/security"
 	"github.com/Lukiya/oauth2go/security/rsa"
@@ -15,6 +17,8 @@ import (
 type IOAuthTokenHost interface {
 	host.IBaseHost
 	host.IWebHost
+	host.ISecureCookieHost
+	GetAuthCookieName() string
 }
 
 type OAuthTokenHost struct {
@@ -94,4 +98,15 @@ func (x *OAuthTokenHost) BuildOAuthTokenHost() {
 	}
 
 	x.TokenHost.BuildTokenHost()
+}
+
+func (x *OAuthTokenHost) GetAuthCookieName() string {
+	return x.AuthCookieName
+}
+
+func (x *OAuthTokenHost) GetEncryptedCookie(ctx host.IHttpContext, key string) string {
+	return host.GetEncryptedCookie(ctx, x.CookieProtector, key)
+}
+func (x *OAuthTokenHost) SetEncryptedCookie(ctx host.IHttpContext, key, value string, duration time.Duration) {
+	host.SetEncryptedCookie(ctx, x.CookieProtector, key, value, duration)
 }
