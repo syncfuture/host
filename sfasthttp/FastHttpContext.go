@@ -119,7 +119,7 @@ func (x *FastHttpContext) GetCookieString(key string) string {
 	return u.BytesToStr(r)
 }
 
-func (x *FastHttpContext) SetEncryptedCookieKV(key string, value interface{}, options ...func(*http.Cookie)) {
+func (x *FastHttpContext) SetEncryptedCookieKV(key, value string, options ...func(*http.Cookie)) {
 	if x.cookieEncryptor == nil {
 		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
 		return
@@ -130,7 +130,8 @@ func (x *FastHttpContext) SetEncryptedCookieKV(key string, value interface{}, op
 	}
 	x.SetCookieKV(key, encryptedString, options...)
 }
-func (x *FastHttpContext) GetEncryptedCookieValue(key string) (r interface{}) {
+
+func (x *FastHttpContext) GetEncryptedCookieString(key string) (r string) {
 	if x.cookieEncryptor == nil {
 		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
 		return
@@ -144,25 +145,26 @@ func (x *FastHttpContext) GetEncryptedCookieValue(key string) (r interface{}) {
 
 	return
 }
-func (x *FastHttpContext) GetEncryptedCookieString(key string) string {
-	return sconv.ToString(x.GetEncryptedCookieValue(key))
-}
 
 func (x *FastHttpContext) RemoveCookie(key string, options ...func(*http.Cookie)) {
-	// x.ctx.Response.Header.DelClientCookie(key)
+	if len(options) > 0 {
+		x.ctx.Response.Header.DelCookie(key)
 
-	x.ctx.Response.Header.DelCookie(key)
+		c := _cookiePool.GetCookie()
+		defer func() {
+			_cookiePool.PutCookie(c)
+		}()
+		c.Name = key
+		c.Expires = fasthttp.CookieExpireDelete
 
-	c := _cookiePool.GetCookie()
-	defer func() {
-		_cookiePool.PutCookie(c)
-	}()
+		for _, o := range options {
+			o(c)
+		}
 
-	for _, o := range options {
-		o(c)
+		x.setCookie(c)
+	} else {
+		x.ctx.Response.Header.DelClientCookie(key)
 	}
-
-	x.setCookie(c)
 }
 
 func (x *FastHttpContext) SetSession(key, value string) {

@@ -61,11 +61,9 @@ type (
 		GetItemInt32(key string) int32
 		GetItemInt64(key string) int64
 
-		// SetCookie(cookie *http.Cookie)
 		SetCookieKV(key, value string, options ...func(*http.Cookie))
 		GetCookieString(key string) string
-		SetEncryptedCookieKV(key string, value interface{}, options ...func(*http.Cookie))
-		GetEncryptedCookieValue(key string) interface{}
+		SetEncryptedCookieKV(key, value string, options ...func(*http.Cookie))
 		GetEncryptedCookieString(key string) string
 		RemoveCookie(key string, options ...func(*http.Cookie))
 
