@@ -28,7 +28,8 @@ func NewFHOAuthClientHost(cp sconfig.IConfigProvider, options ...ClientHostOptio
 
 func (x *FHOAuthClientHost) BuildFHOAuthClientHost() {
 	x.BuildOAuthClientHost()
-	x.buildFHWebHost()
+	x.FHWebHost.CookieEncryptor = x.SecureCookieHost.GetCookieEncryptor()
+	x.FHWebHost.buildFHWebHost()
 
 	////////// oauth client endpoints
 	x.Router.GET(x.SignInPath, x.FHWebHost.BuildNativeHandler(x.SignInPath, x.OAuthClientHandler.SignInHandler))

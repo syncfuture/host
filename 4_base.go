@@ -1,8 +1,6 @@
 package host
 
 import (
-	"net/http"
-
 	"github.com/gorilla/securecookie"
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
@@ -187,9 +185,37 @@ func (x *SecureCookieHost) BuildSecureCookieHost() {
 	x.cookieEncryptor = ssecurity.NewSecureCookieEncryptor(x.scookie)
 }
 
-func (x *SecureCookieHost) GetEncryptedCookie(ctx IHttpContext, key string) string {
-	return GetEncryptedCookie(ctx, x.cookieEncryptor, key)
-}
-func (x *SecureCookieHost) SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie)) {
-	SetEncryptedCookie(ctx, x.cookieEncryptor, key, value, options...)
-}
+// func (x *SecureCookieHost) GetEncryptedCookie(ctx IHttpContext, key string) string {
+// 	encryptedCookie := ctx.GetCookieString(key)
+// 	if encryptedCookie == "" {
+// 		return ""
+// 	}
+
+// 	var r string
+// 	err := x.cookieEncryptor.Decrypt(key, encryptedCookie, &r)
+
+// 	if u.LogError(err) {
+// 		return ""
+// 	}
+
+// 	return r
+// }
+// func (x *SecureCookieHost) SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie)) {
+// 	// if encryptedCookie, err := x.cookieEncryptor.Encrypt(key, value); err == nil {
+// 	// 	authCookie := fasthttp.AcquireCookie()
+// 	// 	defer func() {
+// 	// 		fasthttp.ReleaseCookie(authCookie)
+// 	// 	}()
+// 	// 	authCookie.SetKey(key)
+// 	// 	authCookie.SetValue(encryptedCookie)
+// 	// 	authCookie.SetSecure(true)
+// 	// 	authCookie.SetPath("/")
+// 	// 	authCookie.SetHTTPOnly(true)
+// 	// 	if duration > 0 {
+// 	// 		authCookie.SetExpire(time.Now().Add(duration))
+// 	// 	}
+// 	// 	ctx.Response.Header.SetCookie(authCookie)
+// 	// } else {
+// 	// 	u.LogError(err)
+// 	// }
+// }

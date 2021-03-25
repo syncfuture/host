@@ -61,10 +61,13 @@ type (
 		GetItemInt32(key string) int32
 		GetItemInt64(key string) int64
 
-		SetCookie(cookie *http.Cookie)
+		// SetCookie(cookie *http.Cookie)
 		SetCookieKV(key, value string, options ...func(*http.Cookie))
 		GetCookieString(key string) string
-		RemoveCookie(key string)
+		SetEncryptedCookieKV(key string, value interface{}, options ...func(*http.Cookie))
+		GetEncryptedCookieValue(key string) interface{}
+		GetEncryptedCookieString(key string) string
+		RemoveCookie(key string, options ...func(*http.Cookie))
 
 		SetSession(key, value string)
 		GetSessionString(key string) string
@@ -110,8 +113,8 @@ type (
 		GetToken(ctx IHttpContext) (*oauth2.Token, error)
 	}
 
-	ISecureCookieHost interface {
-		GetEncryptedCookie(ctx IHttpContext, name string) string
-		SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie))
-	}
+	// ISecureCookieHost interface {
+	// 	GetEncryptedCookie(ctx IHttpContext, name string) string
+	// 	SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie))
+	// }
 )

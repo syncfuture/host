@@ -13,6 +13,7 @@ import (
 	"github.com/fasthttp/session/v2/providers/memory"
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
@@ -35,6 +36,7 @@ type FHWebHost struct {
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
 	PanicHandler      host.RequestHandler
+	CookieEncryptor   ssecurity.ICookieEncryptor
 }
 
 func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWebHost {
@@ -62,7 +64,7 @@ func (x *FHWebHost) buildFHWebHost() {
 		x.Router = router.New()
 		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
 			if x.PanicHandler != nil {
-				newCtx := NewFastHttpContext(ctx, x.SessionManager)
+				newCtx := NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor)
 				newCtx.SetItem(host.Item_PANIC, err)
 				x.PanicHandler(newCtx)
 				return
@@ -134,7 +136,7 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.Request
 
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx host.IHttpContext
-		newCtx = NewFastHttpContext(ctx, x.SessionManager, handlers...)
+		newCtx = NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor, handlers...)
 		newCtx.SetItem(host.Item_RouteKey, routeKey)
 		defer func() {
 			newCtx.Reset()

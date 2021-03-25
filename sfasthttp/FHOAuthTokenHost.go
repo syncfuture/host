@@ -28,7 +28,8 @@ func NewFHOAuthTokenHost(cp sconfig.IConfigProvider, options ...TokenHostOption)
 
 func (x *FHOAuthTokenHost) BuildFHOAuthTokenHost() {
 	x.BuildOAuthTokenHost()
-	x.buildFHWebHost()
+	x.FHWebHost.CookieEncryptor = x.SecureCookieHost.GetCookieEncryptor()
+	x.FHWebHost.buildFHWebHost()
 
 	x.Router.POST(x.TokenEndpoint, x.TokenHost.TokenRequestHandler)
 	x.Router.GET(x.AuthorizeEndpoint, x.TokenHost.AuthorizeRequestHandler)

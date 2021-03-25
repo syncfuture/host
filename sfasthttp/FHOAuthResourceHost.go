@@ -31,5 +31,5 @@ func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceHostO
 
 func (x *FHOAuthResourceHost) BuildFHOAuthResourceHost() {
 	x.BuildOAuthResourceHost()
-	x.buildFHWebHost()
+	x.FHWebHost.buildFHWebHost()
 }

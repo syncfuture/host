@@ -14,7 +14,7 @@ import (
 type IOAuthTokenHost interface {
 	host.IBaseHost
 	host.IWebHost
-	host.ISecureCookieHost
+	// host.ISecureCookieHost
 	GetAuthCookieName() string
 	GetAuthorizeEndpoint() string
 	GetTokenEndpoint() string

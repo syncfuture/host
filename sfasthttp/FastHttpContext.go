@@ -9,7 +9,9 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/shttp"
+	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/spool"
+	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"github.com/valyala/fasthttp"
@@ -27,19 +29,21 @@ var (
 )
 
 type FastHttpContext struct {
-	ctx          *fasthttp.RequestCtx
-	sess         *session.Session
-	sessStore    *session.Store
-	mapPool      *sync.Pool
-	handlers     []host.RequestHandler
-	handlerIndex int
-	handlerCount int
+	ctx             *fasthttp.RequestCtx
+	sess            *session.Session
+	sessStore       *session.Store
+	mapPool         *sync.Pool
+	cookieEncryptor ssecurity.ICookieEncryptor
+	handlers        []host.RequestHandler
+	handlerIndex    int
+	handlerCount    int
 }
 
-func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, handlers ...host.RequestHandler) host.IHttpContext {
+func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, cookieEncryptor ssecurity.ICookieEncryptor, handlers ...host.RequestHandler) host.IHttpContext {
 	r := _ctxPool.Get().(*FastHttpContext)
 	r.ctx = ctx
 	r.sess = sess
+	r.cookieEncryptor = cookieEncryptor
 	var err error
 	r.sessStore, err = r.sess.Get(ctx)
 	u.LogFaltal(err)
@@ -80,7 +84,7 @@ func (x *FastHttpContext) GetItemInt64(key string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func (x *FastHttpContext) SetCookie(cookie *http.Cookie) {
+func (x *FastHttpContext) setCookie(cookie *http.Cookie) {
 	c := fasthttp.AcquireCookie()
 	defer func() {
 		fasthttp.ReleaseCookie(c)
@@ -108,14 +112,57 @@ func (x *FastHttpContext) SetCookieKV(key, value string, options ...func(*http.C
 		o(c)
 	}
 
-	x.SetCookie(c)
+	x.setCookie(c)
 }
 func (x *FastHttpContext) GetCookieString(key string) string {
 	r := x.ctx.Request.Header.Cookie(key)
 	return u.BytesToStr(r)
 }
-func (x *FastHttpContext) RemoveCookie(key string) {
-	x.ctx.Response.Header.DelClientCookie(key)
+
+func (x *FastHttpContext) SetEncryptedCookieKV(key string, value interface{}, options ...func(*http.Cookie)) {
+	if x.cookieEncryptor == nil {
+		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
+		return
+	}
+	encryptedString, err := x.cookieEncryptor.Encrypt(key, value)
+	if u.LogError(err) {
+		return
+	}
+	x.SetCookieKV(key, encryptedString, options...)
+}
+func (x *FastHttpContext) GetEncryptedCookieValue(key string) (r interface{}) {
+	if x.cookieEncryptor == nil {
+		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
+		return
+	}
+
+	encryptedString := x.GetCookieString(key)
+	if encryptedString != "" {
+		err := x.cookieEncryptor.Decrypt(key, encryptedString, &r)
+		u.LogError(err)
+	}
+
+	return
+}
+func (x *FastHttpContext) GetEncryptedCookieString(key string) string {
+	return sconv.ToString(x.GetEncryptedCookieValue(key))
+}
+
+func (x *FastHttpContext) RemoveCookie(key string, options ...func(*http.Cookie)) {
+	// x.ctx.Response.Header.DelClientCookie(key)
+
+	x.ctx.Response.Header.DelCookie(key)
+
+	c := _cookiePool.GetCookie()
+	defer func() {
+		_cookiePool.PutCookie(c)
+	}()
+
+	for _, o := range options {
+		o(c)
+	}
+
+	x.setCookie(c)
 }
 
 func (x *FastHttpContext) SetSession(key, value string) {
@@ -277,6 +324,7 @@ func (x *FastHttpContext) Reset() {
 	x.ctx = nil
 	x.sess = nil
 	x.sessStore = nil
+	x.cookieEncryptor = nil
 	x.mapPool = nil
 	x.handlers = nil
 	x.handlerCount = 0

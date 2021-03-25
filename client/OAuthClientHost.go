@@ -19,7 +19,7 @@ import (
 type IOAuthClientHost interface {
 	host.IBaseHost
 	host.IWebHost
-	host.ISecureCookieHost
+	// host.ISecureCookieHost
 	AuthHandler(ctx host.IHttpContext)
 	GetHttpClient() (*http.Client, error)
 	GetUserHttpClient(ctx host.IHttpContext) (*http.Client, error)

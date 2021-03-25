@@ -52,7 +52,9 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 		// 否则作为session存储
 	}
 
-	ctx.SetCookie(tokenCookie)
+	ctx.SetCookieKV(x.TokenCookieName, securedString, func(c *http.Cookie) {
+		c.HttpOnly = true
+	})
 	return nil
 }
 
