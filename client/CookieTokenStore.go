@@ -16,14 +16,14 @@ import (
 const _cookieTokenProtectorKey = "token"
 
 type CookieTokenStore struct {
-	CookieProtoector *securecookie.SecureCookie
-	TokenCookieName  string
+	CookieProtector *securecookie.SecureCookie
+	TokenCookieName string
 }
 
 func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.SecureCookie) *CookieTokenStore {
 	return &CookieTokenStore{
-		TokenCookieName:  tokenCookieName,
-		CookieProtoector: cookieProtoector,
+		TokenCookieName: tokenCookieName,
+		CookieProtector: cookieProtoector,
 	}
 }
 
@@ -35,7 +35,7 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 	}
 
 	// 令牌加密
-	securedString, err := x.CookieProtoector.Encode(_cookieTokenProtectorKey, tokenJson)
+	securedString, err := x.CookieProtector.Encode(_cookieTokenProtectorKey, tokenJson)
 
 	// 保存加密后的令牌到Cookie
 	tokenCookie := new(http.Cookie)
@@ -64,7 +64,7 @@ func (x *CookieTokenStore) GetToken(ctx host.IHttpContext) (*oauth2.Token, error
 		return nil, nil
 	}
 	var tokenJsonBytes []byte
-	err := x.CookieProtoector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
+	err := x.CookieProtector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
 	if err != nil {
 		return nil, serr.WithStack(err)
 	}

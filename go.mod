@@ -3,7 +3,7 @@ module github.com/syncfuture/host
 go 1.16
 
 require (
-	github.com/Lukiya/oauth2go v1.3.8
+	github.com/Lukiya/oauth2go v1.3.9
 	github.com/fasthttp/router v1.3.9
 	github.com/fasthttp/session/v2 v2.3.0
 	github.com/gorilla/schema v1.2.0

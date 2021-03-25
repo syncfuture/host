@@ -4,7 +4,6 @@ import (
 	"embed"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sredis"
@@ -113,6 +112,6 @@ type (
 
 	ISecureCookieHost interface {
 		GetEncryptedCookie(ctx IHttpContext, name string) string
-		SetEncryptedCookie(ctx IHttpContext, key, value string, duration time.Duration)
+		SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie))
 	}
 )

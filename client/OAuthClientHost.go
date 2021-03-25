@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/securecookie"
 	"github.com/muesli/cache2go"
 	"github.com/syncfuture/go/serr"
 	log "github.com/syncfuture/go/slog"
@@ -31,9 +30,8 @@ type IOAuthClientHost interface {
 
 type OAuthClientHost struct {
 	host.BaseHost
+	host.SecureCookieHost
 	OAuthOptions        *host.OAuthOptions `json:"OAuth,omitempty"`
-	HashKey             string
-	BlockKey            string
 	UserJsonSessionKey  string
 	UserIDSessionKey    string
 	TokenCookieName     string
@@ -44,27 +42,18 @@ type OAuthClientHost struct {
 	AccessDeniedPath    string
 	OAuthClientHandler  host.IOAuthClientHandler
 	ContextTokenStore   host.IContextTokenStore
-	CookieProtoector    *securecookie.SecureCookie
 	UserLocks           *cache2go.CacheTable
 }
 
 func (x *OAuthClientHost) BuildOAuthClientHost() {
-	// if x.BaseWebHost == nil {
-	// 	x.BaseWebHost = new(host.BaseWebHost)
-	// }
 	x.BaseHost.BuildBaseHost()
+	x.SecureCookieHost.BuildSecureCookieHost()
 
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")
 	}
 	x.OAuthOptions.BuildOAuthOptions(x.URLProvider)
 
-	if x.BlockKey == "" {
-		log.Fatal("block key cannot be empty")
-	}
-	if x.HashKey == "" {
-		log.Fatal("hash key cannot be empty")
-	}
 	if x.SignInPath == "" {
 		x.SignInPath = "/signin"
 	}
@@ -95,14 +84,9 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 		x.UserLocks = cache2go.Cache("UserLocks")
 	}
 
-	////////// cookie protoector
-	if x.CookieProtoector == nil {
-		x.CookieProtoector = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
-	}
-
 	////////// context token store
 	if x.ContextTokenStore == nil {
-		x.ContextTokenStore = NewCookieTokenStore(x.TokenCookieName, x.CookieProtoector)
+		x.ContextTokenStore = NewCookieTokenStore(x.TokenCookieName, x.CookieProtector)
 	}
 
 	////////// oauth client handler

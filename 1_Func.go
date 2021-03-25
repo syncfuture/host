@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/gorilla/securecookie"
@@ -151,11 +150,9 @@ func GetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCo
 
 	return r
 }
-func SetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCookie, key, value string, duration time.Duration) {
+func SetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCookie, key, value string, options ...func(*http.Cookie)) {
 	if encryptedCookie, err := cookieProtector.Encode(key, value); err == nil {
-		ctx.SetCookieKV(key, encryptedCookie, func(c *http.Cookie) {
-			c.Expires = time.Now().Add(duration)
-		})
+		ctx.SetCookieKV(key, encryptedCookie, options...)
 	} else {
 		u.LogError(err)
 	}

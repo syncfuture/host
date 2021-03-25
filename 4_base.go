@@ -1,12 +1,15 @@
 package host
 
 import (
+	"net/http"
+
 	"github.com/gorilla/securecookie"
 	"github.com/syncfuture/go/sconfig"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
+	"github.com/syncfuture/go/u"
 )
 
 type BaseHost struct {
@@ -158,4 +161,34 @@ func (x *BaseWebHost) AddAction(route, routeKey string, handlers ...RequestHandl
 		log.Fatal("duplicated route found: " + action.Route)
 	}
 	x.Actions[action.Route] = action
+}
+
+type SecureCookieHost struct {
+	HashKey         string
+	BlockKey        string
+	CookieProtector *securecookie.SecureCookie
+}
+
+func (x *SecureCookieHost) BuildSecureCookieHost() {
+	////////// cookie protoector
+	if x.CookieProtector == nil {
+		if x.BlockKey == "" {
+			log.Fatal("block key cannot be empty")
+		}
+		if x.HashKey == "" {
+			log.Fatal("hash key cannot be empty")
+		}
+
+		x.CookieProtector = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
+	}
+}
+
+// GetEncryptedCookie(ctx IHttpContext, name string) string
+// SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie))
+
+func (x *SecureCookieHost) GetEncryptedCookie(ctx IHttpContext, key string) string {
+	return GetEncryptedCookie(ctx, x.CookieProtector, key)
+}
+func (x *SecureCookieHost) SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie)) {
+	SetEncryptedCookie(ctx, x.CookieProtector, key, value, options...)
 }
