@@ -16,6 +16,7 @@ type IOAuthTokenHost interface {
 	host.IWebHost
 	host.ISecureCookieHost
 	GetAuthCookieName() string
+	GetLoginEndpoint() string
 }
 
 type OAuthTokenHost struct {
@@ -95,4 +96,8 @@ func (x *OAuthTokenHost) BuildOAuthTokenHost() {
 
 func (x *OAuthTokenHost) GetAuthCookieName() string {
 	return x.AuthCookieName
+}
+
+func (x *OAuthTokenHost) GetLoginEndpoint() string {
+	return x.LoginEndpoint
 }
