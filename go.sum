@@ -35,6 +35,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/Lukiya/oauth2go v1.3.9 h1:RALIrUw7tf8hN7gbK/D5sVM9UZC8nNeIhD6odzLGVag=
 github.com/Lukiya/oauth2go v1.3.9/go.mod h1:EPzIMDf+FH2ebYlBNJ7IH34VKCuqOLfq/qfmnS4zoJk=
+github.com/Lukiya/oauth2go v1.3.10 h1:yLx06z7cKnrtH8luip7c8QGiafaaeMDGDpPvvS7APlc=
+github.com/Lukiya/oauth2go v1.3.10/go.mod h1:d7QK/yNOCZ3tx6uRtwNShmdkZdUEndo09s7bh+SYj14=
 github.com/andybalholm/brotli v1.0.1 h1:KqhlKozYbRtJvsPrrEeXcO+N2l6NYT5A2QAFmSULpEc=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
 github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b/go.mod h1:H0wQNHz2YrLsuXOZozoeDmnHXkNCRmMW0gwFWDfEZDA=
@@ -215,6 +217,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/syncfuture/go v1.5.7 h1:Y0AnA7Qo6e/1A3x8sLgfE/7/Bk4Pa7PnDXU7hyhhFw4=
 github.com/syncfuture/go v1.5.7/go.mod h1:pcMavNTDtz0tKpBNCQE5H8xETx53lkoYMt8oZB+bpm0=
+github.com/syncfuture/go v1.5.10 h1:B5uVbrd+NNYvhSvg+yNdiwEZ0rCCM9FyRSuIyOlZDIw=
+github.com/syncfuture/go v1.5.10/go.mod h1:JCmbV1r/6Hda8yX7+8JhiD/O0hITa02FkQgcfLhPijE=
 github.com/tidwall/gjson v1.6.8 h1:CTmXMClGYPAmln7652e69B7OLXfTi5ABcPPwjIWUv7w=
 github.com/tidwall/gjson v1.6.8/go.mod h1:zeFuBCIqD4sN/gmqBzZ4j7Jd6UcA2Fc56x7QFsv+8fI=
 github.com/tidwall/match v1.0.3 h1:FQUVvBImDutD8wJLN6c5eMzWtjgONK9MwIBCOrUJKeE=

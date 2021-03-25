@@ -166,29 +166,30 @@ func (x *BaseWebHost) AddAction(route, routeKey string, handlers ...RequestHandl
 type SecureCookieHost struct {
 	HashKey         string
 	BlockKey        string
-	CookieProtector *securecookie.SecureCookie
+	scookie         *securecookie.SecureCookie
+	cookieEncryptor ssecurity.ICookieEncryptor
+	// CookieProtector *securecookie.SecureCookie
+}
+
+func (x *SecureCookieHost) GetCookieEncryptor() ssecurity.ICookieEncryptor {
+	return x.cookieEncryptor
 }
 
 func (x *SecureCookieHost) BuildSecureCookieHost() {
-	////////// cookie protoector
-	if x.CookieProtector == nil {
-		if x.BlockKey == "" {
-			log.Fatal("block key cannot be empty")
-		}
-		if x.HashKey == "" {
-			log.Fatal("hash key cannot be empty")
-		}
-
-		x.CookieProtector = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
+	if x.BlockKey == "" {
+		log.Fatal("block key cannot be empty")
 	}
-}
+	if x.HashKey == "" {
+		log.Fatal("hash key cannot be empty")
+	}
 
-// GetEncryptedCookie(ctx IHttpContext, name string) string
-// SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie))
+	x.scookie = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
+	x.cookieEncryptor = ssecurity.NewSecureCookieEncryptor(x.scookie)
+}
 
 func (x *SecureCookieHost) GetEncryptedCookie(ctx IHttpContext, key string) string {
-	return GetEncryptedCookie(ctx, x.CookieProtector, key)
+	return GetEncryptedCookie(ctx, x.cookieEncryptor, key)
 }
 func (x *SecureCookieHost) SetEncryptedCookie(ctx IHttpContext, key, value string, options ...func(*http.Cookie)) {
-	SetEncryptedCookie(ctx, x.CookieProtector, key, value, options...)
+	SetEncryptedCookie(ctx, x.cookieEncryptor, key, value, options...)
 }

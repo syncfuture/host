@@ -6,9 +6,9 @@ import (
 	"time"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
-	"github.com/gorilla/securecookie"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/serr"
+	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/host"
 	"golang.org/x/oauth2"
 )
@@ -16,14 +16,14 @@ import (
 const _cookieTokenProtectorKey = "token"
 
 type CookieTokenStore struct {
-	CookieProtector *securecookie.SecureCookie
+	CookieEncryptor ssecurity.ICookieEncryptor
 	TokenCookieName string
 }
 
-func NewCookieTokenStore(tokenCookieName string, cookieProtoector *securecookie.SecureCookie) *CookieTokenStore {
+func NewCookieTokenStore(tokenCookieName string, cookieEncryptor ssecurity.ICookieEncryptor) *CookieTokenStore {
 	return &CookieTokenStore{
 		TokenCookieName: tokenCookieName,
-		CookieProtector: cookieProtoector,
+		CookieEncryptor: cookieEncryptor,
 	}
 }
 
@@ -35,7 +35,7 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 	}
 
 	// 令牌加密
-	securedString, err := x.CookieProtector.Encode(_cookieTokenProtectorKey, tokenJson)
+	securedString, err := x.CookieEncryptor.Encrypt(_cookieTokenProtectorKey, tokenJson)
 
 	// 保存加密后的令牌到Cookie
 	tokenCookie := new(http.Cookie)
@@ -64,7 +64,7 @@ func (x *CookieTokenStore) GetToken(ctx host.IHttpContext) (*oauth2.Token, error
 		return nil, nil
 	}
 	var tokenJsonBytes []byte
-	err := x.CookieProtector.Decode(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
+	err := x.CookieEncryptor.Decrypt(_cookieTokenProtectorKey, tokenJson, &tokenJsonBytes)
 	if err != nil {
 		return nil, serr.WithStack(err)
 	}

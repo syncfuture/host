@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
-	"github.com/gorilla/securecookie"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
+	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/model"
 	"golang.org/x/oauth2"
@@ -135,14 +135,14 @@ func GetClaimInt64(ctx IHttpContext, claimName string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func GetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCookie, name string) string {
+func GetEncryptedCookie(ctx IHttpContext, cookieEncryptor ssecurity.ICookieEncryptor, name string) string {
 	encryptedCookie := ctx.GetCookieString(name)
 	if encryptedCookie == "" {
 		return ""
 	}
 
 	var r string
-	err := cookieProtector.Decode(name, encryptedCookie, &r)
+	err := cookieEncryptor.Decrypt(name, encryptedCookie, &r)
 
 	if u.LogError(err) {
 		return ""
@@ -150,8 +150,8 @@ func GetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCo
 
 	return r
 }
-func SetEncryptedCookie(ctx IHttpContext, cookieProtector *securecookie.SecureCookie, key, value string, options ...func(*http.Cookie)) {
-	if encryptedCookie, err := cookieProtector.Encode(key, value); err == nil {
+func SetEncryptedCookie(ctx IHttpContext, cookieEncryptor ssecurity.ICookieEncryptor, key, value string, options ...func(*http.Cookie)) {
+	if encryptedCookie, err := cookieEncryptor.Encrypt(key, value); err == nil {
 		ctx.SetCookieKV(key, encryptedCookie, options...)
 	} else {
 		u.LogError(err)

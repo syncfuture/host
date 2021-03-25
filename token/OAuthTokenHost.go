@@ -5,7 +5,6 @@ import (
 	"github.com/Lukiya/oauth2go/security"
 	"github.com/Lukiya/oauth2go/security/rsa"
 	"github.com/Lukiya/oauth2go/store/redis"
-	"github.com/gorilla/securecookie"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
@@ -15,7 +14,7 @@ import (
 type IOAuthTokenHost interface {
 	host.IBaseHost
 	host.IWebHost
-	// host.ISecureCookieHst
+	host.ISecureCookieHost
 	GetAuthCookieName() string
 }
 
@@ -23,7 +22,6 @@ type OAuthTokenHost struct {
 	host.BaseHost
 	oauth2go.TokenHost
 	host.SecureCookieHost
-	BlockKey           string
 	UserJsonSessionKey string
 	UserIDSessionKey   string
 	PrivateKeyPath     string
@@ -33,14 +31,10 @@ type OAuthTokenHost struct {
 }
 
 func (x *OAuthTokenHost) BuildOAuthTokenHost() {
+	// log.Info(x.SecureCookieHost.GetEncryptedCooke)
+
 	x.BaseHost.BuildBaseHost()
 
-	if x.BlockKey == "" {
-		log.Fatal("block key cannot be empty")
-	}
-	if x.HashKey == "" {
-		log.Fatal("hash key cannot be empty")
-	}
 	if x.PrivateKeyPath == "" {
 		log.Fatal("missing 'PrivateKeyPath' filed in configuration")
 	}
@@ -57,9 +51,10 @@ func (x *OAuthTokenHost) BuildOAuthTokenHost() {
 		x.ClientStoreKey = "t:"
 	}
 
-	////////// CookieProtector
-	if x.CookieProtector == nil {
-		x.CookieProtector = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))
+	////////// CookieEncryptor
+	if x.CookieEncryptor == nil {
+		x.SecureCookieHost.BuildSecureCookieHost()
+		x.CookieEncryptor = x.GetCookieEncryptor()
 	}
 
 	////////// PrivateKey

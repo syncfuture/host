@@ -10,6 +10,7 @@ import (
 	"github.com/muesli/cache2go"
 	"github.com/syncfuture/go/serr"
 	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"golang.org/x/oauth2"
@@ -18,6 +19,7 @@ import (
 type IOAuthClientHost interface {
 	host.IBaseHost
 	host.IWebHost
+	host.ISecureCookieHost
 	AuthHandler(ctx host.IHttpContext)
 	GetHttpClient() (*http.Client, error)
 	GetUserHttpClient(ctx host.IHttpContext) (*http.Client, error)
@@ -43,11 +45,11 @@ type OAuthClientHost struct {
 	OAuthClientHandler  host.IOAuthClientHandler
 	ContextTokenStore   host.IContextTokenStore
 	UserLocks           *cache2go.CacheTable
+	CookieEncryptor     ssecurity.ICookieEncryptor
 }
 
 func (x *OAuthClientHost) BuildOAuthClientHost() {
 	x.BaseHost.BuildBaseHost()
-	x.SecureCookieHost.BuildSecureCookieHost()
 
 	if x.OAuthOptions == nil {
 		log.Fatal("OAuth secion in configuration is missing")
@@ -84,9 +86,15 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 		x.UserLocks = cache2go.Cache("UserLocks")
 	}
 
+	////////// CookieEncryptor
+	if x.CookieEncryptor == nil {
+		x.SecureCookieHost.BuildSecureCookieHost()
+		x.CookieEncryptor = x.GetCookieEncryptor()
+	}
+
 	////////// context token store
 	if x.ContextTokenStore == nil {
-		x.ContextTokenStore = NewCookieTokenStore(x.TokenCookieName, x.CookieProtector)
+		x.ContextTokenStore = NewCookieTokenStore(x.TokenCookieName, x.CookieEncryptor)
 	}
 
 	////////// oauth client handler
