@@ -2,14 +2,6 @@ package sgrpc
 
 import (
 	"context"
-
-	"google.golang.org/grpc/credentials"
-)
-
-const (
-	// _headerClaims = "authorization"
-	_headerClaims = "claims"
-	// _tokenType  = "Bearer "
 )
 
 type tokenCredential struct {
@@ -32,11 +24,4 @@ func (x tokenCredential) GetRequestMetadata(ctx context.Context, uri ...string) 
 // RequireTransportSecurity 是否开启TLS
 func (x tokenCredential) RequireTransportSecurity() bool {
 	return x.RequireTLS
-}
-
-func NewTokenCredential(token string, requireTLS bool) credentials.PerRPCCredentials {
-	return &tokenCredential{
-		ClaimsJson: token,
-		RequireTLS: requireTLS,
-	}
 }

@@ -28,7 +28,7 @@ func TestWebHost(t *testing.T) {
 
 	h.GET("/", func(ctx host.IHttpContext) {
 		log.Info("Handler")
-		routeKey := ctx.GetItemString(host.Item_RouteKey)
+		routeKey := ctx.GetItemString(host.Ctx_RouteKey)
 		ctx.WriteString(routeKey)
 		ctx.Next()
 	})

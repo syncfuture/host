@@ -9,6 +9,7 @@ import (
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/ssecurity"
+	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"golang.org/x/oauth2"
 )
@@ -42,7 +43,7 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 	tokenCookie.Name = x.TokenCookieName
 	tokenCookie.Value = securedString
 	tokenCookie.HttpOnly = true
-	tokenClaims, err := jwt.ParseWithoutCheck([]byte(token.AccessToken))
+	tokenClaims, err := jwt.ParseWithoutCheck(u.StrToBytes(token.AccessToken))
 	if err != nil {
 		return serr.WithStack(err)
 	}

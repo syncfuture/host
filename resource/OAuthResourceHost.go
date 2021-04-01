@@ -86,9 +86,10 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		log.Warnf("'%s'invalid authorization header format. '%s'", ctx.GetRemoteIP(), authHeader)
 		return
 	}
+	token := array[1]
 
 	// verify signature
-	token, err := jwt.RSACheck([]byte(array[1]), x.PublicKey)
+	jwtClaims, err := jwt.RSACheck(u.StrToBytes(token), x.PublicKey)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		log.Warn("'"+ctx.GetRemoteIP()+"'", err)
@@ -96,7 +97,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	}
 
 	// validate time limits
-	isNotExpired := token.Valid(time.Now().UTC())
+	isNotExpired := jwtClaims.Valid(time.Now().UTC())
 	if !isNotExpired {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "current time not in token's valid period"
@@ -106,7 +107,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	}
 
 	// validate aud
-	isValidAudience := x.OAuthOptions.ValidAudiences != nil && sslice.HasAnyStr(x.OAuthOptions.ValidAudiences, token.Audiences)
+	isValidAudience := x.OAuthOptions.ValidAudiences != nil && sslice.HasAnyStr(x.OAuthOptions.ValidAudiences, jwtClaims.Audiences)
 	if !isValidAudience {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid audience"
@@ -116,7 +117,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	}
 
 	// validate iss
-	isValidIssuer := x.OAuthOptions.ValidIssuers != nil && sslice.HasStr(x.OAuthOptions.ValidIssuers, token.Issuer)
+	isValidIssuer := x.OAuthOptions.ValidIssuers != nil && sslice.HasStr(x.OAuthOptions.ValidIssuers, jwtClaims.Issuer)
 	if !isValidIssuer {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid issuer"
@@ -135,15 +136,16 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	// }
 
 	var msgCode string
-	if token != nil {
-		routeKey := ctx.GetItemString(host.Item_RouteKey)
+	if jwtClaims != nil {
+		routeKey := ctx.GetItemString(host.Ctx_RouteKey)
 		area, controller, action := host.GetRoutesByKey(routeKey)
 
-		roles := sconv.ToInt64(token.Set[oauth2core.Claim_Role])
-		level := sconv.ToInt64(token.Set[oauth2core.Claim_Level])
+		roles := sconv.ToInt64(jwtClaims.Set[oauth2core.Claim_Role])
+		level := sconv.ToInt64(jwtClaims.Set[oauth2core.Claim_Level])
 		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level)) {
 			// Has permission, allow
-			ctx.SetItem(host.Item_JWT, token)
+			ctx.SetItem(host.Ctx_Claims, jwtClaims.Set) // RL00001
+			ctx.SetItem(host.Ctx_Token, token)          // RL00002
 			ctx.Next()
 			return
 		} else {

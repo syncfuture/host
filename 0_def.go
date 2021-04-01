@@ -6,9 +6,10 @@ const (
 	// Header_ContentType = "Content-Type"
 	Seperator_Route = "_"
 	AuthType_Bearer = "Bearer"
-	Item_RouteKey   = "RouteKey"
-	Item_JWT        = "jwt"
-	Item_PANIC      = "panic"
+	Ctx_RouteKey    = "RouteKey"
+	Ctx_Claims      = "claims"
+	Ctx_Token       = "token"
+	Ctx_Panic       = "panic"
 )
 
 var (

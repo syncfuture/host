@@ -152,7 +152,7 @@ func (x *OAuthClientHandler) SignInCallbackHandler(ctx host.IHttpContext) {
 	}
 
 	// 将字符串转化为令牌对象
-	jwtToken, err := jwt.ParseWithoutCheck([]byte(oauth2Token.AccessToken))
+	jwtToken, err := jwt.ParseWithoutCheck(u.StrToBytes(oauth2Token.AccessToken))
 	if err == nil {
 		userStr := u.BytesToStr(jwtToken.Raw)
 		ctx.SetSession(x.UserJsonSessionkey, userStr)

@@ -47,7 +47,7 @@ func (x *GRPCServiceHost) BuildGRPCServiceHost() {
 	}
 
 	// GRPC Server
-	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, AttachUserClaims))
+	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, attachUserClaims))
 	streamHandler := grpc.StreamInterceptor(panichandler.StreamPanicHandler)
 	panichandler.InstallPanicHandler(func(r interface{}) {
 		log.Error(r)

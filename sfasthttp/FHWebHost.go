@@ -65,7 +65,7 @@ func (x *FHWebHost) buildFHWebHost() {
 		x.Router.PanicHandler = func(ctx *fasthttp.RequestCtx, err interface{}) {
 			if x.PanicHandler != nil {
 				newCtx := NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor)
-				newCtx.SetItem(host.Item_PANIC, err)
+				newCtx.SetItem(host.Ctx_Panic, err)
 				x.PanicHandler(newCtx)
 				return
 			}
@@ -137,7 +137,7 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.Request
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		var newCtx host.IHttpContext
 		newCtx = NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor, handlers...)
-		newCtx.SetItem(host.Item_RouteKey, routeKey)
+		newCtx.SetItem(host.Ctx_RouteKey, routeKey)
 		defer func() {
 			newCtx.Reset()
 			_ctxPool.Put(newCtx)

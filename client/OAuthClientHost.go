@@ -203,7 +203,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 }
 
 func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
-	routeKey := ctx.GetItemString(host.Item_RouteKey)
+	routeKey := ctx.GetItemString(host.Ctx_RouteKey)
 	if routeKey == "" {
 		ctx.SetStatusCode(500)
 		ctx.WriteString("route key does not exist")

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	oauth2core "github.com/Lukiya/oauth2go/core"
-	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
 	log "github.com/syncfuture/go/slog"
@@ -107,18 +106,20 @@ func HandleErr(err error, ctx IHttpContext) bool {
 	return false
 }
 
-func GetClaims(ctx IHttpContext) *jwt.Claims {
-	j, ok := ctx.GetItem(Item_JWT).(*jwt.Claims)
+func GetClaims(ctx IHttpContext) map[string]interface{} {
+	j, ok := ctx.GetItem(Ctx_Claims).(map[string]interface{})
+
 	if ok {
 		return j
 	}
+
 	return nil
 }
 
 func GetClaimValue(ctx IHttpContext, claimName string) interface{} {
-	j := GetClaims(ctx)
-	if j != nil {
-		if v, ok := j.Set[claimName]; ok {
+	claims := GetClaims(ctx)
+	if claims != nil {
+		if v, ok := claims[claimName]; ok {
 			return v
 		}
 	}
