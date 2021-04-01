@@ -2,19 +2,19 @@ package sgrpc
 
 import (
 	"context"
-	"encoding/json"
 
+	"github.com/pascaldekloe/jwt"
+	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
-	CONSTS_USER   = "user"
-	_headerClaims = "claims"
+	Header_Token = "token"
+	Ctx_Claims   = "claims"
 )
 
 // func CreateServer() *grpc.Server {
@@ -26,6 +26,7 @@ const (
 // 	return grpc.NewServer(uIntOpt, sIntOpt)
 // }
 
+// DialWithHttpContextToken 拨号，发送令牌
 func DialWithHttpContextToken(addr string, ctx host.IHttpContext) (r *grpc.ClientConn, err error) {
 	j := ctx.GetItem(host.Ctx_Token) // RL00002
 	if j != nil {
@@ -49,39 +50,60 @@ func DialWithHttpContextToken(addr string, ctx host.IHttpContext) (r *grpc.Clien
 	return r, serr.WithStack(err)
 }
 
-func attachUserClaims(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-	claimsJson := extractClaims(ctx)
-	if claimsJson == "" {
+// receiveTokenMiddleware 接收令牌中间件
+func receiveTokenMiddleware(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	claims, err := receiveTokenMiddleware_ExtractClaims(ctx) // 从收到的令牌中提取出Claims
+	if err != nil || claims == nil {
+		u.LogError(err)
 		return handler(ctx, req)
 	}
 
-	// claims, err := jwt.ParseWithoutCheck(u.StrToBytes(claimsJson)) // todo
-	var claims map[string]interface{}
-	err = json.Unmarshal(u.StrToBytes(claimsJson), &claims)
-	if err == nil {
-		// return handler(context.WithValue(ctx, "user", claims.Set), req)
-		return handler(context.WithValue(ctx, CONSTS_USER, claims), req)
-	} else {
-		err = serr.WithStack(err)
-	}
-
-	return handler(ctx, req)
+	// 提取成功，附加给context
+	return handler(context.WithValue(ctx, Ctx_Claims, claims), req) // RL00003
 }
 
-func extractClaims(ctx context.Context) string {
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if authStrs, ok := md[_headerClaims]; ok {
-			if len(authStrs) == 1 {
-				return authStrs[0]
+func receiveTokenMiddleware_ExtractClaims(ctx context.Context) (*map[string]interface{}, error) {
+	if metas, ok := metadata.FromIncomingContext(ctx); ok {
+		if tokenArray, ok := metas[Header_Token]; ok {
+			if len(tokenArray) == 1 {
+				claims, err := jwt.ParseWithoutCheck(u.StrToBytes(tokenArray[0]))
+				if err != nil {
+					return nil, serr.WithStack(err)
+				}
+
+				return &claims.Set, nil
 			}
 		}
 	}
-	return ""
+	return nil, nil
 }
 
-func newTokenCredential(token string, requireTLS bool) credentials.PerRPCCredentials {
-	return &tokenCredential{
-		ClaimsJson: token,
-		RequireTLS: requireTLS,
+func getClaims(ctx context.Context) *map[string]interface{} {
+	j, ok := ctx.Value(Ctx_Claims).(*map[string]interface{}) // RL00003
+
+	if ok {
+		return j
 	}
+
+	return nil
+}
+
+func getClaimValue(ctx context.Context, claimName string) interface{} {
+	claims := getClaims(ctx)
+	if claims != nil {
+		if v, ok := (*claims)[claimName]; ok {
+			return v
+		}
+	}
+	return nil
+}
+
+func GetClaimString(ctx context.Context, claimName string) string {
+	v := getClaimValue(ctx, claimName)
+	return sconv.ToString(v)
+}
+
+func GetClaimInt64(ctx context.Context, claimName string) int64 {
+	v := getClaimValue(ctx, claimName)
+	return sconv.ToInt64(v)
 }

@@ -106,8 +106,8 @@ func HandleErr(err error, ctx IHttpContext) bool {
 	return false
 }
 
-func GetClaims(ctx IHttpContext) map[string]interface{} {
-	j, ok := ctx.GetItem(Ctx_Claims).(map[string]interface{})
+func getClaims(ctx IHttpContext) *map[string]interface{} {
+	j, ok := ctx.GetItem(Ctx_Claims).(*map[string]interface{}) // RL00001
 
 	if ok {
 		return j
@@ -116,10 +116,10 @@ func GetClaims(ctx IHttpContext) map[string]interface{} {
 	return nil
 }
 
-func GetClaimValue(ctx IHttpContext, claimName string) interface{} {
-	claims := GetClaims(ctx)
+func getClaimValue(ctx IHttpContext, claimName string) interface{} {
+	claims := getClaims(ctx)
 	if claims != nil {
-		if v, ok := claims[claimName]; ok {
+		if v, ok := (*claims)[claimName]; ok {
 			return v
 		}
 	}
@@ -127,12 +127,12 @@ func GetClaimValue(ctx IHttpContext, claimName string) interface{} {
 }
 
 func GetClaimString(ctx IHttpContext, claimName string) string {
-	v := GetClaimValue(ctx, claimName)
+	v := getClaimValue(ctx, claimName)
 	return sconv.ToString(v)
 }
 
 func GetClaimInt64(ctx IHttpContext, claimName string) int64 {
-	v := GetClaimValue(ctx, claimName)
+	v := getClaimValue(ctx, claimName)
 	return sconv.ToInt64(v)
 }
 

@@ -144,8 +144,8 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		level := sconv.ToInt64(jwtClaims.Set[oauth2core.Claim_Level])
 		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level)) {
 			// Has permission, allow
-			ctx.SetItem(host.Ctx_Claims, jwtClaims.Set) // RL00001
-			ctx.SetItem(host.Ctx_Token, token)          // RL00002
+			ctx.SetItem(host.Ctx_Claims, &jwtClaims.Set) // RL00001
+			ctx.SetItem(host.Ctx_Token, token)           // RL00002
 			ctx.Next()
 			return
 		} else {
