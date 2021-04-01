@@ -105,6 +105,7 @@ func (x *FastHttpContext) SetCookieKV(key, value string, options ...func(*http.C
 	defer func() {
 		_cookiePool.PutCookie(c)
 	}()
+
 	c.Name = key
 	c.Value = value
 
@@ -128,6 +129,7 @@ func (x *FastHttpContext) SetEncryptedCookieKV(key, value string, options ...fun
 	if u.LogError(err) {
 		return
 	}
+
 	x.SetCookieKV(key, encryptedString, options...)
 }
 

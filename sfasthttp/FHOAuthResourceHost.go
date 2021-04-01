@@ -12,7 +12,7 @@ type FHOAuthResourceHost struct {
 	FHWebHost
 }
 
-func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceHostOption) resource.IOAuthRespirceHost {
+func NewFHOAuthResourceHost(cp sconfig.IConfigProvider, options ...ResourceHostOption) resource.IOAuthResourceHost {
 	r := new(FHOAuthResourceHost)
 	// r.OAuthResourceHost = new(resource.OAuthResourceHost)
 	// r.OAuthResourceHost.BaseHost = new(host.BaseHost)

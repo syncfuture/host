@@ -18,7 +18,7 @@ import (
 	"github.com/syncfuture/host"
 )
 
-type IOAuthRespirceHost interface {
+type IOAuthResourceHost interface {
 	host.IBaseHost
 	host.IWebHost
 	AuthHandler(ctx host.IHttpContext)
