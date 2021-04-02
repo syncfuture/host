@@ -86,6 +86,10 @@ func (x *FastHttpContext) GetItemInt64(key string) int64 {
 	return sconv.ToInt64(v)
 }
 
+func (x *FastHttpContext) GetRouteKey() string {
+	return x.GetItemString(host.Ctx_RouteKey)
+}
+
 func (x *FastHttpContext) setCookie(cookie *http.Cookie) {
 	c := fasthttp.AcquireCookie()
 	defer func() {

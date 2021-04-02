@@ -62,6 +62,8 @@ type (
 		GetItemInt32(key string) int32
 		GetItemInt64(key string) int64
 
+		GetRouteKey() string
+
 		SetCookieKV(key, value string, options ...func(*http.Cookie))
 		GetCookieString(key string) string
 		SetEncryptedCookieKV(key, value string, options ...func(*http.Cookie))
