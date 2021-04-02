@@ -3,6 +3,7 @@ package host
 import (
 	"embed"
 	"io"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/syncfuture/go/sconfig"
@@ -73,6 +74,8 @@ type (
 		EndSession()
 
 		GetFormString(key string) string
+		GetFormStringDefault(key, d string) string
+		GetFormFile(key string) (*multipart.FileHeader, error)
 
 		GetBodyString() string
 		GetBodyBytes() []byte

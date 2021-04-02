@@ -2,12 +2,14 @@ package sfasthttp
 
 import (
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"sync"
 
 	"github.com/fasthttp/session/v2"
 	"github.com/gorilla/schema"
 	"github.com/syncfuture/go/sconv"
+	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/shttp"
 	log "github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/spool"
@@ -212,6 +214,19 @@ func (x *FastHttpContext) GetFormString(key string) string {
 	r := x.ctx.FormValue(key)
 	return u.BytesToStr(r)
 }
+func (x *FastHttpContext) GetFormStringDefault(key, d string) (r string) {
+	data := x.ctx.FormValue(key)
+	r = u.BytesToStr(data)
+	if r == "" {
+		r = d
+	}
+	return
+}
+
+func (x *FastHttpContext) GetFormFile(key string) (*multipart.FileHeader, error) {
+	r, err := x.ctx.FormFile(key)
+	return r, serr.WithStack(err)
+}
 
 func (x *FastHttpContext) GetBodyString() string {
 	return x.ctx.Request.String()
@@ -239,7 +254,8 @@ func (x *FastHttpContext) GetParamInt64(key string) int64 {
 
 func (x *FastHttpContext) ReadJSON(objPtr interface{}) error {
 	data := x.ctx.Request.Body()
-	return json.Unmarshal(data, objPtr)
+	err := json.Unmarshal(data, objPtr)
+	return serr.WithStack(err)
 }
 func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 	dic := x.mapPool.Get().(map[string][]string)
@@ -253,7 +269,8 @@ func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 		dic[u.BytesToStr(key)] = []string{u.BytesToStr(value)}
 	})
 
-	return _decoder.Decode(objPtr, dic)
+	err := _decoder.Decode(objPtr, dic)
+	return serr.WithStack(err)
 }
 func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
 	dic := x.mapPool.Get().(map[string][]string)
@@ -267,7 +284,8 @@ func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
 		dic[u.BytesToStr(key)] = []string{u.BytesToStr(value)}
 	})
 
-	return _decoder.Decode(objPtr, dic)
+	err := _decoder.Decode(objPtr, dic)
+	return serr.WithStack(err)
 }
 
 func (x *FastHttpContext) SetHeader(key, value string) {
@@ -285,15 +303,18 @@ func (x *FastHttpContext) SetContentType(cType string) {
 	x.ctx.SetContentType(cType)
 }
 func (x *FastHttpContext) WriteString(body string) (int, error) {
-	return x.ctx.WriteString(body)
+	r, err := x.ctx.WriteString(body)
+	return r, serr.WithStack(err)
 }
 func (x *FastHttpContext) WriteBytes(body []byte) (int, error) {
-	return x.ctx.Write(body)
+	r, err := x.ctx.Write(body)
+	return r, serr.WithStack(err)
 }
 
 func (x *FastHttpContext) WriteJsonBytes(body []byte) (int, error) {
 	x.ctx.SetContentType(shttp.CTYPE_JSON)
-	return x.ctx.Write(body)
+	r, err := x.ctx.Write(body)
+	return r, serr.WithStack(err)
 }
 
 func (x *FastHttpContext) RequestURL() string {
