@@ -76,6 +76,7 @@ type (
 		GetFormString(key string) string
 		GetFormStringDefault(key, d string) string
 		GetFormFile(key string) (*multipart.FileHeader, error)
+		GetMultipartForm() (*multipart.Form, error)
 
 		GetBodyString() string
 		GetBodyBytes() []byte

@@ -228,6 +228,11 @@ func (x *FastHttpContext) GetFormFile(key string) (*multipart.FileHeader, error)
 	return r, serr.WithStack(err)
 }
 
+func (x *FastHttpContext) GetMultipartForm() (*multipart.Form, error) {
+	r, err := x.ctx.MultipartForm()
+	return r, serr.WithStack(err)
+}
+
 func (x *FastHttpContext) GetBodyString() string {
 	return x.ctx.Request.String()
 }
