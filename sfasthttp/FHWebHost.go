@@ -32,6 +32,7 @@ type FHWebHost struct {
 	// 独有属性
 	SessionCookieName string
 	SessionExpSeconds int
+	ReadBufferSize    int
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
@@ -96,6 +97,10 @@ func (x *FHWebHost) buildFHWebHost() {
 		x.SessionManager = session.New(cfg)
 		err := x.SessionManager.SetProvider(x.SessionProvider)
 		u.LogFaltal(err)
+	}
+
+	if x.ReadBufferSize <= 0 {
+		x.ReadBufferSize = 4096
 	}
 
 	////////// CORS
@@ -201,7 +206,11 @@ func (x *FHWebHost) Run() error {
 
 	////////// 开始Serve
 	log.Infof("Listening on %s", x.ListenAddr)
-	return fasthttp.ListenAndServe(x.ListenAddr, x.Router.Handler)
+	s := &fasthttp.Server{
+		Handler:        x.Router.Handler,
+		ReadBufferSize: x.ReadBufferSize,
+	}
+	return s.ListenAndServe(x.ListenAddr)
 }
 
 func (x *FHWebHost) RegisterActionsToRouter(action *host.Action) {
