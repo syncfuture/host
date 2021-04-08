@@ -99,7 +99,7 @@ func HandleErr(err error, ctx IHttpContext) bool {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		errID := _idGenerator.GenerateString()
 		log.Errorf("[%s] %+v", errID, err)
-		ctx.WriteString(`{"err":"` + errID + `"}`)
+		ctx.WriteJsonBytes(u.StrToBytes(`{"err":"` + errID + `"}`))
 
 		return true
 	}
