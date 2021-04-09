@@ -30,6 +30,10 @@ var (
 	// _setCookieKVExpiration = 8760 * time.Hour
 )
 
+func init() {
+	_decoder.IgnoreUnknownKeys(true)
+}
+
 type FastHttpContext struct {
 	ctx             *fasthttp.RequestCtx
 	sess            *session.Session
