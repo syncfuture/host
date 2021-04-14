@@ -213,8 +213,9 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5CcY=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/syncfuture/go v1.6.0 h1:Mvahe0au/L0qdcZ8hCfpu3i2hHIxJjOvDiHaEq/EgWU=
 github.com/syncfuture/go v1.6.0/go.mod h1:cv1xbuKopTMEZxPz2IvpkqrKHVYTTkndXikixz1K1Wo=
+github.com/syncfuture/go v1.6.1 h1:wWA8gs7n9DzQr2WghJsqm0wlfMaj0T9irhDjM/LFTqs=
+github.com/syncfuture/go v1.6.1/go.mod h1:cv1xbuKopTMEZxPz2IvpkqrKHVYTTkndXikixz1K1Wo=
 github.com/tidwall/gjson v1.7.4 h1:19cchw8FOxkG5mdLRkGf9jqIqEyqdZhPqW60XfyFxk8=
 github.com/tidwall/gjson v1.7.4/go.mod h1:5/xDoumyyDNerp2U36lyolv46b3uF/9Bu6OfyQ9GImk=
 github.com/tidwall/match v1.0.3 h1:FQUVvBImDutD8wJLN6c5eMzWtjgONK9MwIBCOrUJKeE=
