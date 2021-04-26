@@ -30,6 +30,7 @@ type WebHostOption func(*FHWebHost)
 type FHWebHost struct {
 	host.BaseWebHost
 	// 独有属性
+	IndexName         string
 	SessionCookieName string
 	SessionExpSeconds int
 	ReadBufferSize    int
@@ -55,6 +56,10 @@ func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWe
 
 func (x *FHWebHost) buildFHWebHost() {
 	x.BuildBaseWebHost()
+
+	if x.IndexName == "" {
+		x.IndexName = "index.html"
+	}
 
 	if x.SessionCookieName == "" {
 		x.SessionCookieName = "go.cookie1"
@@ -180,7 +185,13 @@ func (x *FHWebHost) ServeEmbedFiles(webPath, physiblePath string, emd embed.FS) 
 	}
 
 	x.Router.GET(webPath, func(ctx *fasthttp.RequestCtx) {
-		filepath := physiblePath + "/" + ctx.UserValue(_filepath).(string)
+		filepath := ctx.UserValue(_filepath).(string)
+		if filepath == "" {
+			filepath = x.IndexName
+		}
+
+		filepath = physiblePath + "/" + filepath
+
 		file, err := emd.Open(filepath) // embed file doesn't need to close
 		if err == nil {
 			ext := fp.Ext(filepath)
