@@ -3,6 +3,7 @@ package sgrpc
 import (
 	"context"
 
+	oauth2go "github.com/Lukiya/oauth2go/core"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
@@ -70,6 +71,8 @@ func receiveTokenMiddleware_ExtractClaims(ctx context.Context) (*map[string]inte
 				if err != nil {
 					return nil, serr.WithStack(err)
 				}
+
+				claims.Set[oauth2go.Claim_Subject] = claims.Subject
 
 				return &claims.Set, nil
 			}
