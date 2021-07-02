@@ -342,7 +342,7 @@ func (x *FastHttpContext) GetRemoteIP() string {
 }
 
 func (x *FastHttpContext) UserAgent() string {
-	return string(x.ctx.UserAgent())
+	return u.BytesToStr(x.ctx.UserAgent())
 }
 
 func (x *FastHttpContext) Redirect(url string, statusCode int) {
