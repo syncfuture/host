@@ -286,6 +286,7 @@ func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 	return serr.WithStack(err)
 }
 func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
+
 	dic := x.mapPool.Get().(map[string][]string)
 	defer func() {
 		for k := range dic { // this will compile to use "mapclear" internal function
@@ -338,6 +339,10 @@ func (x *FastHttpContext) RequestPath() string {
 }
 func (x *FastHttpContext) GetRemoteIP() string {
 	return x.ctx.RemoteIP().String()
+}
+
+func (x *FastHttpContext) UserAgent() string {
+	return string(x.ctx.UserAgent())
 }
 
 func (x *FastHttpContext) Redirect(url string, statusCode int) {

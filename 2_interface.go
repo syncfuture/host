@@ -105,6 +105,8 @@ type (
 		RequestPath() string
 		GetRemoteIP() string
 
+		UserAgent() string
+
 		Redirect(url string, statusCode int)
 		CopyBodyAndStatusCode(resp *http.Response)
 
