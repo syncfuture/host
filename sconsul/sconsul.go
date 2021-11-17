@@ -11,10 +11,12 @@ import (
 
 func RegisterServiceInfo(cp sconfig.IConfigProvider, host service.IServiceHost) {
 	// 读取配置
-	consulAddr := cp.GetString("ConsulAddr")
-	serviceName := cp.GetString("ServiceName")
-	serviceTimeout := cp.GetString("ServiceTimeout")
-	checkInterval := cp.GetString("CheckInterval")
+	consulAddr := cp.GetString("Consul.Addr")
+	serviceName := cp.GetString("Consul.Service.Name")
+	serviceCheckTimeout := cp.GetString("Consul.Service.Check.Timeout")
+	serviceCheckInterval := cp.GetString("Consul.Service.Check.Interval")
+	serviceHost := cp.GetString("Consul.Service.Host")
+	servicePort := cp.GetInt("Consul.Service.Port")
 
 	// 服务中心客户端
 	consulConfig := api.DefaultConfig()
@@ -28,12 +30,12 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider, host service.IServiceHost) 
 		ID:   fmt.Sprintf("%v[%v:%v]", serviceName, host.GetHost(), host.GetPort()), // 服务节点的名称
 		Name: serviceName,                                                           // 服务名称
 		// Tags:    r.Tag,                                        // tag，可以为空
-		Port:    host.GetPort(), // 服务端口
-		Address: host.GetHost(), // 服务 IP
+		Address: serviceHost, // 服务 IP
+		Port:    servicePort, // 服务端口
 		Check: &api.AgentServiceCheck{ // 健康检查
-			Interval:                       checkInterval, // 健康检查间隔
+			Interval:                       serviceCheckInterval, // 健康检查间隔
 			TCP:                            host.GetListenAddr(),
-			DeregisterCriticalServiceAfter: serviceTimeout, // 注销时间，相当于过期时间
+			DeregisterCriticalServiceAfter: serviceCheckTimeout, // 注销时间，相当于过期时间
 		},
 	})
 	u.LogFaltal(err)
