@@ -19,7 +19,7 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider, host service.IServiceHost) 
 	// 服务中心客户端
 	consulConfig := api.DefaultConfig()
 	consulConfig.Address = consulAddr
-	consulClient, err := api.NewClient(api.DefaultConfig())
+	consulClient, err := api.NewClient(consulConfig)
 	u.LogFaltal(err)
 	consulAgent := consulClient.Agent()
 
