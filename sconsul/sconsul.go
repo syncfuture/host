@@ -6,10 +6,9 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/u"
-	"github.com/syncfuture/host/service"
 )
 
-func RegisterServiceInfo(cp sconfig.IConfigProvider, host service.IServiceHost) {
+func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 	// 读取配置
 	consulAddr := cp.GetString("Consul.Addr")
 	serviceName := cp.GetString("Consul.Service.Name")
