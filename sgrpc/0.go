@@ -2,14 +2,17 @@ package sgrpc
 
 import (
 	"context"
+	"fmt"
 
 	oauth2go "github.com/Lukiya/oauth2go/core"
+	_ "github.com/mbobakov/grpc-consul-resolver"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -109,4 +112,20 @@ func GetClaimString(ctx context.Context, claimName string) string {
 func GetClaimInt64(ctx context.Context, claimName string) int64 {
 	v := getClaimValue(ctx, claimName)
 	return sconv.ToInt64(v)
+}
+
+func DialConsul(consulAddr, serviceName string) (*grpc.ClientConn, error) {
+	r, err := grpc.Dial(
+		fmt.Sprintf("%s://%s/%s", "consul", consulAddr, serviceName),
+		//不能block => blockkingPicker打开，在调用轮询时picker_wrapper => picker时若block则不进行robin操作直接返回失败
+		//grpc.WithBlock(),
+		grpc.WithInsecure(),
+		//指定初始化round_robin => balancer (后续可以自行定制balancer和 register、resolver 同样的方式)
+		grpc.WithBalancerName(roundrobin.Name),
+		//grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+	)
+	if err != nil {
+		return nil, serr.WithStack(err)
+	}
+	return r, nil
 }
