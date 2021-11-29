@@ -11,6 +11,7 @@ import (
 func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 	// 读取配置
 	consulAddr := cp.GetString("Consul.Addr")
+	consulToken := cp.GetString("Consul.Token")
 	serviceName := cp.GetString("Consul.Service.Name")
 	serviceCheckTimeout := cp.GetString("Consul.Service.Check.Timeout")
 	serviceCheckInterval := cp.GetString("Consul.Service.Check.Interval")
@@ -21,6 +22,7 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 	// 服务中心客户端
 	consulConfig := api.DefaultConfig()
 	consulConfig.Address = consulAddr
+	consulConfig.Token = consulToken
 	consulClient, err := api.NewClient(consulConfig)
 	u.LogFaltal(err)
 	consulAgent := consulClient.Agent()
