@@ -17,7 +17,7 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 	serviceCheckInterval := cp.GetString("Consul.Service.Check.Interval")
 	serviceHost := cp.GetString("Consul.Service.Host")
 	servicePort := cp.GetInt("Consul.Service.Port")
-	serviceID := fmt.Sprintf("%v[%v:%v]", serviceName, serviceHost, servicePort)
+	serviceID := fmt.Sprintf("%v:%v", serviceHost, servicePort)
 
 	// 服务中心客户端
 	consulConfig := api.DefaultConfig()
