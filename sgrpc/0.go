@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	oauth2go "github.com/Lukiya/oauth2go/core"
-	_ "github.com/mbobakov/grpc-consul-resolver"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
+	_ "github.com/syncfuture/host/sconsul"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/metadata"
@@ -114,9 +114,17 @@ func GetClaimInt64(ctx context.Context, claimName string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func DialConsul(consulAddr, serviceName string) (*grpc.ClientConn, error) {
+func DialConsul(consulAddr, serviceName string, args map[string]string) (*grpc.ClientConn, error) {
+	url := fmt.Sprintf("%s://%s/%s", "consul", consulAddr, serviceName)
+	if len(args) > 0 {
+		url = url + "?"
+		for k, v := range args {
+			url = url + k + "=" + v
+		}
+	}
+
 	r, err := grpc.Dial(
-		fmt.Sprintf("%s://%s/%s", "consul", consulAddr, serviceName),
+		url,
 		//不能block => blockkingPicker打开，在调用轮询时picker_wrapper => picker时若block则不进行robin操作直接返回失败
 		//grpc.WithBlock(),
 		grpc.WithInsecure(),
