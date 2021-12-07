@@ -37,6 +37,7 @@ type FHWebHost struct {
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
+	HttpHandler       host.RequestHandler
 	PanicHandler      host.RequestHandler
 	CookieEncryptor   ssecurity.ICookieEncryptor
 }
@@ -217,8 +218,17 @@ func (x *FHWebHost) Run() error {
 
 	////////// 开始Serve
 	log.Infof("Listening on %s", x.ListenAddr)
+
+	var handler fasthttp.RequestHandler
+	if x.HttpHandler == nil {
+		handler = x.Router.Handler
+	} else {
+		handler = x.BuildNativeHandler("General", x.HttpHandler)
+	}
+
 	s := &fasthttp.Server{
-		Handler:        x.Router.Handler,
+		// Handler:        x.Router.Handler,
+		Handler:        handler,
 		ReadBufferSize: x.ReadBufferSize,
 	}
 	return s.ListenAndServe(x.ListenAddr)
