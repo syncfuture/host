@@ -37,9 +37,10 @@ type FHWebHost struct {
 	Router            *router.Router
 	SessionProvider   session.Provider
 	SessionManager    *session.Session
-	HttpHandler       host.RequestHandler
-	PanicHandler      host.RequestHandler
-	CookieEncryptor   ssecurity.ICookieEncryptor
+	// Http请求Handler，如果指定此Hanlder，则Router的Handler不起作用
+	HttpHandler     host.RequestHandler
+	PanicHandler    host.RequestHandler
+	CookieEncryptor ssecurity.ICookieEncryptor
 }
 
 func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWebHost {
