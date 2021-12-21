@@ -13,7 +13,7 @@ import (
 )
 
 func TestWebHost(t *testing.T) {
-	cp := sconfig.NewJsonConfigProvider("resource.json")
+	cp := sconfig.NewJsonConfigProvider("token.json")
 	h := NewFHWebHost(cp, func(x *FHWebHost) {
 		x.GlobalPreHandlers = []host.RequestHandler{func(ctx host.IHttpContext) {
 			log.Info("GlobalPreHandlers")
