@@ -30,13 +30,14 @@ type WebHostOption func(*FHWebHost)
 type FHWebHost struct {
 	host.BaseWebHost
 	// 独有属性
-	IndexName         string
-	SessionCookieName string
-	SessionExpSeconds int
-	ReadBufferSize    int
-	Router            *router.Router
-	SessionProvider   session.Provider
-	SessionManager    *session.Session
+	IndexName          string
+	SessionCookieName  string
+	SessionExpSeconds  int
+	ReadBufferSize     int
+	MaxRequestBodySize int
+	Router             *router.Router
+	SessionProvider    session.Provider
+	SessionManager     *session.Session
 	// Http请求Handler，如果指定此Hanlder，则Router的Handler不起作用
 	HttpHandler     host.RequestHandler
 	PanicHandler    host.RequestHandler
@@ -108,6 +109,10 @@ func (x *FHWebHost) buildFHWebHost() {
 
 	if x.ReadBufferSize <= 0 {
 		x.ReadBufferSize = 4096
+	}
+
+	if x.MaxRequestBodySize <= 0 {
+		x.MaxRequestBodySize = fasthttp.DefaultMaxRequestBodySize
 	}
 
 	////////// CORS
@@ -229,8 +234,9 @@ func (x *FHWebHost) Run() error {
 
 	s := &fasthttp.Server{
 		// Handler:        x.Router.Handler,
-		Handler:        handler,
-		ReadBufferSize: x.ReadBufferSize,
+		Handler:            handler,
+		ReadBufferSize:     x.ReadBufferSize,
+		MaxRequestBodySize: x.MaxRequestBodySize,
 	}
 	return s.ListenAndServe(x.ListenAddr)
 }
