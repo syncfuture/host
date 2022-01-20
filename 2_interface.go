@@ -112,6 +112,7 @@ type (
 
 		Next()
 		Reset()
+		GetInnerContext() interface{}
 	}
 
 	IContextTokenStore interface {

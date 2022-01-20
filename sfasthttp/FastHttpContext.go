@@ -63,6 +63,10 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, cookieE
 	return r
 }
 
+func (x *FastHttpContext) GetInnerContext() interface{} {
+	return x.ctx
+}
+
 func (x *FastHttpContext) Write(p []byte) (n int, err error) {
 	return x.ctx.Write(p)
 }
