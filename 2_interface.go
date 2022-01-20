@@ -113,6 +113,7 @@ type (
 		Next()
 		Reset()
 		GetInnerContext() interface{}
+		NewFSHandler(root string, stripSlashes int) RequestHandler
 	}
 
 	IContextTokenStore interface {
