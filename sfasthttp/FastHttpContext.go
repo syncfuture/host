@@ -67,13 +67,6 @@ func (x *FastHttpContext) GetInnerContext() interface{} {
 	return x.ctx
 }
 
-func (x *FastHttpContext) NewFSHandler(root string, stripSlashes int) host.RequestHandler {
-	fsHandler := fasthttp.FSHandler(root, stripSlashes)
-	return func(ctx host.IHttpContext) {
-		fsHandler(x.ctx)
-	}
-}
-
 func (x *FastHttpContext) Write(p []byte) (n int, err error) {
 	return x.ctx.Write(p)
 }

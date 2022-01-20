@@ -51,6 +51,7 @@ type (
 		AddActions(actions ...*Action)
 		AddAction(route, routeKey string, handlers ...RequestHandler)
 		RegisterActionsToRouter(action *Action)
+		NewFSHandler(root string, stripSlashes int) RequestHandler
 	}
 
 	IHttpContext interface {
@@ -113,7 +114,6 @@ type (
 		Next()
 		Reset()
 		GetInnerContext() interface{}
-		NewFSHandler(root string, stripSlashes int) RequestHandler
 	}
 
 	IContextTokenStore interface {

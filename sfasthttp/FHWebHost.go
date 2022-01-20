@@ -42,6 +42,7 @@ type FHWebHost struct {
 	HttpHandler     host.RequestHandler
 	PanicHandler    host.RequestHandler
 	CookieEncryptor ssecurity.ICookieEncryptor
+	fsHandler       fasthttp.RequestHandler
 }
 
 func NewFHWebHost(cp sconfig.IConfigProvider, options ...WebHostOption) host.IWebHost {
@@ -161,6 +162,14 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.Request
 		}()
 		handlers[0](newCtx) // 开始执行第一个Handler
 	})
+}
+
+func (x *FHWebHost) NewFSHandler(root string, stripSlashes int) host.RequestHandler {
+	x.fsHandler = fasthttp.FSHandler(root, stripSlashes)
+	return func(ctx host.IHttpContext) {
+		c := ctx.GetInnerContext().(*fasthttp.RequestCtx)
+		x.fsHandler(c)
+	}
 }
 
 func (x *FHWebHost) GET(path string, handlers ...host.RequestHandler) {
