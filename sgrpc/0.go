@@ -12,7 +12,6 @@ import (
 	"github.com/syncfuture/host"
 	_ "github.com/syncfuture/host/sconsul"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -129,7 +128,8 @@ func DialConsul(consulAddr, serviceName string, args map[string]string) (*grpc.C
 		//grpc.WithBlock(),
 		grpc.WithInsecure(),
 		//指定初始化round_robin => balancer (后续可以自行定制balancer和 register、resolver 同样的方式)
-		grpc.WithBalancerName(roundrobin.Name),
+		// grpc.WithBalancerName(roundrobin.Name),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 		//grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 	)
 	if err != nil {
