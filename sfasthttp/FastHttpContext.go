@@ -52,7 +52,7 @@ func NewFastHttpContext(ctx *fasthttp.RequestCtx, sess *session.Session, cookieE
 	r.cookieEncryptor = cookieEncryptor
 	var err error
 	r.sessStore, err = r.sess.Get(ctx)
-	u.LogFaltal(err)
+	u.LogFatal(err)
 	r.mapPool = &sync.Pool{
 		New: func() interface{} {
 			return make(map[string][]string)

@@ -3,24 +3,24 @@ module github.com/syncfuture/host
 go 1.18
 
 require (
-	github.com/Lukiya/oauth2go v1.5.0
-	github.com/fasthttp/router v1.4.9
-	github.com/fasthttp/session/v2 v2.4.10
+	github.com/Lukiya/oauth2go v1.5.1
+	github.com/fasthttp/router v1.4.10
+	github.com/fasthttp/session/v2 v2.4.11
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/gorilla/schema v1.2.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
-	github.com/hashicorp/consul/api v1.12.0
+	github.com/hashicorp/consul/api v1.13.0
 	github.com/jpillora/backoff v1.0.0
 	github.com/kazegusuri/grpc-panic-handler v0.0.0-20160502122501-093ec776affc
 	github.com/muesli/cache2go v0.0.0-20211005105910-8e46465cca4a
 	github.com/pascaldekloe/jwt v1.10.0
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.7.1
-	github.com/syncfuture/go v1.8.0
+	github.com/stretchr/testify v1.7.2
+	github.com/syncfuture/go v1.8.1
 	github.com/valyala/fasthttp v1.37.0
-	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
-	google.golang.org/grpc v1.46.2
+	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
+	google.golang.org/grpc v1.47.0
 )
 
 require (
@@ -52,14 +52,14 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20220406081701-03de5edb2e6d // indirect
-	github.com/savsgio/gotils v0.0.0-20220401102855-e56b59f40436 // indirect
+	github.com/savsgio/gotils v0.0.0-20220530130905-52f3993e8d6d // indirect
 	github.com/sony/sonyflake v1.0.0 // indirect
 	github.com/tidwall/gjson v1.14.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20220517005047-85d78b3ac167 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -67,5 +67,5 @@ require (
 	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

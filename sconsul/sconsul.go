@@ -24,7 +24,7 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 	consulConfig.Address = consulAddr
 	consulConfig.Token = consulToken
 	consulClient, err := api.NewClient(consulConfig)
-	u.LogFaltal(err)
+	u.LogFatal(err)
 	consulAgent := consulClient.Agent()
 
 	// 在服务中心登记服务
@@ -40,5 +40,5 @@ func RegisterServiceInfo(cp sconfig.IConfigProvider) {
 			DeregisterCriticalServiceAfter: serviceCheckTimeout, // 注销时间，相当于过期时间
 		},
 	})
-	u.LogFaltal(err)
+	u.LogFatal(err)
 }

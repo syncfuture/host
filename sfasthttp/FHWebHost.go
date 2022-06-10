@@ -87,7 +87,7 @@ func (x *FHWebHost) buildFHWebHost() {
 	////////// session provider
 	if x.SessionProvider == nil {
 		provider, err := memory.New(memory.Config{})
-		u.LogFaltal(err)
+		u.LogFatal(err)
 		x.SessionProvider = provider
 	}
 
@@ -105,7 +105,7 @@ func (x *FHWebHost) buildFHWebHost() {
 
 		x.SessionManager = session.New(cfg)
 		err := x.SessionManager.SetProvider(x.SessionProvider)
-		u.LogFaltal(err)
+		u.LogFatal(err)
 	}
 
 	if x.ReadBufferSize <= 0 {

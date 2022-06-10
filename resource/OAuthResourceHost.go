@@ -67,7 +67,7 @@ func (x *OAuthResourceHost) BuildOAuthResourceHost() {
 
 	// read public certificate
 	cert, err := srsautil.ReadCertFromFile(x.PublicKeyPath)
-	u.LogFaltal(err)
+	u.LogFatal(err)
 	x.PublicKey = cert.PublicKey.(*rsa.PublicKey)
 }
 

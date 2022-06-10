@@ -44,7 +44,7 @@ func TestClientHost(t *testing.T) {
 		PoolSize:    8,
 		IdleTimeout: 30 * time.Second,
 	})
-	u.LogFaltal(err)
+	u.LogFatal(err)
 
 	cp := sconfig.NewJsonConfigProvider("client.json")
 	h := NewFHOAuthClientHost(cp, func(x *FHOAuthClientHost) {

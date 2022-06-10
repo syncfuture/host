@@ -66,7 +66,7 @@ func (x *OAuthTokenHost) BuildOAuthTokenHost() {
 	if x.PrivateKey == nil {
 		var err error
 		x.PrivateKey, err = srsautil.ReadPrivateKeyFromFile(x.PrivateKeyPath)
-		u.LogFaltal(err)
+		u.LogFatal(err)
 	}
 
 	////////// SecretEncryptor
