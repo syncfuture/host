@@ -244,7 +244,7 @@ func (x *FHWebHost) Run() error {
 	s := &fasthttp.Server{
 		// Handler:        x.Router.Handler,
 		Handler:            handler,
-		ReadBufferSize:     x.ReadBufferSize,
+		ReadBufferSize:     x.ReadBufferSize, // 提高这个值，解决Http 431错误
 		MaxRequestBodySize: x.MaxRequestBodySize,
 	}
 	return s.ListenAndServe(x.ListenAddr)
