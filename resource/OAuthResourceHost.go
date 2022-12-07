@@ -11,7 +11,7 @@ import (
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/shttp"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/sslice"
 	"github.com/syncfuture/go/u"
@@ -37,20 +37,20 @@ func (x *OAuthResourceHost) BuildOAuthResourceHost() {
 	x.BaseHost.BuildBaseHost()
 
 	if x.OAuthOptions == nil {
-		log.Fatal("OAuth secion in configuration is missing")
+		slog.Fatal("OAuth secion in configuration is missing")
 	}
 
 	if x.PublicKeyPath == "" {
-		log.Fatal("public key path cannot be empty")
+		slog.Fatal("public key path cannot be empty")
 	}
 	if x.OAuthOptions == nil {
-		log.Fatal("oauth options cannot be nil")
+		slog.Fatal("oauth options cannot be nil")
 	}
 	if x.OAuthOptions.ValidIssuers == nil || len(x.OAuthOptions.ValidIssuers) == 0 {
-		log.Fatal("Issuers cannot be empty")
+		slog.Fatal("Issuers cannot be empty")
 	}
 	if x.OAuthOptions.ValidAudiences == nil || len(x.OAuthOptions.ValidAudiences) == 0 {
-		log.Fatal("Audiences cannot be empty")
+		slog.Fatal("Audiences cannot be empty")
 	}
 	if x.SigningAlgorithm == "" {
 		x.SigningAlgorithm = jwt.PS256
@@ -83,7 +83,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	array := strings.Split(authHeader, " ")
 	if len(array) != 2 || array[0] != host.AuthType_Bearer {
 		ctx.SetStatusCode(http.StatusBadRequest)
-		log.Warnf("'%s'invalid authorization header format. '%s'", ctx.GetRemoteIP(), authHeader)
+		slog.Warnf("'%s'invalid authorization header format. '%s'", ctx.GetRemoteIP(), authHeader)
 		return
 	}
 	token := array[1]
@@ -92,7 +92,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	jwtClaims, err := jwt.RSACheck(u.StrToBytes(token), x.PublicKey)
 	if err != nil {
 		ctx.SetStatusCode(http.StatusUnauthorized)
-		log.Warn("'"+ctx.GetRemoteIP()+"'", err)
+		slog.Warn("'"+ctx.GetRemoteIP()+"'", err)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "current time not in token's valid period"
 		ctx.WriteString(msgCode)
-		log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid audience"
 		ctx.WriteString(msgCode)
-		log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
 		return
 	}
 
@@ -122,7 +122,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid issuer"
 		ctx.WriteString(msgCode)
-		log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 	// 	if msgCode := x.TokenValidator(token); msgCode != "" {
 	// 		ctx.SetStatusCode(http.StatusUnauthorized)
 	// 		ctx.WriteString(msgCode)
-	// 		log.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+	// 		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
 	// 		return
 	// 	}
 	// }

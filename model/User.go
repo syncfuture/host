@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/syncfuture/go/serr"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 )
 
 type User struct {
@@ -35,15 +35,15 @@ func (t *User) UnmarshalJSON(d []byte) error {
 	var status, level int64
 	t.Role, err = strconv.ParseInt(x.Role, 10, 64)
 	if err != nil {
-		log.Warn(err)
+		slog.Warn(err)
 	}
 	status, err = strconv.ParseInt(x.Status, 10, 32)
 	if err != nil {
-		log.Warn(err)
+		slog.Warn(err)
 	}
 	level, err = strconv.ParseInt(x.Level, 10, 32)
 	if err != nil {
-		log.Warn(err)
+		slog.Warn(err)
 	}
 
 	t.Status = int32(status)

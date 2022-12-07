@@ -24,7 +24,7 @@ const (
 // 	uIntOpt := grpc.UnaryInterceptor(panichandler.UnaryPanicHandler)
 // 	sIntOpt := grpc.StreamInterceptor(panichandler.StreamPanicHandler)
 // 	panichandler.InstallPanicHandler(func(r interface{}) {
-// 		log.Error(r)
+// 		slog.Error(r)
 // 	})
 // 	return grpc.NewServer(uIntOpt, sIntOpt)
 // }

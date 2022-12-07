@@ -10,7 +10,7 @@ import (
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
@@ -98,7 +98,7 @@ func HandleErr(err error, ctx IHttpContext) bool {
 	if err != nil {
 		ctx.SetStatusCode(http.StatusInternalServerError)
 		errID := _idGenerator.GenerateString()
-		log.Errorf("[%s] %+v", errID, err)
+		slog.Errorf("[%s] %+v", errID, err)
 		ctx.WriteJsonBytes(u.StrToBytes(`{"err":"` + errID + `"}`))
 
 		return true

@@ -11,7 +11,7 @@ import (
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/shttp"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/spool"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
@@ -136,7 +136,7 @@ func (x *FastHttpContext) GetCookieString(key string) string {
 
 func (x *FastHttpContext) SetEncryptedCookieKV(key, value string, options ...func(*http.Cookie)) {
 	if x.cookieEncryptor == nil {
-		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
+		slog.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
 		return
 	}
 	encryptedString, err := x.cookieEncryptor.Encrypt(key, value)
@@ -149,7 +149,7 @@ func (x *FastHttpContext) SetEncryptedCookieKV(key, value string, options ...fun
 
 func (x *FastHttpContext) GetEncryptedCookieString(key string) (r string) {
 	if x.cookieEncryptor == nil {
-		log.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
+		slog.Warn("cookieEncryptor is nil, this context does not suppot cookie encryption")
 		return
 	}
 

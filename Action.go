@@ -3,7 +3,7 @@ package host
 import (
 	"strings"
 
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 )
 
 type ActionGroup struct {
@@ -31,7 +31,7 @@ func NewActionGroup(preHandlers []RequestHandler, actions []*Action, afterHandle
 
 func NewAction(route, routeKey string, handlers ...RequestHandler) *Action {
 	if len(handlers) == 0 {
-		log.Fatal("handlers are missing")
+		slog.Fatal("handlers are missing")
 	}
 
 	var area, controller, action string

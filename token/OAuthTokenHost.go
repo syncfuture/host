@@ -5,7 +5,7 @@ import (
 	"github.com/Lukiya/oauth2go/security"
 	"github.com/Lukiya/oauth2go/security/rsa"
 	"github.com/Lukiya/oauth2go/store/redis"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srsautil"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
@@ -36,12 +36,12 @@ type OAuthTokenHost struct {
 }
 
 func (x *OAuthTokenHost) BuildOAuthTokenHost() {
-	// log.Info(x.SecureCookieHost.GetEncryptedCooke)
+	// slog.Info(x.SecureCookieHost.GetEncryptedCooke)
 
 	x.BaseHost.BuildBaseHost()
 
 	if x.PrivateKeyPath == "" {
-		log.Fatal("missing 'PrivateKeyPath' filed in configuration")
+		slog.Fatal("missing 'PrivateKeyPath' filed in configuration")
 	}
 	if x.UserJsonSessionKey == "" {
 		x.UserJsonSessionKey = "USERJSON"
@@ -77,20 +77,20 @@ func (x *OAuthTokenHost) BuildOAuthTokenHost() {
 	////////// ClientStore
 	if x.ClientStore == nil {
 		if x.ClientStoreKey == "" {
-			log.Fatal("ClientStoreKey cannot be empty")
+			slog.Fatal("ClientStoreKey cannot be empty")
 		}
 		if x.RedisConfig == nil {
-			log.Fatal("missing 'Redis' section in configuration")
+			slog.Fatal("missing 'Redis' section in configuration")
 		}
 		x.ClientStore = redis.NewRedisClientStore(x.ClientStoreKey, x.SecretEncryptor, x.RedisConfig)
 	}
 	////////// TokenStore
 	if x.TokenStore == nil {
 		if x.TokenStoreKey == "" {
-			log.Fatal("TokenStoreKey cannot be empty")
+			slog.Fatal("TokenStoreKey cannot be empty")
 		}
 		if x.RedisConfig == nil {
-			log.Fatal("missing 'Redis' section in configuration")
+			slog.Fatal("missing 'Redis' section in configuration")
 		}
 		x.TokenStore = redis.NewRedisTokenStore(x.TokenStoreKey, x.SecretEncryptor, x.RedisConfig)
 	}

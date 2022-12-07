@@ -9,7 +9,7 @@ import (
 
 	"github.com/muesli/cache2go"
 	"github.com/syncfuture/go/serr"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
@@ -52,7 +52,7 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 	x.BaseHost.BuildBaseHost()
 
 	if x.OAuthOptions == nil {
-		log.Fatal("OAuth secion in configuration is missing")
+		slog.Fatal("OAuth secion in configuration is missing")
 	}
 	x.OAuthOptions.BuildOAuthOptions(x.URLProvider)
 
@@ -215,7 +215,7 @@ func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
 	var area, controller, action string
 	count := len(routes)
 	if count == 0 || count > 3 {
-		log.Fatal("invalid routes array")
+		slog.Fatal("invalid routes array")
 	}
 
 	area = routes[0]

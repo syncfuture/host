@@ -3,7 +3,7 @@ package host
 import (
 	"github.com/gorilla/securecookie"
 	"github.com/syncfuture/go/sconfig"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/sredis"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/surl"
@@ -27,10 +27,10 @@ type BaseHost struct {
 
 func (x *BaseHost) BuildBaseHost() {
 	// if r.Name == "" {
-	// 	log.Fatal("Name cannot be empty")
+	// 	slog.Fatal("Name cannot be empty")
 	// }
 	// if r.ListenAddr == "" {
-	// 	log.Fatal("ListenAddr cannot be empty")
+	// 	slog.Fatal("ListenAddr cannot be empty")
 	// }
 
 	if x.ConfigProvider == nil {
@@ -53,7 +53,7 @@ func (x *BaseHost) BuildBaseHost() {
 		x.PermissionAuditor = ssecurity.NewPermissionAuditor(x.PermissionProvider, x.RouteProvider)
 	}
 
-	log.Init(x.ConfigProvider)
+	slog.Init(x.ConfigProvider)
 	ConfigHttpClient(x.ConfigProvider)
 
 	return
@@ -94,7 +94,7 @@ type BaseWebHost struct {
 
 func (x *BaseWebHost) BuildBaseWebHost() {
 	if x.ListenAddr == "" {
-		log.Fatal("ListenAddr cannot be empty")
+		slog.Fatal("ListenAddr cannot be empty")
 	}
 
 	x.Actions = make(map[string]*Action)
@@ -133,7 +133,7 @@ func (x *BaseWebHost) AddActionGroups(actionGroups ...*ActionGroup) {
 
 			_, ok := x.Actions[action.Route]
 			if ok {
-				log.Fatal("duplicated route found: " + action.Route)
+				slog.Fatal("duplicated route found: " + action.Route)
 			}
 			x.Actions[action.Route] = action
 		}
@@ -145,7 +145,7 @@ func (x *BaseWebHost) AddActions(actions ...*Action) {
 	for _, action := range actions {
 		_, ok := x.Actions[action.Route]
 		if ok {
-			log.Fatal("duplicated route found: " + action.Route)
+			slog.Fatal("duplicated route found: " + action.Route)
 		}
 		x.Actions[action.Route] = action
 	}
@@ -156,7 +156,7 @@ func (x *BaseWebHost) AddAction(route, routeKey string, handlers ...RequestHandl
 	action := NewAction(route, routeKey, handlers...)
 	_, ok := x.Actions[action.Route]
 	if ok {
-		log.Fatal("duplicated route found: " + action.Route)
+		slog.Fatal("duplicated route found: " + action.Route)
 	}
 	x.Actions[action.Route] = action
 }
@@ -175,10 +175,10 @@ func (x *SecureCookieHost) GetCookieEncryptor() ssecurity.ICookieEncryptor {
 
 func (x *SecureCookieHost) BuildSecureCookieHost() {
 	if x.BlockKey == "" {
-		log.Fatal("block key cannot be empty")
+		slog.Fatal("block key cannot be empty")
 	}
 	if x.HashKey == "" {
-		log.Fatal("hash key cannot be empty")
+		slog.Fatal("hash key cannot be empty")
 	}
 
 	x.scookie = securecookie.New(u.StrToBytes(x.HashKey), u.StrToBytes(x.BlockKey))

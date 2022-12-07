@@ -9,7 +9,7 @@ import (
 	"github.com/Lukiya/oauth2go/core"
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/pascaldekloe/jwt"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
@@ -102,13 +102,13 @@ func (x *OAuthClientHandler) SignInCallbackHandler(ctx host.IHttpContext) {
 
 		if sessionSodeChallengeMethod != codeChallengeMethod {
 			ctx.WriteString("pkce transformation method does not match")
-			log.Debugf("session method: '%s', incoming method:'%s'", sessionSodeChallengeMethod, codeChallengeMethod)
+			slog.Debugf("session method: '%s', incoming method:'%s'", sessionSodeChallengeMethod, codeChallengeMethod)
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		} else if (sessionSodeChallengeMethod == oauth2core.Pkce_Plain && codeChallenge != oauth2core.ToSHA256Base64URL(sessionCodeVerifier)) ||
 			(sessionSodeChallengeMethod == oauth2core.Pkce_Plain && codeChallenge != sessionCodeVerifier) {
 			ctx.WriteString("pkce code verifiver and chanllenge does not match")
-			log.Debugf("session verifiver: '%s', incoming chanllenge:'%s'", sessionCodeVerifier, codeChallenge)
+			slog.Debugf("session verifiver: '%s', incoming chanllenge:'%s'", sessionCodeVerifier, codeChallenge)
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}

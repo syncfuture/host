@@ -7,7 +7,7 @@ import (
 	panichandler "github.com/kazegusuri/grpc-panic-handler"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/serr"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/host/service"
 	"google.golang.org/grpc"
 )
@@ -50,7 +50,7 @@ func (x *GRPCServiceHost) BuildGRPCServiceHost() {
 	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, receiveTokenMiddleware))
 	streamHandler := grpc.StreamInterceptor(panichandler.StreamPanicHandler)
 	panichandler.InstallPanicHandler(func(r interface{}) {
-		log.Error(r)
+		slog.Error(r)
 	})
 
 	x.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(x.MaxRecvMsgSize), unaryHandler, streamHandler)
@@ -66,6 +66,6 @@ func (x *GRPCServiceHost) Run() error {
 		return serr.WithStack(err)
 	}
 
-	log.Infof("Listening at %v\n", x.ListenAddr)
+	slog.Infof("Listening at %v\n", x.ListenAddr)
 	return serr.WithStack(x.GRPCServer.Serve(listen))
 }

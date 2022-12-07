@@ -7,7 +7,7 @@ import (
 	"github.com/Lukiya/oauth2go/model"
 	"github.com/fasthttp/session/v2/providers/redis"
 	"github.com/syncfuture/go/sconfig"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
 )
@@ -16,24 +16,24 @@ func TestWebHost(t *testing.T) {
 	cp := sconfig.NewJsonConfigProvider("token.json")
 	h := NewFHWebHost(cp, func(x *FHWebHost) {
 		x.GlobalPreHandlers = []host.RequestHandler{func(ctx host.IHttpContext) {
-			log.Info("GlobalPreHandlers")
+			slog.Info("GlobalPreHandlers")
 			ctx.Next()
 		}}
 
 		x.GlobalSufHandlers = []host.RequestHandler{func(ctx host.IHttpContext) {
-			log.Info("GlobalSufHandlers")
+			slog.Info("GlobalSufHandlers")
 			ctx.Next()
 		}}
 	})
 
 	h.GET("/", func(ctx host.IHttpContext) {
-		log.Info("Handler")
+		slog.Info("Handler")
 		routeKey := ctx.GetItemString(host.Ctx_RouteKey)
 		ctx.WriteString(routeKey)
 		ctx.Next()
 	})
 
-	log.Fatal(h.Run())
+	slog.Fatal(h.Run())
 }
 
 func TestClientHost(t *testing.T) {
@@ -55,14 +55,14 @@ func TestClientHost(t *testing.T) {
 		ctx.WriteString("Test")
 	})
 
-	log.Fatal(h.Run())
+	slog.Fatal(h.Run())
 }
 
 func TestResourceHost(t *testing.T) {
 	cp := sconfig.NewJsonConfigProvider("resource.json")
 	h := NewFHOAuthResourceHost(cp)
 
-	log.Fatal(h.Run())
+	slog.Fatal(h.Run())
 }
 
 func TestTokenHost(t *testing.T) {
@@ -72,7 +72,7 @@ func TestTokenHost(t *testing.T) {
 		// x.ResourceOwnerValidator = nil
 	})
 
-	log.Fatal(h.Run())
+	slog.Fatal(h.Run())
 }
 
 type testClaimsGenerator struct{}

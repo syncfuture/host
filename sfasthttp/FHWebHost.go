@@ -12,7 +12,7 @@ import (
 	"github.com/fasthttp/session/v2"
 	"github.com/fasthttp/session/v2/providers/memory"
 	"github.com/syncfuture/go/sconfig"
-	log "github.com/syncfuture/go/slog"
+	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/ssecurity"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host"
@@ -80,7 +80,7 @@ func (x *FHWebHost) buildFHWebHost() {
 				return
 			}
 			ctx.SetStatusCode(500)
-			log.Errorf("%s -> %s", ctx.URI().String(), err)
+			slog.Errorf("%s -> %s", ctx.URI().String(), err)
 		}
 	}
 
@@ -141,7 +141,7 @@ func (x *FHWebHost) buildFHWebHost() {
 
 func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.RequestHandler) fasthttp.RequestHandler {
 	if len(handlers) == 0 {
-		log.Fatal("handlers are missing")
+		slog.Fatal("handlers are missing")
 	}
 
 	// 注册全局中间件
@@ -232,7 +232,7 @@ func (x *FHWebHost) Run() error {
 	}
 
 	////////// 开始Serve
-	log.Infof("Listening on %s", x.ListenAddr)
+	slog.Infof("Listening on %s", x.ListenAddr)
 
 	var handler fasthttp.RequestHandler
 	if x.HttpHandler == nil {
