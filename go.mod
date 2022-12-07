@@ -19,7 +19,7 @@ require (
 	github.com/pascaldekloe/jwt v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.1
-	github.com/syncfuture/go v1.9.6-beta2
+	github.com/syncfuture/go v1.9.6-beta3
 	github.com/valyala/fasthttp v1.43.0
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/grpc v1.51.0

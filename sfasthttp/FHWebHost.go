@@ -246,6 +246,7 @@ func (x *FHWebHost) Run() error {
 		Handler:            handler,
 		ReadBufferSize:     x.ReadBufferSize, // 提高这个值，解决Http 431错误
 		MaxRequestBodySize: x.MaxRequestBodySize,
+		Logger:             slog.DebugLogger,
 	}
 	return s.ListenAndServe(x.ListenAddr)
 }
