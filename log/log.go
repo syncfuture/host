@@ -8,7 +8,6 @@ import (
 
 	logs "github.com/Lukiya/logs/model"
 	"github.com/kataras/golog"
-	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/sgrpc"
 )
@@ -22,13 +21,8 @@ var (
 	}
 )
 
-func UseGrpcLogs(cp sconfig.IConfigProvider, clientID string) {
-	consulAddr := cp.GetString("Consul.Addr")
-	consulToken := cp.GetString("Consul.Token")
-
-	token := map[string]string{"token": consulToken}
-
-	logServiceConn, err := sgrpc.DialConsul(consulAddr, "logs", token)
+func UseGrpcLogs(consulAddr string, consulToken map[string]string, clientID string) {
+	logServiceConn, err := sgrpc.DialConsul(consulAddr, "logs", consulToken)
 	u.LogFatal(err)
 	_logServiceClient = logs.NewLogEntryServiceClient(logServiceConn)
 
