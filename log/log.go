@@ -49,7 +49,7 @@ func grpcLogSink(value *golog.Log, clientID string) {
 			Level:        convertLevel(value.Level),
 			Message:      value.Message,
 			StackTrace:   sb.String(),
-			CreatedOnUtc: time.Now().UnixMilli(),
+			CreatedOnUtc: time.Now().UTC().UnixMilli(),
 		},
 	})
 }
