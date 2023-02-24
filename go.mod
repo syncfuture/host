@@ -1,6 +1,6 @@
 module github.com/syncfuture/host
 
-go 1.19
+go 1.20
 
 require (
 	github.com/Lukiya/logs v0.0.0-20221207181903-034e10975988
