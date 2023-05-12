@@ -21,7 +21,7 @@ type IOAuthClientHost interface {
 	host.IWebHost
 	// host.ISecureCookieHost
 	AuthHandler(ctx host.IHttpContext)
-	GetHttpClient() (*http.Client, error)
+	GetHttpClient() *http.Client
 	GetUserHttpClient(ctx host.IHttpContext) (*http.Client, error)
 	GetClientToken(ctx host.IHttpContext) (*oauth2.Token, error)
 	GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSource, error)
@@ -108,8 +108,8 @@ func (x *OAuthClientHost) BuildOAuthClientHost() {
 	// }
 }
 
-func (x *OAuthClientHost) GetHttpClient() (*http.Client, error) {
-	return x.OAuthOptions.ClientCredential.Client(context.Background()), nil
+func (x *OAuthClientHost) GetHttpClient() *http.Client {
+	return x.OAuthOptions.ClientCredential.Client(context.Background())
 }
 
 func (x *OAuthClientHost) GetUserHttpClient(ctx host.IHttpContext) (*http.Client, error) {
