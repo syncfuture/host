@@ -102,7 +102,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "current time not in token's valid period"
 		ctx.WriteString(msgCode)
-		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warnf("%s. Remote IP:[%s]", msgCode, ctx.GetRemoteIP())
 		return
 	}
 
@@ -112,7 +112,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid audience"
 		ctx.WriteString(msgCode)
-		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warnf("%s. Required: %v, has: %v, IP:[%s]", msgCode, x.OAuthOptions.ValidAudiences, jwtClaims.Audiences, ctx.GetRemoteIP())
 		return
 	}
 
@@ -122,7 +122,7 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 		ctx.SetStatusCode(http.StatusUnauthorized)
 		msgCode := "invalid issuer"
 		ctx.WriteString(msgCode)
-		slog.Warn("'"+ctx.GetRemoteIP()+"'", msgCode)
+		slog.Warnf("%s. Required: %v, has: %v, IP:[%s]", msgCode, x.OAuthOptions.ValidIssuers, jwtClaims.Issuer, ctx.GetRemoteIP())
 		return
 	}
 
