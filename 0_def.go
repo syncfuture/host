@@ -1,7 +1,5 @@
 package host
 
-import "github.com/syncfuture/go/sid"
-
 const (
 	// Header_ContentType = "Content-Type"
 	Seperator_Route = "_"
@@ -12,9 +10,9 @@ const (
 	Ctx_Panic       = "panic"
 )
 
-var (
-	_idGenerator = sid.NewSonyflakeIDGenerator()
-)
+// var (
+// 	_idGenerator = sid.NewSonyflakeIDGenerator()
+// )
 
 type (
 	RequestHandler func(ctx IHttpContext)

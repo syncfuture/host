@@ -10,6 +10,7 @@ import (
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
+	"github.com/syncfuture/go/sid"
 	"github.com/syncfuture/go/slog"
 	"github.com/syncfuture/go/srand"
 	"github.com/syncfuture/go/ssecurity"
@@ -90,14 +91,14 @@ func RedirectAuthorizeEndpoint(ctx IHttpContext, oauthOptions *OAuthOptions, ret
 	}
 }
 
-func GenerateID() string {
-	return _idGenerator.GenerateString()
-}
+// func GenerateID() string {
+// 	return _idGenerator.GenerateString()
+// }
 
 func HandleErr(err error, ctx IHttpContext) bool {
 	if err != nil {
 		ctx.SetStatusCode(http.StatusInternalServerError)
-		errID := _idGenerator.GenerateString()
+		errID := sid.GenerateID()
 		slog.Errorf("[%s] %+v", errID, err)
 		ctx.WriteJsonBytes(u.StrToBytes(`{"err":"` + errID + `"}`))
 
