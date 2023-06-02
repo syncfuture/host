@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Lukiya/logs v1.0.1
-	github.com/Lukiya/oauth2go v1.8.0
+	github.com/Lukiya/oauth2go v1.8.1
 	github.com/fasthttp/router v1.4.19
 	github.com/fasthttp/session/v2 v2.5.0
 	github.com/go-playground/form v3.1.4+incompatible
