@@ -5,6 +5,7 @@ const (
 	Seperator_Route = "_"
 	AuthType_Bearer = "Bearer"
 	Ctx_RouteKey    = "RouteKey"
+	Ctx_UserID      = "userid"
 	Ctx_Claims      = "claims"
 	Ctx_Token       = "token"
 	Ctx_Panic       = "panic"
