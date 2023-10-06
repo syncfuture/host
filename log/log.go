@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	logs "github.com/Lukiya/logs/model"
+	"github.com/Lukiya/logs"
 	"github.com/kataras/golog"
 	"github.com/syncfuture/go/u"
 	"github.com/syncfuture/host/sgrpc"
