@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -43,7 +44,7 @@ func grpcLogSink(value *golog.Log, clientID string) {
 		}
 	}
 
-	_logServiceClient.WriteLogEntry(context.Background(), &logs.WriteLogCommand{
+	_, err := _logServiceClient.WriteLogEntry(context.Background(), &logs.WriteLogCommand{
 		ClientID: clientID,
 		LogEntry: &logs.LogEntry{
 			Level:        convertLevel(value.Level),
@@ -52,6 +53,9 @@ func grpcLogSink(value *golog.Log, clientID string) {
 			CreatedOnUtc: time.Now().UTC().UnixMilli(),
 		},
 	})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func convertLevel(level golog.Level) logs.LogLevel {
