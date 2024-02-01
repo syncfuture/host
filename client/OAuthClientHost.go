@@ -174,10 +174,11 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 	// read lock
 	userLock.RLock()
 	t, err := x.ContextTokenStore.GetToken(ctx)
-	defer func() { userLock.RUnlock() }()
 	if err != nil {
+		userLock.RUnlock() // read unlock
 		return nil, serr.WithStack(err)
 	}
+	userLock.RUnlock() // read unlock
 
 	tokenSource := x.OAuthOptions.TokenSource(goctx, t)
 	newToken, err := tokenSource.Token()
@@ -193,7 +194,7 @@ func (x *OAuthClientHost) GetUserToken(ctx host.IHttpContext) (*oauth2.TokenSour
 		// save token to session
 		err = x.ContextTokenStore.SaveToken(ctx, newToken)
 		// unlock
-		defer func() { userLock.Unlock() }()
+		userLock.Unlock()
 		if err != nil {
 			return nil, err
 		}

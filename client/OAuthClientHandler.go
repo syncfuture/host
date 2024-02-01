@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Lukiya/oauth2go/core"
 	oauth2core "github.com/Lukiya/oauth2go/core"
 	"github.com/pascaldekloe/jwt"
 	"github.com/syncfuture/go/slog"
@@ -180,11 +179,11 @@ func (x *OAuthClientHandler) SignOutHandler(ctx host.IHttpContext) {
 	ctx.SetSession(state, returnUrl)
 	targetURL := fmt.Sprintf("%s?%s=%s&%s=%s&%s=%s",
 		x.OAuth.EndSessionEndpoint,
-		core.Form_ClientID,
+		oauth2core.Form_ClientID,
 		x.OAuth.ClientID,
-		core.Form_RedirectUri,
+		oauth2core.Form_RedirectUri,
 		url.PathEscape(x.OAuth.SignOutRedirectURL),
-		core.Form_State,
+		oauth2core.Form_State,
 		url.QueryEscape(state),
 	)
 	ctx.Redirect(targetURL, http.StatusFound)

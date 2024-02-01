@@ -28,7 +28,7 @@ func NewCookieTokenStore(tokenCookieName string, cookieEncryptor ssecurity.ICook
 	}
 }
 
-/// SaveToken 保存令牌
+// / SaveToken 保存令牌
 func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token) error {
 	tokenJson, err := json.Marshal(token)
 	if err != nil {
@@ -37,6 +37,9 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 
 	// 令牌加密
 	securedString, err := x.CookieEncryptor.Encrypt(_cookieTokenProtectorKey, tokenJson)
+	if err != nil {
+		return err
+	}
 
 	// 保存加密后的令牌到Cookie
 	tokenCookie := new(http.Cookie)
@@ -59,7 +62,7 @@ func (x *CookieTokenStore) SaveToken(ctx host.IHttpContext, token *oauth2.Token)
 	return nil
 }
 
-/// GetToken 获取令牌
+// / GetToken 获取令牌
 func (x *CookieTokenStore) GetToken(ctx host.IHttpContext) (*oauth2.Token, error) {
 	// 从Session获取令牌
 	tokenJson := ctx.GetCookieString(x.TokenCookieName)
