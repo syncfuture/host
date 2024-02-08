@@ -12,12 +12,18 @@ import (
 	"github.com/syncfuture/host"
 	_ "github.com/syncfuture/host/sconsul"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
+// 定义一个用于context键的自定义类型
+// 解决警告: should not use built-in type string as key for value; define your own type to avoid collisions (SA1029)
+type contextKey string
+
 const (
 	Header_Token = "token"
-	Ctx_Claims   = "claims"
+	// Ctx_Claims   = "claims"
+	Ctx_Claims contextKey = "claims"
 )
 
 // func CreateServer() *grpc.Server {
@@ -37,7 +43,8 @@ func DialWithHttpContextToken(addr string, ctx host.IHttpContext) (r *grpc.Clien
 		if ok {
 			r, err = grpc.Dial(
 				addr,
-				grpc.WithInsecure(),
+				// grpc.WithInsecure(),
+				grpc.WithTransportCredentials(insecure.NewCredentials()),
 				grpc.WithPerRPCCredentials(newTokenCredential(token, false)),
 			)
 		}
@@ -46,7 +53,8 @@ func DialWithHttpContextToken(addr string, ctx host.IHttpContext) (r *grpc.Clien
 	if r == nil {
 		r, err = grpc.Dial(
 			addr,
-			grpc.WithInsecure(),
+			// grpc.WithInsecure(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		)
 	}
 
@@ -126,11 +134,18 @@ func DialConsul(consulAddr, serviceName string, args map[string]string) (*grpc.C
 		url,
 		//不能block => blockkingPicker打开，在调用轮询时picker_wrapper => picker时若block则不进行robin操作直接返回失败
 		//grpc.WithBlock(),
-		grpc.WithInsecure(),
+		// grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		// insecure.NewCredentials(),
 		//指定初始化round_robin => balancer (后续可以自行定制balancer和 register、resolver 同样的方式)
 		// grpc.WithBalancerName(roundrobin.Name),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 		//grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
+		// TODO: 增加收发字节限制配置
+		// grpc.WithDefaultCallOptions(
+		// 	grpc.MaxCallSendMsgSize(10*1024*1024), // 客户端发送消息的最大大小设置为10MB
+		// 	grpc.MaxCallRecvMsgSize(10*1024*1024), // 客户端接收消息的最大大小设置为10MB
+		// ),
 	)
 	if err != nil {
 		return nil, serr.WithStack(err)
