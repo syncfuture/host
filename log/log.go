@@ -23,7 +23,7 @@ var (
 )
 
 func UseGrpcLogs(consulAddr string, consulToken map[string]string, clientID string) {
-	logServiceConn, err := sgrpc.DialConsul(consulAddr, "logs", consulToken)
+	logServiceConn, err := sgrpc.DialConsul(consulAddr, "logs", consulToken, nil)
 	u.LogFatal(err)
 	_logServiceClient = logs.NewLogEntryServiceClient(logServiceConn)
 

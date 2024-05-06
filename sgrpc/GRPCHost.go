@@ -23,6 +23,7 @@ type GRPCServiceHost struct {
 	service.ServiceHost
 	GRPCServer     *grpc.Server
 	MaxRecvMsgSize int
+	MaxSendMsgSize int
 }
 
 func NewGRPCServiceHost(cp sconfig.IConfigProvider, options ...GRPCOption) IGRPCServiceHost {
@@ -46,6 +47,10 @@ func (x *GRPCServiceHost) BuildGRPCServiceHost() {
 		x.MaxRecvMsgSize = 10 * 1024 * 1024
 	}
 
+	if x.MaxSendMsgSize == 0 {
+		x.MaxSendMsgSize = 10 * 1024 * 1024
+	}
+
 	// GRPC Server
 	unaryHandler := grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(panichandler.UnaryPanicHandler, receiveTokenMiddleware))
 	streamHandler := grpc.StreamInterceptor(panichandler.StreamPanicHandler)
@@ -53,7 +58,12 @@ func (x *GRPCServiceHost) BuildGRPCServiceHost() {
 		slog.Error(r)
 	})
 
-	x.GRPCServer = grpc.NewServer(grpc.MaxRecvMsgSize(x.MaxRecvMsgSize), unaryHandler, streamHandler)
+	x.GRPCServer = grpc.NewServer(
+		grpc.MaxRecvMsgSize(x.MaxRecvMsgSize),
+		grpc.MaxSendMsgSize(x.MaxSendMsgSize),
+		unaryHandler,
+		streamHandler,
+	)
 }
 
 func (x *GRPCServiceHost) GetGRPCServer() *grpc.Server {

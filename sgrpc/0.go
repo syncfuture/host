@@ -6,6 +6,7 @@ import (
 
 	oauth2go "github.com/Lukiya/oauth2go/core"
 	"github.com/pascaldekloe/jwt"
+	"github.com/syncfuture/go/sconfig"
 	"github.com/syncfuture/go/sconv"
 	"github.com/syncfuture/go/serr"
 	"github.com/syncfuture/go/u"
@@ -121,13 +122,21 @@ func GetClaimInt64(ctx context.Context, claimName string) int64 {
 	return sconv.ToInt64(v)
 }
 
-func DialConsul(consulAddr, serviceName string, args map[string]string) (*grpc.ClientConn, error) {
+func DialConsul(consulAddr, serviceName string, args map[string]string, cp sconfig.IConfigProvider) (*grpc.ClientConn, error) {
 	url := fmt.Sprintf("%s://%s/%s", "consul", consulAddr, serviceName)
 	if len(args) > 0 {
 		url = url + "?"
 		for k, v := range args {
 			url = url + k + "=" + v
 		}
+	}
+
+	maxCallRecvMsgSize := 10 * 1024 * 1024
+	maxCallSendMsgSize := 10 * 1024 * 1024
+
+	if cp != nil {
+		maxCallRecvMsgSize = cp.GetIntDefault("MaxCallRecvMsgSize", maxCallRecvMsgSize)
+		maxCallSendMsgSize = cp.GetIntDefault("MaxCallSendMsgSize", maxCallSendMsgSize)
 	}
 
 	r, err := grpc.Dial(
@@ -142,10 +151,10 @@ func DialConsul(consulAddr, serviceName string, args map[string]string) (*grpc.C
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 		//grpc.WithDefaultServiceConfig(`{"loadBalancingConfig": [{"round_robin":{}}]}`),
 		// TODO: 增加收发字节限制配置
-		// grpc.WithDefaultCallOptions(
-		// 	grpc.MaxCallSendMsgSize(10*1024*1024), // 客户端发送消息的最大大小设置为10MB
-		// 	grpc.MaxCallRecvMsgSize(10*1024*1024), // 客户端接收消息的最大大小设置为10MB
-		// ),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(maxCallRecvMsgSize), // 客户端接收消息的最大大小设置为10MB
+			grpc.MaxCallSendMsgSize(maxCallSendMsgSize), // 客户端发送消息的最大大小设置为10MB
+		),
 	)
 	if err != nil {
 		return nil, serr.WithStack(err)
