@@ -159,3 +159,13 @@ func SetEncryptedCookie(ctx IHttpContext, cookieEncryptor ssecurity.ICookieEncry
 		u.LogError(err)
 	}
 }
+
+func FlattenMap(input map[string][]string) map[string]string {
+	output := make(map[string]string, len(input))
+	for key, value := range input {
+		if len(value) > 0 {
+			output[key] = value[0]
+		}
+	}
+	return output
+}
