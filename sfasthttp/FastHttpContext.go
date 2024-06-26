@@ -305,7 +305,7 @@ func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
 	return serr.WithStack(err)
 }
 
-func (x *FastHttpContext) ReadFormMap(objPtr interface{}) (map[string][]string, error) {
+func (x *FastHttpContext) ReadFormMap() (map[string][]string, error) {
 	dic := make(map[string][]string)
 
 	x.ctx.PostArgs().VisitAll(func(key, value []byte) {

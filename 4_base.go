@@ -55,8 +55,6 @@ func (x *BaseHost) BuildBaseHost() {
 
 	slog.Init(x.ConfigProvider)
 	ConfigHttpClient(x.ConfigProvider)
-
-	return
 }
 
 func (x BaseHost) GetDebug() bool {

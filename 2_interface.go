@@ -92,7 +92,7 @@ type (
 		ReadJSON(objPtr interface{}) error
 		ReadQuery(objPtr interface{}) error
 		ReadForm(objPtr interface{}) error
-		ReadFormMap(objPtr interface{}) (map[string][]string, error)
+		ReadFormMap() (map[string][]string, error)
 
 		GetHeader(key string) string
 		SetHeader(key, value string)
