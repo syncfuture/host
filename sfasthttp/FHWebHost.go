@@ -153,8 +153,7 @@ func (x *FHWebHost) BuildNativeHandler(routeKey string, handlers ...host.Request
 	}
 
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
-		var newCtx host.IHttpContext
-		newCtx = NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor, handlers...)
+		newCtx := NewFastHttpContext(ctx, x.SessionManager, x.CookieEncryptor, handlers...)
 		newCtx.SetItem(host.Ctx_RouteKey, routeKey)
 		defer func() {
 			newCtx.Reset()
@@ -259,22 +258,16 @@ func (x *FHWebHost) RegisterActionsToRouter(action *host.Action) {
 	switch method {
 	case http.MethodPost:
 		x.Router.POST(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	case http.MethodGet:
 		x.Router.GET(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	case http.MethodPut:
 		x.Router.PUT(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	case http.MethodPatch:
 		x.Router.PATCH(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	case http.MethodDelete:
 		x.Router.DELETE(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	case http.MethodOptions:
 		x.Router.OPTIONS(path, x.BuildNativeHandler(action.RouteKey, action.Handlers...))
-		break
 	default:
 		panic("does not support method " + method)
 	}

@@ -290,7 +290,6 @@ func (x *FastHttpContext) ReadQuery(objPtr interface{}) error {
 	return serr.WithStack(err)
 }
 func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
-
 	dic := x.mapPool.Get().(map[string][]string)
 	defer func() {
 		for k := range dic { // this will compile to use "mapclear" internal function
@@ -304,6 +303,16 @@ func (x *FastHttpContext) ReadForm(objPtr interface{}) error {
 
 	err := _decoder.Decode(objPtr, dic)
 	return serr.WithStack(err)
+}
+
+func (x *FastHttpContext) ReadFormMap(objPtr interface{}) (map[string][]string, error) {
+	dic := make(map[string][]string)
+
+	x.ctx.PostArgs().VisitAll(func(key, value []byte) {
+		dic[u.BytesToStr(key)] = []string{u.BytesToStr(value)}
+	})
+
+	return dic, nil
 }
 
 func (x *FastHttpContext) SetHeader(key, value string) {
