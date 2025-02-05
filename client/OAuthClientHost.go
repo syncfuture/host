@@ -231,7 +231,7 @@ func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
 
 	// 判断请求是否允许访问
 	if user != nil {
-		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, user.Role, user.Level) {
+		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, user.Role, user.Level, user.Scopes) {
 			// 有权限
 			ctx.Next()
 			return
@@ -243,7 +243,7 @@ func (x *OAuthClientHost) AuthHandler(ctx host.IHttpContext) {
 	}
 
 	// 未登录
-	allow := x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, 0, 0)
+	allow := x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, 0, 0, make([]string, 0))
 	if allow {
 		// 允许匿名
 		ctx.Next()

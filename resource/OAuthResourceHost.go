@@ -142,7 +142,15 @@ func (x *OAuthResourceHost) AuthHandler(ctx host.IHttpContext) {
 
 		roles := sconv.ToInt64(jwtClaims.Set[oauth2core.Claim_Role])
 		level := sconv.ToInt64(jwtClaims.Set[oauth2core.Claim_Level])
-		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level)) {
+
+		var scopes []string
+		if a, ok := jwtClaims.Set[oauth2core.Claim_Scope].([]string); ok {
+			scopes = a
+		} else {
+			scopes = make([]string, 0)
+		}
+
+		if x.PermissionAuditor.CheckRouteWithLevel(area, controller, action, roles, int32(level), scopes) {
 			// Has permission, allow
 			ctx.SetItem(host.Ctx_UserID, jwtClaims.Subject) // UserID
 			ctx.SetItem(host.Ctx_Claims, &jwtClaims.Set)    // RL00001
