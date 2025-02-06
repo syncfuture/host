@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/Lukiya/logs v1.3.0
-	github.com/Lukiya/oauth2go v1.18.1
+	github.com/Lukiya/oauth2go v1.18.2
 	github.com/fasthttp/router v1.5.4
 	github.com/fasthttp/session/v2 v2.5.9
 	github.com/go-playground/form v3.1.4+incompatible
@@ -19,7 +19,7 @@ require (
 	github.com/pascaldekloe/jwt v1.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
-	github.com/syncfuture/go v1.18.1
+	github.com/syncfuture/go v1.18.2
 	github.com/valyala/fasthttp v1.58.0
 	golang.org/x/oauth2 v0.26.0
 	google.golang.org/grpc v1.70.0

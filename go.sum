@@ -4,8 +4,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/Lukiya/logs v1.3.0 h1:ptC/VuljNSp8GbLou05uXFKxzOFmAcnqjcoN1dQrAGM=
 github.com/Lukiya/logs v1.3.0/go.mod h1:uV1e6mKnEfhxrqMRo5jt9C3RCAKDJizBgFQjDYTofGQ=
-github.com/Lukiya/oauth2go v1.18.0 h1:aeXz0lZSc53KGXMntQVJQp4tQTs4Sdy5QH/nP2f9aM0=
-github.com/Lukiya/oauth2go v1.18.0/go.mod h1:PxleYTPGTfuKXndoU9E/7fS3mMGZoQAcuNSUZ6lM2fk=
+github.com/Lukiya/oauth2go v1.18.2 h1:SNvo4jgP1SwPDDQfra76a1/GPqD+dm/TQWMKtyV2kNs=
+github.com/Lukiya/oauth2go v1.18.2/go.mod h1:Nz8tyDGsv4zOB3zvbMv0gnoJfvX8j1ibvpFTa4rglus=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=
 github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRFXyAe+OPACYpWeL0wqObRcbAqCMya13uyzqw0=
@@ -271,8 +271,8 @@ github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/syncfuture/go v1.18.0 h1:EDsNTYvYTTg0K3/PXaKjxRAJycb6h6oKhx60eOFS49g=
-github.com/syncfuture/go v1.18.0/go.mod h1:hNSpwIcv0epVF+ywT2IWqF+L02Ryi10VHQJ4ShDcjF8=
+github.com/syncfuture/go v1.18.2 h1:Gth9QO4vFHfj5dPU0wJXVNk0mCB7CuZpdv1o3s7Vb8M=
+github.com/syncfuture/go v1.18.2/go.mod h1:hNSpwIcv0epVF+ywT2IWqF+L02Ryi10VHQJ4ShDcjF8=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
